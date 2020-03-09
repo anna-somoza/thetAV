@@ -1,6 +1,9 @@
 # Code
 The aim of this project is to recode all the functions of avisogenies with improvements in
 the algorithms and in sagemath
+In  particular we have now an algorithm to compute isogenies which is very efficient
+and simple to implement : it improves the preceding algorithms for l=3 mod 4 and for
+cyclic isogeny in general.
 
 
 Type variété abélienne: thêta null point
