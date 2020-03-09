@@ -1,0 +1,75 @@
+- Compute the image of a geometric point on the abelian variety rather than
+  just the theta null points.
+  This can currently be done "by hand" using the functions from
+  Arithmetic.m and Isogenies.m (compute the differential additions, then
+  apply the change level formula by modifying change_level a bit).
+  This is now implemented but not tested in Image.m.
+
+- Compute the isogeny given only the equation of the kernel (and not the
+  geometric points), using [David Lubicz, Damien Robert: Computing
+  separable isogenies in quasi-optimal time].
+
+- Merge the code to compute cyclic isogenies [Alina Dudeanu, Dimitar
+  Jetchev, Damien Robert: Computing Cyclic Isogenies in Genus 2]
+
+- Finish the article [Gaetan Bisson, Romain Cosset, Damien Robert: On the
+  Practical Computation of Isogenies of Jacobian Surfaces] which explain
+  some of the tricks we use in avisogenies (in particular how to handle the
+  case p=2 or how to compute the l-primary part of Jac(H) efficiently).
+
+- Handle g > 2 (and optionally g=1, but with g=1 one can use Vélu's
+  formulas).
+  Here is the current state of the code:
+  - Arithmetic.m: works for any g
+  - rosenhain.m: Thomae's formulas give the fourth power of the theta
+    constants of level 4 (or 2). We need to take compatible roots to get
+    the theta constants of the Jacobian. We don't know how to do this for
+    g>2. (And there is also the problem that Thoma's formulas are available
+    only for hyperelliptic curves).
+      Once we have the theta null point, we have the conversion from Theta
+      to Mumford (all cases), and from Mumford to Theta (except for the
+      cases D contains a point of multiplicity >=2 and a point of
+      ramification, D contains a point of multiplicity >=3, D contains a
+      point of multiplicity >=2 and is degenerate. We can handle these case
+      theoretically, but this was not implemented since they can't appear
+      with g=2).
+  - Torsion.m: could be adapted for any g with a little effort. Except
+    GetTorsionBasisG2 (computing the torsion by using pairings) which would
+    need to be rewritten from scratch, but we could use GetTorsionBasis
+    instead (but this would use O(l^2g) memory rather than O(l^g) at worse,
+    O(l) on average when we use pairings).
+  - Isogenies.m: mostly all functions work in all genus, except
+    compute_all_theta_torsion, get_coeff_structure_fast(Dl), and of course 
+    the functions fooG2 or Genus2bar since they call functions not yet
+    working in genus g>2.
+
+- Handle the characteristic p=2
+  This would induce a major rewrite: in Arithmetic.m implement
+  differential_addition that works in characteristic 2, and rosenhain.m
+  would have to be completely rewritten (by taking a lift in charac 0 to
+  converts the points).
+
+	This is mostly done now for g=2.
+
+- Implement convenient functions. We lack intermediate functions between the
+  low level ones, and the ones that output the full isogeny graph:
+  we don't even have a function that given J and a kernel, compute J/K
+  in ex-Isogenies.m we give an example using lower level function to
+  compute J/K which is way longer than it should be.
+
+- Handle the case of split abelian surface. This mean
+  - when starting with a product E_1 x E_2 we need to adapt the code to
+    compute kernels in E_1 x E_2
+  - when J/K=E_1xE_2 we need to detect this case (this is easy: \chi_10=0)
+    and compute E_1xE_2 (this is easy too: we have a product theta
+    structure)
+  - the nice thing is that it is just the conversion between theta and
+    mumford that we need to adapt, the isogeny in theta coordinates work
+    for all cases
+
+- The lattice of order returned by draw.m output all orders between
+  \Z[\pi,\pibar] and O_K. But a principally polarised abelian variety has
+  an endomorphism ring stable by complex multiplication so we should
+  restrict to these orders.
+
+- Use our own categories?

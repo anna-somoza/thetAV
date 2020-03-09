@@ -1,0 +1,39 @@
+#!/bin/sh
+
+name='avisogenies'
+ver='0.7-alpha'
+fullname="$name-$ver"
+
+if [ -d .git ]; then
+  git archive --output "$fullname.tar.gz" --prefix "$fullname/" master
+  tar -C tar -C "/tmp/" -xvf "$fullname.tar.gz"
+else
+  svn export . /tmp/"$fullname"
+  ln -s /tmp/"$fullname" "$fullname"
+  tar cvfz "$fullname".tar.gz "$fullname"/*
+  rm "$fullname"
+fi
+
+magma <<EOF
+  AttachSpec("/tmp/$fullname/src/AVI.spec");
+  F<t>:=GF(3,6);
+  A<x>:=PolynomialRing(F);
+  f:=t^254*x^6 + t^223*x^5 + t^255*x^4 + t^318*x^3 + t^668*x^2 + t^543*x + t^538; 
+  H:=HyperellipticCurve(f);
+  J:=Jacobian(H); 
+  SetVerbose("AVIsogenies",4);
+  time r:=RationallyIsogenousCurvesG2(H,7);
+EOF
+
+cat <<EOF
+
+Now transfer the tarball to gforge:
+	https://gforge.inria.fr/frs/admin/qrs.php?package=&group_id=2815
+
+Announce it on the webpage:
+	sftp://login@scm.gforge.inria.fr/home/groups/avisogenies/htdocs
+
+Announce it on the mailing-list:
+	avisogenies-devel@lists.gforge.inria.fr
+
+EOF

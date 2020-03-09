@@ -1,0 +1,39 @@
+When AVIsogenies was first written, the goal was to compute small isogenies
+in genus 2. There was not much consideration given to memory consumption,
+which was very small anyway for (3,3)-isogenies for instance, so we always
+favorised time in time/memory tradeoffs. 
+
+Before the release of version 0.1, we went from more than 30 minutes to
+compute a graph of 135 (3,3)-isogenous Jacobians to 12 seconds. However,
+this mean that the limiting factor for bigger isogeny consumption was
+memory. For instance a (1321, 1321)-isogeny could be done in two hours, but
+required 10GB of ram.
+
+Since version 0.5, support was added for computing isogenies in greater
+dimension than two. Already in genus 3, the memory requirement get very
+big, even for small isogenies.
+
+For instance, computing (7,7,7)-isogenies could be done in 200 seconds, but
+require 4GB of ram. (11,11,11)-isogenies required 67000GB!
+
+In version 0.6, we worked to reduce the memory consumption. (More
+precisely, we worked on diminishing the memory needed to compute the
+dilatation factors in the changing level step). 
+
+Computing a (7,7,7)-isogeny only take 150MB. The tradeoff in time is almost
+negligible, even in the first case of a lots of small isogenies like the
+previous (3,3)-isogeny graph we lose a factor of less than 1%.
+
+There is also a new optional parameter 'save_mem' in
+RationallyIsogenousJacobiansG2, that if set to '1' use memory/time trade
+off to further reduce the amount of memory needed, at the expense of time.
+For instance, (7,7,7)-isogenies with this parameter are computed in 600
+seconds, but require only 100MB of ram (the gain is better for
+(11,11,11)-isogenies).
+
+Note that the time and memory asymptotic complexity are (neglecting
+logarithmic factors) in O((nl)^r) operations in the field where the theta
+coordinates of the points of the Kernel live, where n is the level of the
+theta coordinates, l the degree of the isogeny, and r=g if l is congruent
+to 1 mod 4 and r=2g when l is congruent to 3 mod 4. So it will be
+exponential in g.

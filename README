@@ -1,0 +1,16 @@
+# Code
+
+Type variété abélienne: thêta null point
+Type Jacobienne (via un type courbe)
+
+- Equations: Riemann relations, take a random point, test if a piont is on the AV;
+- Equations for the moduli space of abelian varieties with theta structure ;
+- Arithmetic: normal addition, differential addition, exponentiation, threewayadd,
+  compatible addition (level 2), P \pm Q (level 2)
+- Pairings: Tate, Weil
+- Isogenies and cyclic isogenies
+- conversation : curves <=> theta (Thomae + choice of sign), points (Mumford <=> theta)
+- Isogeny graph : possible degrees of the points in the kernel, manage the extensions for
+  theta + points in the kernel, compute symplectic basis of the l-torsion
+- compuation of the endomorphism ring
+

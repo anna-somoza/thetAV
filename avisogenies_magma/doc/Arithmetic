@@ -1,0 +1,59 @@
+Structure:
+=========
+
+ThetaPoint represents a Theta Point
+ThetaNullPoint for the special case of a Theta Null point 
+
+Important functions:
+===================
+
+get_precompute_inverses(L)
+  compute the inverse of a list L doing only one division
+
+init_theta_null_point(point0: numbering:=AbelianGroup([0]), init:="all", precomp:=AssociativeArray())
+returns points0 as a ThetaNullPoint, and precomp.
+
+ initialise a theta null point
+ - either point0 is an array, so it is already indiced by a numbering group D
+ - otherwise it is a list, and we use the parameter numbering to specify
+the numbering group D
+ - init = none, basic, dadd, add, all, isogenies according to which
+computation we expect to use. Since init=all is already really fast, there
+is no really a point to change it, except if you use ThetaPoints of high
+dimension.
+ - we use precompute_D to initialize some precomputations in precomp about
+the numbering group D
+
+function init_theta_point(point: numbering:=AbelianGroup([0]))
+  return point as a ThetaPoint
+
+Doing the arithmetic, for more documentations, look at the source code:
+
+function diff_add(P,Q,PmQ,point0)
+function add(P,Q,point0: affine_patch:=point0`numbering.0)
+function opp(P,point0: keep:=true)
+function diff_mult(k,P,point0)
+function diff_multadd(k,P,PQ,Q,point0)
+function mult(k,P,point0)
+function pairing(l,P,Q,point0)
+function point_from_basis_l2(el,ltors)
+
+Internal functions which can be useful to speed up some algorithms:
+==================
+
+procedure precompute_theta_point(~P,P0: init:="dadd", isQ:=true, onlyprod:=false)
+
+Precompute some relations that we will doing additions with P. To use if P
+will appear a lot.
+  init=none,dadd,add,all
+
+  The idea is as follow: in addition_formula(P,Q,P0), we assume that Q lives
+  in the bigger field, so we check first if we have precomputed mixed
+  coordinates for Q, then for P.
+  
+  isQ:=true  => precompute the values for P for usage in diff_add(-,P,-,P0).
+     :=false => precompute for diff_add(P,-,-,P0)
+  onlyprod:=true => only compute the products
+    Set these value to true if you want to do n>1 additions with P, but
+    each time with a point that has already been precomputed
+  onlyprod:=false => to precompute the mixed_coordinates

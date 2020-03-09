@@ -1,0 +1,8 @@
+#!/bin/sh
+
+#If we test on older magma versions we need to recompile the source files
+rm src/*.sig
+magma <<EOF
+  AttachSpec("src/AVI.spec");
+  load "examples/debug.m";
+EOF

@@ -1,0 +1,303 @@
+DESCRIPTION
+===========
+
+AVIsogenies (Abelian Varieties and Isogenies) is a Magma package for working
+with abelian varieties, with a particular emphasis on explicit isogeny
+computation. It is released under LGPLv2+ (see 00.COPYING). The project URL is:
+
+	http://avisogenies.gforge.inria.fr/
+
+Currently we have a full implementation of (l,l)-isogenies graphs in genus 2
+over finite fields of characteristic coprime to 2 and l.
+
+Many complementary features can be found in the ECHIDNA package:
+
+	http://echidna.maths.usyd.edu.au/
+
+
+
+GETTING STARTED
+===============
+
+To use this package, in Magma, just do:
+
+  AttachSpec("install_path/src/AVI.spec");
+
+Or better yet, put this line in your $HOME/.magmarc (and create it if you don't
+have one).
+
+
+
+COMPUTING ISOGENIES
+===================
+
+Define a Jacobian:
+
+  F<t>:=GF(3,6);
+  A<x>:=PolynomialRing(F);
+  f:=t^254*x^6 + t^223*x^5 + t^255*x^4 + t^318*x^3 + t^668*x^2 + t^543*x + t^538;
+  H:=HyperellipticCurve(f);
+  J:=Jacobian(H); 
+
+Set the verbosity:
+
+  SetVerbose("AVIsogenies",4);
+
+Compute all (7,7)-isogenies:
+
+  time r:=RationallyIsogenousCurvesG2(H,7);
+
+Compute the (7,7)-isogenies graph:
+  
+  SetVerbose("AVIsogenies",1); //Reduce the verbosity
+  time isograph,jacobians:=Genus2IsogenyGraph(J,[7]);
+
+
+
+EXAMPLES
+========
+
+See also the files examples/ex-FOO for how to use src/FOO.m and
+examples/graph/*.iso.dot.svg for some isogenies graph.
+
+
+
+VERBOSITY
+=========
+
+Verbosity level of "AVIsogenies":
+1) Used by Genus2IsogenyGraph to output some informations about the current
+   isogeny graph.
+2) Used by RationallyIsogenousCurvesG2 to output the time taken by
+   computing the isotropic subgroups, and then the time taken to compute
+   the isogeny corresponding to each of these kernels.
+3) More informations about the preceding steps:
+   - during the computation of the kernel, output some informations about
+     the computation of a basis of the l-torsion, computing pairings and
+     the Frobenius of elements in the basis and the conversion from Mumford
+     to Theta coordinates
+   - during the computation of the isogeny, output some informations about
+     the computation of the points of the kernel using differential
+     additions, and then applying the change level formula.
+4) A bit more verbosity about the preceding steps (in which degree the
+   Mumford and theta coordinates of the points in the kernel live, timings
+   of the conversion from Mumford to Theta).
+5) Used by GetTorsionBasisG2 to output some informations regarding the way
+   the l^\infty basis is constructed.
+6) Timings on each pairing done (to compare pairings on Mumford coordinates
+   using Magma's implementation, and pairings on Theta coordinates).
+7) Detailed timings about the change level formula. Useful when computing
+   an (l,l)-isogeny with very large l (l =~ 1000).
+
+For everyday computations, Verbosity level above 5 should not be needed.
+
+
+
+FUNCTIONS AND PARAMETERS
+========================
+
+1) Computing isogenies
+   -------------------
+
+intrinsic RationalSymplecticTorsionSubgroups(J::JacHyp,l::RngIntElt : 
+ precomp:=AssociativeArray(),theta:=1,ext_degree:=-1, only_mumford:=false, save_mem:=0) -> SeqEnum,Tup,Assoc
+ {The sequence of rational symplectic l-torsion subgroups of J.}
+
+ Outputs: 
+   - The list of rational isotropic maximal subgroups (as a list of
+ their basis in Mumford coordinates)
+   - < A symplectic basis B of the l-torsion (in degree ext_degree), 
+       the preceding subgroups in abstract form, their basis being
+       abstractly expressed in term of B >
+   - precomp
+
+  The algorithm is as follow
+  - Compute the extension F2 where the geometric points of the
+        maximal isotropic kernel of J[l] lives.
+  - Compute a symplectic basis of J[l](F2):
+    - Compute the zeta function of J/F2 (using the zeta function of J/F)
+    - Multiply by the right cofactor to get a uniform point of
+      l^\infty-torsion.
+    - Multiply by a suitable power of l to get a point of l-torsion.
+    - Correct the points to obtain uniform points of l-torsion.
+  - Find the rational maximal isotropic kernels K.
+  - For each kernel K, convert its basis from Mumford to theta
+        coordinates of level 2. (Rosenhain then Thomae).
+  
+  The parameters are as follow:
+  - precomp is an associative array used to store informations
+  - theta:=0 => Pairing using mumford coordinates, theta:=1 => pairing using
+    theta coordinates.
+  - ext_degree: the extension degree where we will be looking for points of
+    rational isotropic kernels. ex: ext_degree:=1 will only look for kernels
+    whose geometric points are rationals. ext_degree:=-1 will use 
+    GetRationalSquareTorsionExtension to determine the maximum degree in
+    which such points live.
+  - save_mem:= -1,0,1. Specify how to obtain the decomposition of a
+    l-torsion point in term of the basis already computed in the Correction
+    step. save_mem:=-1 => simply compute all the multiples, uses O(l^3)
+    memory, so to only use with l very small (l=3,5). save_mem:=0 => use
+    pairings, the worse case is when we only have an isotropic subbasis,
+    O(l^2) at worse. save_meme:=1 => use pairings + when we have an
+    isotropic subbasis, don't save the multiple for a time/memory tradeoff,
+    use for huge l.
+
+intrinsic RationallyIsogenousCurvesG2(J::JacHyp,l::RngIntElt :  
+    precomp:=AssociativeArray(), theta:=1, precomp_power:=true, ext_degree:=-1,
+    curve_to_invariants:=func<x|G2Invariants(x)>,
+    invariants_to_curve:=HyperellipticCurveFromG2Invariants,
+    save_mem:=0) -> SeqEnum,Assoc
+    {Given a hyperelliptic Jacobian J and a prime l, returns the l-isogenous curves}
+
+  Output:
+  - A list of the isogenous Jacobians in the form < Invariants(Jiso), Jiso >
+  - precomp
+
+  The algorithm is:
+  - Compute the kernels with RationalSymplecticTorsionSubgroups
+  - For each kernel compute the points in theta coordinates using
+    differential addition: cost O(l^2).
+  - Apply the change level formula: cost O(l^2) if l=a^2+b^2, otherwise
+    cose O(l^4).
+  - Convert the theta null point of the isogenous Jacobian to absolute
+    invariants.
+  - Construct the curve from the invariants, and select the right twist
+    from the zeta function of J.
+
+  The parameters are:
+  - precomp is an associative array used to store informations
+  - precomp_power: precompute the powers of the coordinates appearing in the
+    change level formula for a time/memory trade off (should be left to
+    true).
+  - curve_to_invariants/invariants_to_curve: conversion invariants <-> curves
+  - the others are passsed to RationalSymplecticTorsionSubgroups
+
+intrinsic Genus2IsogenyGraph(J::JacHyp,prime_list::[RngIntElt]:
+  theta:=1, structure:=true, ext_degrees:=[], precompl:=AssociativeArray(),frob:=0, save_mem:=0)
+  -> Assoc, SeqEnum, SeqEnum
+  {The isogeny graph of the Jacobian J for primes in prime_list.}
+
+  Output:
+  - the isogeny graph as an associative array isogn such that isogn[Inv]
+    is a list of elements of the form <InvIso,l> where InvIso is the
+    invariant of a Jacobian l-isogenous to the Jacobian of invariants Inv.
+  - an associative array jacobians such that jacobians[Inv] give the
+    Jacobian corresponding to Inv. This is determined up to a twist, and
+    the Jacobian is chosen to have the same zeta function as J (so it is
+    really the right Jacobian isogenous to J, not a twist of it).
+  - precompl
+
+  Parameters:
+  - structure: when set to false, if there is only one possible isogeny and
+    we are not on the origin, then we know it is the contragredient isogeny
+    of an isogeny already computed. Therefore we don't compute it to save
+    time. (But if we see the isogeny graph as an oriented graph, the graph
+    is false since we are missing some contragredient isogenies).
+  - ext_degrees[l] if defined will be the parameter passed to
+    to RationallyIsogenousCurvesG2(J,l). 
+  - precompl is an associative array containing some precomputations about
+    how to compute an l-isogeny. If precompl[l] is not empty, it is passed
+    to precomp in RationallyIsogenousCurvesG2(J,l: precomp:=precomp). 
+  - frob: the characterisitc  polynomial of J. By defaut it is recomputed.
+    Usefull when computing an isogenies from a curve coming from the CM
+    method, where the frobenius is already kwown, and recomputing it could
+    be expensive.
+
+2) Drawing graphs
+   --------------
+
+intrinsic PolarizedClassGroup(O::RngOrd) -> GrpAb, Map
+  {Shimura's gothic C class group of polarized ideal classes;
+  works somewhat with non-maximal orders.}
+
+intrinsic LatticeOfOrders(pi::RngUPolElt : Orientation := "Down") -> SeqEnum
+    {Remark: The lattice of orders is exponential in the 
+    number of divisors of the index [O_K:Z[\pi,\bar\pi]],
+    so it would make sense to input a set of such divisors
+    to bound the size of the lattice. --DRK}
+
+intrinsic DrawLattice(Z::Assoc,file::MonStgElt : info:=func<o|"">)
+  {Writes a graphviz file describing the lattice of orders;
+  compile with "dot -Tsvg -o file.dot.svg file.dot".}
+
+intrinsic DrawGraph(graph::Assoc, file::MonStgElt : edges:=false, vertices:=AssociativeArray())
+  {Writes a graphviz file describing the graph to file; compile with
+  "neato -Tsvg -o file.dot.svg file.dot"; optionally labels the vertices
+  and edges (with the second element of graph[*]).}
+
+3) Other intrinsics
+   ---------------
+
+Here is a list of the other intrinsic, they should be documented...
+
+In CompleteLaw.m.
+
+intrinsic additionP_fromMumford(D1 :: JacHypPt,D2 ::
+  JacHypPt,thc :: SeqEnum ,Ros ::SeqEnum,theta_const_group :: Rec,gamma ::
+  SeqEnum) -> SeqEnum
+
+intrinsic FindAlpha(JacC :: JacHyp,k:: FldFin) -> SeqEnum
+
+intrinsic CoefficientLawP(JacC :: JacHyp,Ros :: SeqEnum,thc
+:: Rec,alpha :: SeqEnum) -> SeqEnum
+
+In Torsion.m
+
+intrinsic FrobeniusPoly(J::JacHyp) -> RngUPolElt
+
+intrinsic FrobeniusPoly(H::CrvHyp) -> RngUPolElt
+
+intrinsic GetFullTorsionExtension(l::RngIntElt,frob::RngUPolElt)
+  -> RngIntElt
+
+intrinsic GetTorsionBasis (J::JacHyp, l::RngIntElt, k::RngIntElt
+  : frob:=FrobeniusPoly(J), ldtors:=0) -> SeqEnum
+  {Computes a basis of the l-torsion group of J defined over an
+  extension of degree k. See source code for optional arguments.}
+
+intrinsic RationalSymplecticTorsionSubgroups(J::JacHyp,l::RngIntElt : 
+ precomp:=AssociativeArray(),theta:=1,ext_degree:=-1, only_mumford:=false, save_mem:=0) -> SeqEnum,Tup,Assoc
+ {The sequence of rational symplectic l-torsion subgroups of J.}
+
+In end.m
+intrinsic EndomorphismRing(J::JacHyp : lattice:=AssociativeArray())
+  -> RngOrd
+
+In groupc.m
+intrinsic PolarizedClassGroup(O::RngOrd) -> GrpAb, Map
+
+In libseq.m
+intrinsic JoinString(list::SeqEnum[MonStgElt], sep::MonStgElt) -> MonStgElt
+
+In morphisms.m
+
+intrinsic AnalyticThetaPoint
+
+intrinsic AnalyticThetaNullPoint
+
+intrinsic AnalyticToAlgebraicThetaNullPoint(g::RngIntElt,thc::Rec,A::GrpAb) -> Rec
+
+intrinsic AnalyticToAlgebraicThetaPoint(g::RngIntElt,th::Rec,A::GrpAb) -> Rec
+
+intrinsic AlgebraicToAnalyticThetaNullPoint(g::RngIntElt,thc::Rec,Ab::GrpAb) -> Rec
+
+intrinsic MumfordToLevel2ThetaPoint(
+  g::RngIntElt,a::SeqEnum,thc2::Rec,points::SeqEnum) -> Rec
+
+intrinsic MumfordToLevel4ThetaPoint(
+  g::RngIntElt,a::SeqEnum,rac::FldElt,thc::Rec,points::SeqEnum) -> .
+
+intrinsic Level2ThetaPointToMumford(g::RngIntElt,a::SeqEnum,thc2::Rec,th2::Rec)         -> Rec
+
+intrinsic Level4ThetaPointToMumford(g::RngIntElt,a::SeqEnum,rac::FldElt,thc::Rec,th::Rec)
+  -> Rec
+
+More documentation
+==================
+
+In doc/ you will find some description on each file src/*.m
+In particular, a lot of useful functions are not exported as intrinsic so
+as not to clutter the namespace, we list the important ones here.
+
+There is also a file explaining the structure of precomp, where we store
+all the precomputations information.
