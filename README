@@ -20,3 +20,11 @@ Type Jacobienne (via un type courbe)
   theta + points in the kernel, compute symplectic basis of the l-torsion
 - compuation of the endomorphism ring
 
+
+
+To install the Sage package:
+
+From the package directory, run 
+    sage -pip install .
+
+To use the package in Sage: See example.sage
