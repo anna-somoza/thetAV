@@ -1,10 +1,7 @@
-# Code
-The aim of this project is to recode all the functions of avisogenies with improvements in
-the algorithms and in sagemath
-In  particular we have now an algorithm to compute isogenies which is very efficient
-and simple to implement : it improves the preceding algorithms for l=3 mod 4 and for
-cyclic isogeny in general.
+# Avisogenies
 
+The aim of this project is to recode all the functions of avisogenies with improvements in the algorithms and in Sagemath
+In  particular we have now an algorithm to compute isogenies which is very efficient and simple to implement : it improves the preceding algorithms for l=3 mod 4 and for cyclic isogeny in general.
 
 Type variété abélienne: thêta null point
 Type Jacobienne (via un type courbe)
@@ -18,13 +15,15 @@ Type Jacobienne (via un type courbe)
 - conversation : curves <=> theta (Thomae + choice of sign), points (Mumford <=> theta)
 - Isogeny graph : possible degrees of the points in the kernel, manage the extensions for
   theta + points in the kernel, compute symplectic basis of the l-torsion
-- compuation of the endomorphism ring
+- computation of the endomorphism ring
 
+# Sagemath implementation
+ [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/sage)
 
-
-To install the Sage package:
-
+### To install the Sage package
 From the package directory, run 
-    sage -pip install .
-
-To use the package in Sage: See example.sage
+```sh
+$ sage -pip install .
+```
+### To use the package in Sage
+See example.sage
