@@ -22,7 +22,7 @@ setup(
     name = "avisogenies_sage",
     version = 0.01, #readfile("VERSION").strip(), # the VERSION file is shared with the documentation
     description='Description here',
-    long_description = readfile("README"), # get the long description from the README
+    long_description = readfile("README.md"), # get the long description from the README
     # For a Markdown README replace the above line by the following two lines:
     #  long_description = readfile("README.md"),
     #  long_description_content_type="text/markdown",
