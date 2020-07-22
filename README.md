@@ -17,13 +17,25 @@ Type Jacobienne (via un type courbe)
   theta + points in the kernel, compute symplectic basis of the l-torsion
 - computation of the endomorphism ring
 
-# Sagemath implementation
+## Sagemath implementation
  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/sage)
 
-### To install the Sage package
-From the package directory, run 
+#### To install the Sage package
+From the package directory, run
+
 ```sh
 $ sage -pip install .
 ```
-### To use the package in Sage
-See example.sage
+
+#### Usage
+Once the package is installed, you can use it in Sagemath with:
+
+```sh
+sage: from avisogenies_sage import *
+sage: FF = GF(331)
+sage: pt = [26, 191, 70, 130, 256, 29, 255, 309, 272, 52, 15, 123, 99, 1, 94, 239];
+sage: A = AbelianVariety(FF, 4, 2, [FF(t) for t in pt])
+Abelian variety of dimension 2 with theta null point (26 : 191 : 70 : 130 : 256 : 29 : 255 : 309 : 272 : 52 : 15 : 123 : 99 : 1 : 94 : 239)
+```
+See also the [binder demo](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/sage?filepath=.%2Fexample.ipynb
+) or the file `example.sage`.
