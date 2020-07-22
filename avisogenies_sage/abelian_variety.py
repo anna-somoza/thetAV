@@ -142,9 +142,10 @@ class AbelianVariety(AlgebraicScheme):
             D.register_coercion(c)
 
         if check:
-            idx = ZZ(list(x), n)
-            idx2 = ZZ(list(x), 2)
+            idx = lambda i : ZZ(list(i), n)
+            idx2 = lambda i : ZZ(list(i), 2)
             dual = {}
+            DD = [2*d for d in D]
 
             for i in D:
                 if T[idx(i)] != T[idx(-i)]:
