@@ -158,7 +158,6 @@ class AbelianVariety(AlgebraicScheme):
                     if el not in dual:
                         dual[el] = sum([eval_car(chi,t)*T[idx(ii + t)]*T[idx(jj + t)] for t in twotorsion])
                     el2 = (idx2(chi), idx(i), idx(j))
-                    tt = twotorsion([ZZ(x)/(n//2) for x in tt])
                     dual[el2] = eval_car(chi,tt)*dual[el]
 
             S = []
@@ -209,21 +208,30 @@ class AbelianVariety(AlgebraicScheme):
 
     def _repr_(self):
         """
-        Return a string representation of this Jacobian.
+        Return a string representation of this Abelian variety.
         """
         return "Abelian variety of dimension %s with theta null point %s" % (self.dimension(), self.theta_null_point())
 
     def dimension(self):
+        """
+        Return the dimension of this Abelian Variety.
+        """
         return self._dimension
 
     def level(self):
+        """
+        Return the level of the theta structure.
+        """
         return self._level
 
     def theta_null_point(self):
+        """
+        Return the theta null points as a point of the abelian variety.
+        """
         return self._thetanullpoint
 
     def change_ring(self, R):
-        r"""
+        """
         Return the Abelian Variety over the ring `R`.
 
         INPUT:
@@ -250,7 +258,7 @@ class AbelianVariety(AlgebraicScheme):
         raise TypeError('Cannot convert %s to a point of %s' % (x, self))
 
     def base_extend(self, R):
-        r"""
+        """
         Return the natural extension of ``self`` over `R`
 
         INPUT:
@@ -291,6 +299,9 @@ class AbelianVariety(AlgebraicScheme):
         return self._point(self, v, check=check)
 
     def _idx_to_char(self, x, twotorsion=False):
+        """
+        Return the caracteristic in D that corresponds to a given integer index.
+        """
         g = self._dimension
         if twotorsion:
             n = 2
@@ -301,6 +312,9 @@ class AbelianVariety(AlgebraicScheme):
         return D(ZZ(x).digits(n, padto=g))
 
     def _char_to_idx(self, x, twotorsion=False):
+        """
+        Return the integer index that corresponds to a given caracteristic in D.
+        """
         if twotorsion:
             n = 2
         else:
@@ -370,6 +384,9 @@ class AbelianVariety(AlgebraicScheme):
                 ll = l0 + v
                 break
         else: #If we leave the for loop without encountering a break
+            for t in twotorsion:
+                self._riemann[(idx(chi, True), idx(i+t), idx(j+t))] = []
+            return
             self._riemann[(idx(chi, True), idx(i), idx(j))] = []
             return
         kk0, ll0, tkl = reduce_symtwotorsion_couple(kk, ll)
@@ -382,7 +399,13 @@ class AbelianVariety(AlgebraicScheme):
 
     def addition_formula(self, P, Q, L):
         """
-        Q should be the point living in the big field
+        Given two points `P` and `Q` and a list `L` containing triplets [chi, i, j], compute
+        \sum_{t\in Z(2)} chi(t)PpQ[i + t] PmQ[j + t]
+        for every given triplet.
+
+        NOTE:
+        
+            Q should be the point living in the big field
         """
         D = self._D
         twotorsion = self._twotorsion
@@ -396,6 +419,7 @@ class AbelianVariety(AlgebraicScheme):
                 self.riemann_relation(el) #see if we prefer to pass the char, the idx, or both (as an argument with default evaluation?). We can also make it a function that returns said riemann relations, and if they are not computed yet, it computes them and then returns them! That would deal with 4 lines of code and also give a public method to access _riemann.
             IJ = self._riemann[el]
             if not len(IJ):
+                print(el, eval_car(char(el[0]), char(el[1])+char(el[2])))
                 raise ValueError("Can't compute the addition! Either we are in level 2 and computing a normal addition, or a differential addition with null even theta null points.")
             ci0, cj0 = IJ[0:2]
             k0, l0 = map(idx, IJ[3:5])
@@ -470,5 +494,14 @@ def get_dual_quadruplet(x, y, u, v):
     return xbis, ybis, ubis, vbis
 
 def eval_car(chi,t):
+    if chi.parent() != t.parent():
+        r = list(t)
+        D = t.parent()
+        twotorsion = chi.parent()
+        halflevels =[i.order()//2 for i in D.gens()]
+        n = D.rank()
+        for i in range(n):
+            r[i] = ZZ(r[i])/halflevels[i]
+        t = twotorsion(r)
     return ZZ(-1)**(chi*t);
 
