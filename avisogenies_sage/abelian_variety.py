@@ -204,7 +204,7 @@ class AbelianVariety(AlgebraicScheme):
         if not is_Abelian_Variety(X):
             return NotImplemented
         #Question: If the fields of def are different, should this say False?
-        return richcmp(self.theta_null_point(), X.theta_null_point(), op)
+        return richcmp(self._thetanullpoint._coords, X._thetanullpoint._coords, op)
 
     def _repr_(self):
         """
@@ -399,8 +399,8 @@ class AbelianVariety(AlgebraicScheme):
 
     def addition_formula(self, P, Q, L):
         """
-        Given two points `P` and `Q` and a list `L` containing triplets [chi, i, j], compute
-        \sum_{t\in Z(2)} chi(t)PpQ[i + t] PmQ[j + t]
+        Given two points P and Q and a list L containing triplets [chi, i, j], compute
+        sum_{t in Z(2)} chi(t) PpQ[i + t] PmQ[j + t]
         for every given triplet.
 
         NOTE:

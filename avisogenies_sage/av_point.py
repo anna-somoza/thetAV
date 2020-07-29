@@ -6,6 +6,18 @@
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+
+"""
+TODO:
+
+> To be decided - Should we create an interface for the point arithmetic from the abelian variety?
+That is, add something like this to the abelian_variety class:
+    def diff_add(self, P, Q, PmQ):
+        (Maybe assert here that P, Q, PmQ are points in self)
+        return P.diff_add(Q,PmQ)
+  Especially for the pairings!
+> On binary operations, test that all the points belong to the same abelian variety.
+"""
 from __future__ import print_function, division, absolute_import
 
 import math
@@ -40,6 +52,7 @@ from sage.misc.constant_function import ConstantFunction
 from sage.structure.element import is_Vector
 from sage.modules.free_module_element import vector as Vector
 
+from sage.structure.richcmp import op_EQ, op_NE
 
 class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
     def __init__(self, X, v, good_lift=False, check=False):
@@ -146,15 +159,55 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         """
         return tuple(self._coords)  # Warning: _coords is a list!
 
-    def _richcmp_(self, other, op):
+    def equal_points(self, right, proj = True, factor = False):
+        """
+        Check whether two ThetaPoints are equal or not.
+        If proj = true we compare them as projective points,
+        and if factor = True, return as a second argument
+        the rapport Q/P
+        """
+        if self.abelian_variety() != right.abelian_variety():
+            return False
+
+        if not proj:
+            return richcmp(self._coords, right._coords, op_EQ)
+
+        if factor:
+            c = None;
+            for i in range(len(self)):
+                if (self[i] == 0) != (right[i] == 0):
+                    return False, _
+                if self[i] != 0:
+                    if c == None:
+                        c = right[i]/self[i]
+                    if c != right[i]/self[i]:
+                        return False, _
+                return True, c
+
+        for i in range(len(self)):
+            for j in range(i+1, len(self)):
+                if self[i] * right[j] != self[j] * right[i]:
+                    return False
+        return True
+
+    def _richcmp_(self, right, op):
         """
         Comparison function for points to allow sorting and equality testing.
         """
-        ##TODO: Actually we should compare them as projective points, since we 
-        # haven't normalized, or maybe it's ok like this since we care about the affine repr also
-        return richcmp(self._coords, other._coords, op) 
+        if not isinstance(right, AbelianVarietyPoint):
+            try:
+                right = self.codomain()(right)
+            except TypeError:
+                return NotImplemented
+        if self.codomain() != right.codomain():
+            return op == op_NE
+
+        if op in [op_EQ, op_NE]:
+            return self.equal_points(right) == (op == op_EQ)
+        return richcmp(self._coords, right._coords, op)
 
     def good_lift(self):
+        #TODO include in all operations
         return self._good_lift
         
     def scheme(self):
@@ -265,9 +318,6 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
                     PQ[i] += - PQ[j]*PmQ[i]/PmQ[j]
         return AbelianVarietyPoint(point0, PQ, check)
 
-
-
-    #Not sure of the use of this
     def diff_add_PQfactor(self, P, Q, PmQ):
         """
         //we have PQ(self) from a normal addition, we would like to recover the
@@ -300,7 +350,6 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         i0 = PQ2.get_nonzero_coord()
         return PQ2[i0]/self[i0];
     
-    #Not sure of the use of this
     def diff_add_PQ(self,P,Q,PmQ):
         point0 = self.abelian_variety()
         D = point0._D
@@ -311,9 +360,9 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         return point0.point(PQn)
 
     def _add_(self, other):
-        return self.add(other)
+        return self._add(other)
 
-    def add(self, other, i0 = 0):
+    def _add(self, other, i0 = 0):
         """
         Normal addition between self and other.
         We assume (P - Q)[i0] != 0
@@ -382,7 +431,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         for i in range(ng):
             PQ[i] = sum([r[(chi, i, i0)] for chi in range(twog)])
         if all([coor == 0 for coor in PQ]):
-            return self.add(other, i0 + 1)
+            return self._add(other, i0 + 1)
         return point0.point(PQ)
 
     def _neg_(self):
@@ -398,6 +447,9 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         return point0.point(mPcoord)
 
     def _rmul_(self, k):
+        return self._mult(k, algorithm='Montgomery')
+
+    def _mult(self, k, algorithm):
         ##TODO: Maybe we should add some checks to make sure that `k` is an integer
         point0 = self.abelian_variety()._thetanullpoint
         if k == 0:
@@ -406,18 +458,94 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             return self
         if k < 0:
             return (-k)*(-self)
-        mP = -self
+        kb = (k-1).digits(2)
         nP = self
-        n1P = self.diff_add(self, point0)
+        if algorithm == 'Montgomery':
+            mP = -self
+            n1P = self.diff_add(self, point0)
+            for i in range(2, len(kb)+1):
+                if kb[-i] == 1:
+                    nn11P = n1P.diff_add(n1P,point0)
+                    nP = nP.diff_add(n1P,mP)
+                    n1P = nn11P
+                else:
+                    nn1P = n1P.diff_add(nP,self)
+                    nP = nP.diff_add(nP,point0)
+                    n1P = nn1P
+            return n1P
+        if algorithm == 'SquareAndMultiply':
+            for i in range(2, len(kb)+1):
+                nP = nP.diff_add(nP,point0)
+                if kb[-i] == 1:
+                    nP = nP + self
+            return nP;
+        raise NotImplementedError
+
+    def diff_multadd(self, k, PQ, Q):
+        """
+        // return kP+Q, kP
+        // (if we don't need kP, then we don't need to compute kP, only (k/2)P, so
+        // we lose 2 differential additions. Could be optimized here.
+        """
+        if k == 0:
+            point0 = self.abelian_variety()._thetanullpoint
+            return Q, point0 #In Magma implementation it only returns Q, but I think it should be Q, P0
+        if k < 0:
+            mP = - self
+            return mP.diff_multadd(-k, Q.diff_add(mP,PQ), Q)
+        if k == 1:
+            return PQ, self
+        point0 = self.abelian_variety()._thetanullpoint
+        nPQ = PQ
+        n1PQ = PQ.diff_add(self,Q)
+        nP = self
+        n1P = self.diff_add(self,point0);
         kb = (k-1).digits(2)
         for i in range(2, len(kb)+1):
             if kb[-i] == 1:
-                nn11P = n1P.diff_add(n1P,point0)
-                nP = nP.diff_add(n1P,mP)
-                n1P = nn11P
+             nn11PQ = n1PQ.diff_add(n1P,Q)
+             nPQ = n1PQ.diff_add(nP,PQ)
+             n1PQ = nn11PQ
+
+             nn11P = n1P.diff_add(n1P,point0)
+             nP = n1P.diff_add(nP,self)
+             n1P = nn11P
             else:
-                nn1P = n1P.diff_add(nP,self)
-                nP = nP.diff_add(nP,point0)
-                n1P = nn1P
-        return n1P
-    
+             nn1PQ = n1PQ.diff_add(nP,PQ)
+             nPQ = nPQ.diff_add(nP,Q)
+             n1PQ = nn1PQ
+
+             nn1P = n1P.diff_add(nP,self)
+             nP = nP.diff_add(nP,point0)
+             n1P = nn1P
+        return n1PQ, n1P
+
+    def pairing_from_points(self,Q,lP,lQ,lPQ,PlQ):
+        point0 = self.abelian_variety()._thetanullpoint
+        r, k0P = lP.equal_points(point0, proj=True, factor=True)
+        assert r
+        r, k0Q = lQ.equal_points(point0, proj=True, factor=True)
+        assert r
+        r, k1P = PlQ.equal_points(self, proj=True, factor=True)
+        assert r
+        r, k1Q = lPQ.equal_points(Q, proj=True, factor=True)
+        assert r
+        return k1P*k0P/(k1Q*k0Q);
+
+    def pairing(self, l, Q, PQ=None):
+        if PQ == None:
+            if self.abelian_variety()._level == 2:
+                raise NotImplementedError
+            PQ = self + Q
+        point0 = self.abelian_variety()._thetanullpoint
+        lPQ, lP = self.diff_multadd(l,PQ,Q)
+        PlQ, lQ = Q.diff_multadd(l,PQ,self)
+        r, k0P = lP.equal_points(point0, proj=True, factor=True)
+        assert r, "Bad pairing!"+str(P)
+        r, k0Q = lQ.equal_points(point0, proj=True, factor=True)
+        assert r, "Bad pairing!"+str(Q)
+        r, k1P = PlQ.equal_points(self, proj=True, factor=True)
+        assert r
+        r, k1Q = lPQ.equal_points(Q, proj=True, factor=True)
+        assert r
+        return k1P*k0P/(k1Q*k0Q)
