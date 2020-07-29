@@ -2,7 +2,7 @@
 Abelian varieties
 
 This module defines the base class of Abelian varieties with theta structure
-as an abstract Scheme. 
+as an abstract Scheme.
 
 AUTHORS:
 
@@ -43,6 +43,7 @@ from itertools import product
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 ZZ = IntegerRing()
+from sage.structure.element import is_Vector
 
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
@@ -111,17 +112,19 @@ class AbelianVariety(AlgebraicScheme):
     EXAMPLES::
 
         sage: FF = GF(331)
-        sage: A = AbelianVariety(FF, 2,2,[328,213,75,1]); A ##Example from the paper of the pairings
+        sage: A = AbelianVariety(FF, 2,2,[328,213,75,1]); A
         Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1)
     """
     _point = AbelianVarietyPoint
-    
-    def __init__(self, R, n, g, T):
+
+    def __init__(self, R, n, g, T, check=False):
         """
         Initialize.
         """
+        if is_Vector(T):
+            T = list(T)
         if not isinstance(T, (list, tuple, SchemeMorphism_point)):
-            raise TypeError("Argument (=%s) must be a list or a tuple."%T)
+            raise TypeError("Argument (=%s) must be a list, a tuple, a vector or a point."%T)
         if not isinstance(n, integer_types + (Integer,)):
             raise TypeError("Argument (=%s) must be an integer."%n)
         if not isinstance(g, integer_types + (Integer,)):
@@ -130,6 +133,47 @@ class AbelianVariety(AlgebraicScheme):
             raise TypeError("T (=%s) must be defined over a field."%T)
         if len(T) != n**g:
             raise ValueError("T (=%s) must have length n^g (=%s)."%(T, n**g))
+
+        D = Zmod(n)**g
+        twotorsion = Zmod(2)**g
+        if not D.has_coerce_map_from(twotorsion):
+            from sage.matrix.constructor import identity_matrix
+            c = twotorsion.hom(n//2*identity_matrix(g), D)
+            D.register_coercion(c)
+
+        if check:
+            idx = lambda i : ZZ(list(i), n)
+            idx2 = lambda i : ZZ(list(i), 2)
+            dual = {}
+            DD = [2*d for d in D]
+
+            for i in D:
+                if T[idx(i)] != T[idx(-i)]:
+                    raise ValueError('The given list does not define a valid thetanullpoint')
+
+            for i, j in product(D,D):
+                for chi in twotorsion:
+                    ii, jj, tt = reduce_twotorsion_couple(i, j);
+                    el = (idx2(chi), idx(ii), idx(jj))
+                    if el not in dual:
+                        dual[el] = sum([eval_car(chi,t)*T[idx(ii + t)]*T[idx(jj + t)] for t in twotorsion])
+                    el2 = (idx2(chi), idx(i), idx(j))
+                    dual[el2] = eval_car(chi,tt)*dual[el]
+
+            S = []
+            for i, j, k, l in product(D, repeat=4):
+                if i + j + k + l in DD:
+                    s = sorted([i,j,k,l])
+                    if s not in S:
+                        S.append(s)
+                        m = D([ZZ(x)/2 for x in i + j + k + l])
+                        for chi in twotorsion:
+                            el1 = (idx2(chi), idx(i), idx(j))
+                            el2 = (idx2(chi), idx(k), idx(l))
+                            el3 = (idx2(chi), idx(m-i), idx(m-j))
+                            el4 = (idx2(chi), idx(m-k), idx(m-l))
+                            if dual[el1]*dual[el2] != dual[el3]*dual[el4]:
+                                raise ValueError('The given list does not define a valid thetanullpoint')
 
         PP = ProjectiveSpace(R, n**g -1)
         #Given a characteristic x in (Z/nZ)^g its theta constant is at position ZZ(x, n)
@@ -140,19 +184,17 @@ class AbelianVariety(AlgebraicScheme):
         self._ng = n**g #To have easy access to the size of D
         #Try to create a projective scheme class, it will give us the projective space associated to it
         AlgebraicScheme.__init__(self, PP)
-        #Question: Should we check here that T is actually embedable in PP?
+
         self._thetanullpoint = self(T)
-        D = Zmod(n)**g
-        twotorsion = Zmod(2)**g
-        if not D.has_coerce_map_from(twotorsion):
-            from sage.matrix.constructor import identity_matrix
-            c = twotorsion.hom(n//2*identity_matrix(g), D)
-            D.register_coercion(c)
         self._D = D
         self._twotorsion = twotorsion
         self._riemann = {}
-        self._dual = {}
-        
+        if check:
+            self._dual = dual
+        else:
+            self._dual = {}
+
+
     def __richcmp__(self, X, op):
         """
         Compare the Abelian Variety self to `X`.  If `X` is an Abelian Variety,
@@ -162,25 +204,34 @@ class AbelianVariety(AlgebraicScheme):
         if not is_Abelian_Variety(X):
             return NotImplemented
         #Question: If the fields of def are different, should this say False?
-        return richcmp(self.theta_null_point(), X.theta_null_point(), op)
+        return richcmp(self._thetanullpoint._coords, X._thetanullpoint._coords, op)
 
     def _repr_(self):
         """
-        Return a string representation of this Jacobian.
+        Return a string representation of this Abelian variety.
         """
         return "Abelian variety of dimension %s with theta null point %s" % (self.dimension(), self.theta_null_point())
 
     def dimension(self):
+        """
+        Return the dimension of this Abelian Variety.
+        """
         return self._dimension
 
     def level(self):
+        """
+        Return the level of the theta structure.
+        """
         return self._level
 
     def theta_null_point(self):
+        """
+        Return the theta null points as a point of the abelian variety.
+        """
         return self._thetanullpoint
 
     def change_ring(self, R):
-        r"""
+        """
         Return the Abelian Variety over the ring `R`.
 
         INPUT:
@@ -207,7 +258,7 @@ class AbelianVariety(AlgebraicScheme):
         raise TypeError('Cannot convert %s to a point of %s' % (x, self))
 
     def base_extend(self, R):
-        r"""
+        """
         Return the natural extension of ``self`` over `R`
 
         INPUT:
@@ -248,6 +299,9 @@ class AbelianVariety(AlgebraicScheme):
         return self._point(self, v, check=check)
 
     def _idx_to_char(self, x, twotorsion=False):
+        """
+        Return the caracteristic in D that corresponds to a given integer index.
+        """
         g = self._dimension
         if twotorsion:
             n = 2
@@ -258,6 +312,9 @@ class AbelianVariety(AlgebraicScheme):
         return D(ZZ(x).digits(n, padto=g))
 
     def _char_to_idx(self, x, twotorsion=False):
+        """
+        Return the integer index that corresponds to a given caracteristic in D.
+        """
         if twotorsion:
             n = 2
         else:
@@ -327,6 +384,9 @@ class AbelianVariety(AlgebraicScheme):
                 ll = l0 + v
                 break
         else: #If we leave the for loop without encountering a break
+            for t in twotorsion:
+                self._riemann[(idx(chi, True), idx(i+t), idx(j+t))] = []
+            return
             self._riemann[(idx(chi, True), idx(i), idx(j))] = []
             return
         kk0, ll0, tkl = reduce_symtwotorsion_couple(kk, ll)
@@ -339,7 +399,13 @@ class AbelianVariety(AlgebraicScheme):
 
     def addition_formula(self, P, Q, L):
         """
-        Q should be the point living in the big field
+        Given two points P and Q and a list L containing triplets [chi, i, j], compute
+        sum_{t in Z(2)} chi(t) PpQ[i + t] PmQ[j + t]
+        for every given triplet.
+
+        NOTE:
+        
+            Q should be the point living in the big field
         """
         D = self._D
         twotorsion = self._twotorsion
@@ -353,13 +419,14 @@ class AbelianVariety(AlgebraicScheme):
                 self.riemann_relation(el) #see if we prefer to pass the char, the idx, or both (as an argument with default evaluation?). We can also make it a function that returns said riemann relations, and if they are not computed yet, it computes them and then returns them! That would deal with 4 lines of code and also give a public method to access _riemann.
             IJ = self._riemann[el]
             if not len(IJ):
+                print(el, eval_car(char(el[0]), char(el[1])+char(el[2])))
                 raise ValueError("Can't compute the addition! Either we are in level 2 and computing a normal addition, or a differential addition with null even theta null points.")
             ci0, cj0 = IJ[0:2]
             k0, l0 = map(idx, IJ[3:5])
             ci20, cj20 = IJ[6:8]
             ck20, cl20 = IJ[9:11]
             tt = IJ[2] + IJ[5] + IJ[8] + IJ[11] #If we only want the addition, why not store _riemann only with that?
-            
+
             chi = char(el[0], True)
 
             s1 = sum([eval_car(chi,t)*Q[idx(ci20 + t)]*Q[idx(cj20+t)] for t in twotorsion ])
@@ -373,6 +440,8 @@ class AbelianVariety(AlgebraicScheme):
                 r[(el[0], idx(ci0+t), idx(cj0+t))] = eval_car(chi,t)*S
         return r
 
+
+##TODO: Warning, the twotorsion elements should be returned as elements in the twotorsion.
 def reduce_sym(x):
     return min(x, -x)
 
@@ -425,5 +494,14 @@ def get_dual_quadruplet(x, y, u, v):
     return xbis, ybis, ubis, vbis
 
 def eval_car(chi,t):
+    if chi.parent() != t.parent():
+        r = list(t)
+        D = t.parent()
+        twotorsion = chi.parent()
+        halflevels =[i.order()//2 for i in D.gens()]
+        n = D.rank()
+        for i in range(n):
+            r[i] = ZZ(r[i])/halflevels[i]
+        t = twotorsion(r)
     return ZZ(-1)**(chi*t);
-    
+

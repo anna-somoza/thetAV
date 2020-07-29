@@ -17,13 +17,16 @@ Type Jacobienne (via un type courbe)
   theta + points in the kernel, compute symplectic basis of the l-torsion
 - computation of the endomorphism ring
 
-# Sagemath implementation
+## Sagemath implementation
  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/sage)
 
-### To install the Sage package
-From the package directory, run 
+#### To install the Sage package
+From the package directory, run
+
 ```sh
 $ sage -pip install .
 ```
-### To use the package in Sage
-See example.sage
+
+#### Usage
+For examples on how to use the package, see the [binder demo](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/sage?filepath=.%2Fexample.ipynb
+) or the file `example.sage`.

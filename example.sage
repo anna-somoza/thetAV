@@ -1,8 +1,33 @@
 from avisogenies_sage import *
+
+#Example from Section 6 of 'Efficient Pairing Computation with theta functions'
+#by David Lubicz and Damien Robert
+
 FF = GF(331)
-FF2 = GF(331,2)
-pt = [26, 191, 70, 130, 256, 29, 255, 309, 272, 52, 15, 123, 99, 1, 94, 239];
-A = AbelianVariety(FF, 4, 2, [FF(t) for t in pt])
-P0 = A(0)
-Q = A([185, 88, 113, 263, 202, 118, 236, 261, 10, 158, 29, 208, 320, 125, 113, 215])
-QQ = Q.diff_add(Q, P0)
+n = 2
+g = 2
+
+pt = [328 , 213 , 75 , 1]
+A = AbelianVariety(FF, n, g, [FF(x) for x in pt], check=True)
+
+P_list = [255 , 89 , 30 , 1]
+P = A.point([FF(x) for x in P_list], check=True)
+
+R.<X> = PolynomialRing(FF)
+poly = X^4 + 3*X^2 + 290*X + 3
+FF2.<t> = poly.splitting_field()
+
+Q_list = [158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+ 155*t^3 + 84*t^2 + 15*t + 170, 1]
+Q = A.point([FF2(x) for x in Q_list], check=True)
+
+P+Q
+
+PmQ_list = (62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 ,
+ 258*t^3 + 39*t^2 + 313*t + 150 , 1)
+PmQ = A.point([FF2(x) for x in PmQ_list], check=True)
+
+QP = Q.diff_add(P, PmQ)
+
+l = 1889
+P.pairing(l, Q, QP)
