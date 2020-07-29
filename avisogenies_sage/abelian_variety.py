@@ -106,7 +106,7 @@ class AbelianVariety(AlgebraicScheme):
 
     -  ``g`` - an integer - the dimension of the abelian variety.
 
-    -  ``T`` - a list of length n^g - the theta null point determining the abelian variety.
+    -  ``T`` - a list of length n^g elements of R - the theta null point determining the abelian variety.
 
     EXAMPLES::
 
@@ -271,7 +271,7 @@ class AbelianVariety(AlgebraicScheme):
 
         INPUT:
 
-        -  ``P`` - a theta null point
+        -  ``P`` - a theta null point => DL : Not anymore ?
 
         -  ``chi`` - a character, given by its dual element in Z(2) as a subset of Z(n).
 
