@@ -185,7 +185,7 @@ class AbelianVariety(AlgebraicScheme):
         #Try to create a projective scheme class, it will give us the projective space associated to it
         AlgebraicScheme.__init__(self, PP)
 
-        self._thetanullpoint = self(T)
+        self._thetanullpoint = self(tuple(R(a) for a in T))
         self._D = D
         self._twotorsion = twotorsion
         self._riemann = {}
@@ -244,19 +244,6 @@ class AbelianVariety(AlgebraicScheme):
         """
         return AbelianVariety(R, self.level(), self.dimension(), self.theta_null_point())
 
-    def _element_constructor_(self, x):
-        """
-        Construct a point from `x`.
-        """
-        if isinstance(x, self._point):
-            if x.parent() is self:
-                return x
-            elif x.parent() == self:
-                return self.element_class(self, x)
-        elif isinstance(x, (list, tuple)):
-            return self.element_class(self, x)
-        raise TypeError('Cannot convert %s to a point of %s' % (x, self))
-
     def base_extend(self, R):
         """
         Return the natural extension of ``self`` over `R`
@@ -281,7 +268,7 @@ class AbelianVariety(AlgebraicScheme):
     def _point_homset(self, *args, **kwds):
         return SchemeHomset_points(*args, **kwds)
 
-    def point(self, v, check=False):
+    def point(*args, **kwds):
         """
         Create a point.
 
@@ -296,7 +283,10 @@ class AbelianVariety(AlgebraicScheme):
 
         A point of the scheme.
         """
-        return self._point(self, v, check=check)
+        self = args[0]
+        return self._point(*args, **kwds)
+
+    __call__ = point
 
     def _idx_to_char(self, x, twotorsion=False):
         """

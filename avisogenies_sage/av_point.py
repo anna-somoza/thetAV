@@ -33,6 +33,7 @@ import sage.rings.all as rings
 from sage.rings.all import PolynomialRing
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer import Integer
+from six import integer_types
 from sage.rings.integer_ring import ZZ
 import sage.groups.generic as generic
 from sage.libs.pari import pari
@@ -55,15 +56,34 @@ from sage.modules.free_module_element import vector as Vector
 from sage.structure.richcmp import op_EQ, op_NE
 
 class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
-    def __init__(self, X, v, good_lift=False, check=False):
+    def __init__(self, X, v, R=None, good_lift=False, check=False):
         """
         Constructor for a point on an abelian variety.
 
         INPUT:
 
-        - X -- an abelian variety
-        - v -- data determining a point (another point or a tuple of coordinates)
-        
+        - ``X`` -- an abelian variety
+        - ``v`` -- data determining a point (another point or a tuple of coordinates)
+        - ``R`` -- the field of definition of the point (default: `None`). If left as default,
+                the base ring of `X` is taken.
+        - ``good_lift`` -- a boolean (default: `False`); indicates if the given affine lift
+                is a good lift, i.e. a lift compatible with the lift of the theta null point.
+        - ``check`` -- a boolean (default: `False`); indicates if computations to check
+                the correctness of the input data should be performed, using the Riemann Relations.
+
+        EXAMPLES ::
+
+            sage: from avisogenies_sage import *
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1]); P
+            (255 : 89 : 30 : 1)
+            sage: R.<X> = PolynomialRing(GF(331))
+            sage: poly = X^4 + 3*X^2 + 290*X + 3
+            sage: F.<t> = poly.splitting_field()
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+             155*t^3 + 84*t^2 + 15*t + 170, 1], R=F, check=True); Q
+            (158*t^3 + 67*t^2 + 9*t + 293 : 290*t^3 + 25*t^2 + 235*t + 280 : 155*t^3 + 84*t^2 + 15*t + 170 : 1)
+
         """
         point_homset = X.point_homset()
         if is_SchemeMorphism(v) or isinstance(v, AbelianVarietyPoint) or is_Vector(v):
@@ -74,9 +94,18 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
                 # maybe with a boolean in X (or in the point) that saves if it has been checked.
                 pass
             v = X._thetanullpoint
+        if len(v) != X._ng:
+            raise ValueError("v (=%s) must have length n^g (=%s)."%(v, X._ng))
+        if R == None:
+            R = point_homset.value_ring()
+        v = tuple(R(a) for a in v)
+        for el in v:
+            if el != 0:
+                break
+        else:
+            raise ValueError('The given list does not define a valid thetapoint because all entries are zero')
         if check:
             from .abelian_variety import reduce_twotorsion_couple, eval_car
-            ##There sould be a way of testing the thetanullpoint directly here!
             O = X._thetanullpoint
             idx = X._char_to_idx
             dual = X._dual
@@ -120,14 +149,13 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
                             el4 = (idx(chi, True), idx(m-k), idx(m-l))
                             if dual[el1]*dualself[el2] != dual[el3]*dualself[el4]:
                                 raise ValueError('The given list does not define a valid thetapoint')
-        if len(v) != X._ng:
-            raise ValueError("v (=%s) must have length n^g (=%s)."%(v, X._ng))
-        self._coords = tuple(v) #should check that length is correct!
+        self._coords = v
         self._good_lift = good_lift
         self.domain = ConstantFunction(point_homset.domain())
         self._codomain = point_homset.codomain()
         self.codomain = ConstantFunction(self._codomain)
         AdditiveGroupElement.__init__(self, point_homset)
+        self._R = R
 
     def _repr_(self):
         """
@@ -143,7 +171,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
 
     def __getitem__(self, n):
         """
-        Return the n'th coordinate of this point.
+        Return the n-th coordinate of this point.
         """
         return self._coords[n]
 
@@ -157,42 +185,69 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         """
         Return the coordinates of this point as a tuple.
         """
-        return tuple(self._coords)  # Warning: _coords is a list!
+        return tuple(self._coords)
 
-    def equal_points(self, right, proj = True, factor = False):
+    def equal_points(self, Q, proj = True, factor = False):
         """
         Check whether two ThetaPoints are equal or not.
         If proj = true we compare them as projective points,
         and if factor = True, return as a second argument
         the rapport Q/P
+
+        INPUT:
+            - ``Q`` - a point.
+            - ``proj`` - a boolean (default: `True`). Wether the comparison
+                    is done as projective points.
+            - ``factor`` - a boolean (default: `False`). If True, as a second
+                    argument is returned, the rapport right/self.
+
+        EXAMPLES ::
+
+            sage: from avisogenies_sage import *
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1]]) #A 1889-torsion point
+            sage: 1889*P
+            (12 : 141 : 31 : 327)
+            sage: A(0).equal_points(1889*P)
+            True
+
+        If the points are equal as projective points but not as affine points,
+        one can obtain the factor:
+
+            sage: (1889*P).equal_points(A(0), proj=False)
+            False
+            sage: _, k = A(0).equal_points(1889*P, factor=True); k
+            327
+
         """
-        if self.abelian_variety() != right.abelian_variety():
+        if self.abelian_variety() != Q.abelian_variety():
             return False
 
         if not proj:
-            return richcmp(self._coords, right._coords, op_EQ)
+            return richcmp(self._coords, Q._coords, op_EQ)
 
         if factor:
             c = None;
             for i in range(len(self)):
-                if (self[i] == 0) != (right[i] == 0):
+                if (self[i] == 0) != (Q[i] == 0):
                     return False, _
                 if self[i] != 0:
                     if c == None:
-                        c = right[i]/self[i]
-                    if c != right[i]/self[i]:
+                        c = Q[i]/self[i]
+                    if c != Q[i]/self[i]:
                         return False, _
                 return True, c
 
         for i in range(len(self)):
             for j in range(i+1, len(self)):
-                if self[i] * right[j] != self[j] * right[i]:
+                if self[i] * Q[j] != self[j] * Q[i]:
                     return False
         return True
 
     def _richcmp_(self, right, op):
         """
-        Comparison function for points to allow sorting and equality testing.
+        Comparison function for points to allow sorting and equality
+        testing (as projective points).
         """
         if not isinstance(right, AbelianVarietyPoint):
             try:
@@ -207,13 +262,16 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         return richcmp(self._coords, right._coords, op)
 
     def good_lift(self):
-        #TODO include in all operations
+        """
+        Indicates if the given point is the affine lift compatible with
+        the lift of the theta null point.
+        """
         return self._good_lift
-        
+
     def scheme(self):
         """
-        Return the scheme of this point, i.e., the curve it is on.
-        This is synonymous with :meth:`curve` which is perhaps more
+        Return the scheme of this point, i.e., the abelian variety it is on.
+        This is synonymous with :meth:`abelian_variety` which is perhaps more
         intuitive.
         """
 
@@ -225,31 +283,29 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
 
         EXAMPLES::
 
-            #TODO
-            sage: E = EllipticCurve('389a')
-            sage: P = E([-1,1])
-            sage: P.curve()
-            Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+            sage: from avisogenies_sage import *
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1]); A
+            Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1)
+            sage: P = A([255 , 89 , 30 , 1])
+            sage: P.abelian_variety()
+            Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1)
+
         """
         return self.scheme()
 
-    # With which type of comparison?
     def __bool__(self):
         """
-        Return ``True`` if this is not the zero point on the curve.
+        Return ``True`` if this is not the zero point on the abelian variety.
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('37a')
-            sage: P = E(0); P
-            (0 : 1 : 0)
-            sage: P.is_zero()
+            sage: from avisogenies_sage import *
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1]]) #A 1889-torsion point
+            sage: (1889*P).is_zero()
             True
-            sage: P = E.gens()[0]
-            sage: P.is_zero()
-            False
         """
-        return self == self.abelian_variety()(0)
+        return self != self.abelian_variety()(0)
 
     __nonzero__ = __bool__
 
@@ -267,14 +323,31 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
 
         INPUT:
 
-        INPUT:
-
         -  ``Q`` - a theta point
 
-        -  ``PmQ`` - The theta point self - Q.
+        -  ``PmQ`` - The theta point `self - Q`.
 
         -  ``check`` - (default: False) check with the riemann relations that the
         resulting point is indeed a point of the abelian variety.
+
+        OUTPUT: The theta point `self + Q`. If `self`, `Q` and `PmQ` are good lifts,
+        then the output is also a good lift.
+        
+        EXAMPLES ::
+        
+            sage: from avisogenies_sage import *
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1])
+            sage: R.<X> = PolynomialRing(GF(331))
+            sage: poly = X^4 + 3*X^2 + 290*X + 3
+            sage: F.<t> = poly.splitting_field()
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+                155*t^3 + 84*t^2 + 15*t + 170, 1], R=F, check=True)
+            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 ,
+                258*t^3 + 39*t^2 + 313*t + 150 , 1], R=F)
+            sage: PQ = P.diff_add(Q, PmQ); PQ
+            (261*t^3 + 107*t^2 + 37*t + 135 : 205*t^3 + 88*t^2 + 195*t + 125 : 88*t^3 + 99*t^2 + 164*t + 98 : 159*t^3 + 279*t^2 + 254*t + 276)
+        
         """
         point0 = self.abelian_variety()
         n = point0._level
@@ -305,7 +378,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             else:
                 j = i
             if PmQ[i] == 0 and lvl2:
-                cartosum = {chi for chi in range(twog) if eval_car(chi,i+j) == 1}
+                cartosum = [chi for chi in range(twog) if eval_car(chi,i+j) == 1]
                 PQ[i] = sum([r[(chi,i,j)] for chi in cartosum])/(PmQ[j]*len(cartosum))
             else:
                 PQ[i] = sum([r[(chi,i,j)] for chi in range(twog)])/(twog * PmQ[j]);
@@ -316,13 +389,16 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
                 # // we have to do it here to be sure we have computed PQ[j]
                 if PmQ[i] == 0:
                     PQ[i] += - PQ[j]*PmQ[i]/PmQ[j]
-        return AbelianVarietyPoint(point0, PQ, check)
+        try:
+            pq = point0.point(PQ, Q._R, good_lift = (self._good_lift and Q._good_lift and PmQ._good_lift), check=check)
+        except ValueError:
+            pq = point0.point(PQ, self._R, good_lift = (self._good_lift and Q._good_lift and PmQ._good_lift), check=check)
+        return pq
 
-    def diff_add_PQfactor(self, P, Q, PmQ):
+    def _diff_add_PQfactor(self, P, Q, PmQ):
         """
-        //we have PQ(self) from a normal addition, we would like to recover the
-        //differential addition. Here we only have to compute a single coefficient
-        //to find the correct projective factor
+        Given a representative of (P+Q), computes the raport with respect to
+        the representative obtained as P.diff_add(Q, PmQ).
         """
         point0 = self.abelian_variety()
         D = point0._D
@@ -338,34 +414,65 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             r = point0.addition_formula(P, Q, [elt])
             lambda1 = r[elt] #lambda1 = \sum PQ[i+t]PmQ[i+t]/2^g
             return lambda1/lambda2
-        ##If we are here it means that we didn't succeed!
-        """
-        // sometimes it does not suffice when PmQ has a 0 coordinate, meaning we should
-        // try to do the addition formula for i,j in D
-        // and handle the level 2 case
-        // TODO!
-        // in practise this never happen, so I just call diff_add in this case
-        """ 
+        # Comments from the original Magma implementation:
+        # sometimes it does not suffice when PmQ has a 0 coordinate, meaning we should
+        # try to do the addition formula for i,j in D
+        # and handle the level 2 case
+        # TODO!
+        # in practise this never happen, so I just call diff_add in this case
         PQ2 = P.diff_add(Q,PmQ)
         i0 = PQ2.get_nonzero_coord()
         return PQ2[i0]/self[i0];
-    
-    def diff_add_PQ(self,P,Q,PmQ):
+
+    def _diff_add_PQ(self,P,Q,PmQ):
+        """
+        Given a representative of (P+Q), computes the affine representative
+        obtained with P.diff_add(Q, PmQ).
+        """
         point0 = self.abelian_variety()
         D = point0._D
         PQn = [0]*point0._ng
-        lambda1 = self.diff_add_PQfactor(P, Q, PmQ)
+        lambda1 = self._diff_add_PQfactor(P, Q, PmQ)
         for i in range(point0._ng):
             PQn[i] = lambda1*PQ[i]
-        return point0.point(PQn)
+        return point0.point(PQn, Q._R)
 
     def _add_(self, other):
+        """
+        Add self to other.
+
+        If we are in level two, this returns P+Q and P-Q.
+
+        EXAMPLES ::
+
+            sage: from avisogenies_sage import *
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1])
+            sage: R.<X> = PolynomialRing(GF(331))
+            sage: poly = X^4 + 3*X^2 + 290*X + 3
+            sage: F.<t> = poly.splitting_field()
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+             155*t^3 + 84*t^2 + 15*t + 170, 1], R=F, check=True)
+            sage: P + Q
+            ((221*t^3 + 178*t^2 + 126*t + 27 : 301*t^3 + 265*t^2 + 257*t + 80 : \
+            70*t^3 + 9*t^2 + 315*t + 316 : 67*t^3 + 283*t^2 + 52*t + 83),
+            (1 : 281*t^3 + 76*t^2 + 257*t + 256 : 117*t^3 + 51*t^2 + 276*t + 303 : \
+            48*t^3 + 140*t^2 + 238*t + 62))
+
+        .. TODO ::
+
+        Find tests that are not level 2!
+            
+        """
         return self._add(other)
 
     def _add(self, other, i0 = 0):
         """
-        Normal addition between self and other.
-        We assume (P - Q)[i0] != 0
+        Normal addition between self and other on the affine plane with respect to i0.
+        If (self - other)[i] == 0, then it tries with another affine plane.
+
+        .. SEEALSO ::
+            :meth: `_add_`
         """
         from .abelian_variety import eval_car
         point0 = self.abelian_variety()
@@ -402,13 +509,13 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
                     PQ[i0] = kappa0[i0]
                     poly = R([kappa1[i1]*invkappa0, - 2*kappa0[i1]*invkappa0, 1])
                     roots = [el[0] for el in poly.roots()]
-                    """
                     # it can happen that P and Q are not rational in the av but
                     # rational in the kummer variety, so P+Q won't be rational
-                    """
+                    ## TODO: Find tests where this happens
                     if len(roots) == 0:
                         #We need to work on the splitting field.
-                        roots = [el[0] for el in poly.roots(poly.splitting_field('t'))]
+                        F = poly.splitting_field('t')
+                        roots = [el[0] for el in poly.roots(F)]
                     if len(roots) == 1:
                         roots = roots*2
                     PmQ[i1] = roots[0]*PmQ[i0]
@@ -424,7 +531,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
                         w = M.solve_left(v)
                         PmQ[i] = w[1]
                         PQ[i] = w[0]
-                    return point0.point(PQ), point0.point(PmQ)
+                    return point0.point(PQ, F), point0.point(PmQ, F)
         else:
             L = [(chi, i, i0) for chi in range(twog) for i in range(ng)]
         r = point0.addition_formula(self, other, L)
@@ -432,11 +539,23 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             PQ[i] = sum([r[(chi, i, i0)] for chi in range(twog)])
         if all([coor == 0 for coor in PQ]):
             return self._add(other, i0 + 1)
-        return point0.point(PQ)
+        try:
+            pq = point0.point(PQ, other._R)
+        except ValueError:
+            pq = point0.point(PQ, self._R)
+        return pq
 
     def _neg_(self):
         """
         Computes the addition oposite of self.
+
+        EXAMPLES ::
+
+            sage: from avisogenies_sage import *
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1]); - P
+            (255 : 89 : 30 : 1)
+            
         """
         point0 = self.abelian_variety()
         D = point0._D
@@ -444,12 +563,55 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         idx = point0._char_to_idx
         for i in D:
             mPcoord[idx(-i)] = self[idx(i)]
-        return point0.point(mPcoord)
+        return point0.point(mPcoord, self._R)
 
     def _rmul_(self, k):
-        return self._mult(k, algorithm='Montgomery')
+        """
+        Compute scalar multiplication by `k` with a Montgomery ladder type algorithm.
 
-    def _mult(self, k, algorithm):
+        EXAMPLES ::
+
+            sage: from avisogenies_sage import *
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1])
+            sage: 42*P
+            (311 : 326 : 136 : 305)
+
+        .. TODO ::
+
+        Find tests that are not level 2!
+            
+        """
+        return self._mult(k)
+
+    def _mult(self, k, algorithm='Montgomery'):
+        """
+        Compute scalar multiplication by `k` with a Montgomery ladder type algorithm.
+        
+        INPUT:
+        
+        - ``algorithm`` (default: 'Montgomery'): The chosen algorithm for the computation.
+            It can either be 'Montgomery' for a Montgomery ladder type algorithm, or 
+            'SquareAndMultiply' for the usual square and multiply algorithm (only for level > 2).
+
+        EXAMPLES ::
+
+            sage: from avisogenies_sage import *
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1])
+            sage: P._mult(42)
+            (311 : 326 : 136 : 305)
+            
+        .. SEEALSO ::
+            :meth: `_rmul_`
+            
+        .. TODO ::
+
+        Find tests that are not level 2!
+            
+        """
+        if not isinstance(k, integer_types + (Integer,)):
+            raise NotImplementedError
         ##TODO: Maybe we should add some checks to make sure that `k` is an integer
         point0 = self.abelian_variety()._thetanullpoint
         if k == 0:
@@ -474,18 +636,41 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
                     n1P = nn1P
             return n1P
         if algorithm == 'SquareAndMultiply':
+            if self.abelian_variety()._level == 2:
+                raise NotImplementedError("Square and Multiply algorithm is only for level > 2.")
             for i in range(2, len(kb)+1):
                 nP = nP.diff_add(nP,point0)
                 if kb[-i] == 1:
                     nP = nP + self
             return nP;
-        raise NotImplementedError
+        raise NotImplementedError("Unknown algorithm %s"%algorithm)
 
     def diff_multadd(self, k, PQ, Q):
         """
-        // return kP+Q, kP
-        // (if we don't need kP, then we don't need to compute kP, only (k/2)P, so
-        // we lose 2 differential additions. Could be optimized here.
+        Computes k*self + Q, k*self
+        
+        EXAMPLES ::
+        
+            sage: from avisogenies_sage import *
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1])
+            sage: R.<X> = PolynomialRing(GF(331))
+            sage: poly = X^4 + 3*X^2 + 290*X + 3
+            sage: F.<t> = poly.splitting_field()
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+             155*t^3 + 84*t^2 + 15*t + 170, 1], R=F, check=True)
+            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 ,
+                258*t^3 + 39*t^2 + 313*t + 150 , 1], R=F)
+            sage: PQ = P.diff_add(Q, PmQ)
+            sage: P.diff_multadd(42, PQ, Q)
+            ((41*t^3 + 291*t^2 + 122*t + 305 : 119*t^3 + 95*t^2 + 120*t + 68 : 81*t^3 + 168*t^2 + 326*t + 24 : 202*t^3 + 251*t^2 + 246*t + 169),
+            (311 : 326 : 136 : 305))
+        
+        .. TODO ::
+        
+            If we don't need kP, then we don't need to compute kP, only (k/2)P, so
+            we lose 2 differential additions. Could be optimized here.
+            
         """
         if k == 0:
             point0 = self.abelian_variety()._thetanullpoint
@@ -521,6 +706,15 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         return n1PQ, n1P
 
     def pairing_from_points(self,Q,lP,lQ,lPQ,PlQ):
+        """
+        Computes the Weil pairing of self and Q, given all the points needed.
+        
+        .. TODO ::
+        
+            Maybe this could be included in the :meth:`pairing` with a keyword
+            argument points that by default is None and otherwise is a list
+            [lP, lQ, lPQ, PlQ]. But in that case we don't need l. 
+        """
         point0 = self.abelian_variety()._thetanullpoint
         r, k0P = lP.equal_points(point0, proj=True, factor=True)
         assert r
@@ -533,6 +727,26 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         return k1P*k0P/(k1Q*k0Q);
 
     def pairing(self, l, Q, PQ=None):
+        """
+        Computes the Weil pairing of self and Q.
+        
+        EXAMPLES ::
+        
+            sage: from avisogenies_sage import *
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1])
+            sage: R.<X> = PolynomialRing(GF(331))
+            sage: poly = X^4 + 3*X^2 + 290*X + 3
+            sage: F.<t> = poly.splitting_field()
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+             155*t^3 + 84*t^2 + 15*t + 170, 1], R=F, check=True)
+            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 ,
+                258*t^3 + 39*t^2 + 313*t + 150 , 1], R=F)
+            sage: PQ = P.diff_add(Q, PmQ)
+            sage: P.pairing(1889, Q, PQ)
+            17*t^3 + 153*t^2 + 305*t + 187
+            
+        """
         if PQ == None:
             if self.abelian_variety()._level == 2:
                 raise NotImplementedError
