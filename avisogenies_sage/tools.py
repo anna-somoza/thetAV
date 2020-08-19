@@ -1,8 +1,9 @@
 from collections import UserList
 from sage.rings.all import ZZ, Integer
+from sage.arith.functions import lcm
 integer_types = (int, Integer)
 
-def TowerOfField(L)
+def TowerOfField(L):
     F = L[0];
     for elem in L[1:]:
         deg1 = F.degree()
