@@ -109,27 +109,30 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             #TODO: Maybe this should be a function of X, with a boolean "full" to determine if the
             #dictionary is complete.
             if None in dual:
-                for chi, i, j in product(twotorsion, D,D):
+                for idx, (j, i, chi) in enumerate(product(D,D, twotorsion)):
                     ii, jj, tt = reduce_twotorsion_couple(i, j);
-                    if dual[chi, ii, jj] == None:
-                        dual[chi, ii, jj] = sum(eval_car(chi,t)*O[ii + t]*O[jj + t] for t in twotorsion)
-                    dual[chi, i, j] = eval_car(chi,tt)*dual[chi, ii, jj]
+                    idx2 = dual.idx([chi, ii, jj])
+                    if dual[idx2] == None:
+                        dual[idx2] = sum(eval_car(chi,t)*O[ii + t]*O[jj + t] for t in twotorsion)
+                    dual[idx] = eval_car(chi,tt)*dual[idx2]
             X._dual = dual
 
             dualself = ThetaStructure(level=[2,n,n], g=g)
             DD = [2*d for d in D]
 
-            for chi, i, j in product(twotorsion, D, D):
+            for idx, (j, i, chi) in enumerate(product(D, D, twotorsion)):
                 ii, jj, tt = reduce_twotorsion_couple(i, j);
-                if dualself[chi, ii, jj] == None:
-                    dualself[chi, ii, jj] = sum(eval_car(chi,t)*v[ii + t]*v[jj + t] for t in twotorsion)
-                dualself[chi, i, j] = eval_car(chi,tt)*dualself[chi, ii, jj]
+                idx2 = dual.idx([chi, ii, jj])
+                if dualself[idx2] == None:
+                    dualself[idx2] = sum(eval_car(chi,t)*v[ii + t]*v[jj + t] for t in twotorsion)
+                dualself[idx] = eval_car(chi,tt)*dualself[idx2]
 
-            for (i, j), (k, l) in product(combinations_with_replacement(D,2), repeat=2):
+            for elem in combinations_with_replacement(combinations_with_replacement(enumerate(D),2), 2):
+                ((idxi, i), (idxj, j)), ((idxk, k), (idxl, l)) = elem
                 if i + j + k + l in DD:
                     m = D([ZZ(x)/2 for x in i + j + k + l])
-                    for chi in twotorsion:
-                        if dual[chi, i, j]*dualself[chi, k, l] != dual[chi, m-i, m-j]*dualself[chi, m-k, m-l]:
+                    for idxchi in range(len(twotorsion)):
+                        if dual[idxchi, idxi, idxj]*dualself[idxchi, idxk, idxl] != dual[idxchi, m-i, m-j]*dualself[idxchi, m-k, m-l]:
                             raise ValueError('The given list does not define a valid thetapoint')
 
         self._coords = v
@@ -221,11 +224,8 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
                         return False, None
                 return True, c
 
-        for i in range(len(self)):
-            for j in range(i+1, len(self)):
-                if self[i] * Q[j] != self[j] * Q[i]:
-                    return False
-        return True
+        return all(self[i] * Q[j] == self[j] * Q[i] \
+            for i in range(len(self)) for j in range(i+1, len(self)))
 
     def _richcmp_(self, right, op):
         """
@@ -293,12 +293,11 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
 
     __nonzero__ = __bool__
 
-    def get_nonzero_coord(self, idx=True):
-        for i in range(len(self)):
-            if self[i] != 0:
-                if idx:
-                    return i
-                return self.abelian_variety._idx_to_char(i)
+    def get_nonzero_coord(self):
+        D = self.abelian_variety.numbering
+        for (idx, i), value in zip(enumerate(D), self):
+            if value != 0:
+                return idx, i
         raise ValueError('All entries are zero.')
 
     def diff_add(self, Q, PmQ, check=False):
@@ -343,44 +342,37 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         lvl2 = (n == 2)
         if lvl2:
             from .abelian_variety import eval_car
-        i0 = PmQ.get_nonzero_coord()
+        idx0, i0 = PmQ.get_nonzero_coord()
         L = []
-        for i in D:
-            if PmQ[i] != 0:
-                j = i
-                L += [(chi, i, j) for chi in twotorsion]
+        for idxi, i in enumerate(D):
+            if PmQ[idxi] != 0:
+                L += [(chi, i, i) for chi in twotorsion]
             else:
-                j = i0
                 if lvl2:
-                    L += [(chi, i, j) for chi in twotorsion if eval_car(chi, i + j) == 1]
+                    L += [(chi, i, i0) for chi in twotorsion if eval_car(chi, i + i0) == 1]
                 else:
-                    L += [(chi, i, j) for chi in twotorsion]
+                    L += [(chi, i, i0) for chi in twotorsion]
 
         r = point0.addition_formula(self, Q, L) #ThetaStructure(level=[2,n,n], g=g)
 
-        for i in D:
-            if PmQ[i] != 0:
-                j = i
-                PQ[i] = sum(r[chi,i,j] for chi in range(twog))/(2**g * PmQ[j]);
+        for idxi, i in enumerate(D):
+            if PmQ[idxi] != 0:
+                PQ[idxi] = sum(r[idxchi, idxi, idxi] for idxchi in range(twog))/(2**g * PmQ[idxi]);
             else:
-                j = i0
                 if lvl2:
-                    cartosum = [chi for chi in twotorsion if eval_car(chi, i + j) == 1]
-                    PQ[i] = sum(r[chi,i,j] for chi in cartosum)/(PmQ[j]*len(cartosum))
+                    cartosum = [idxchi for idxchi, chi in enumerate(twotorsion) if eval_car(chi, i + i0) == 1]
+                    PQ[idxi] = sum(r[idxchi, idxi, idx0] for idxchi in cartosum)/(PmQ[idx0]*len(cartosum))
                 else:
-                    PQ[i] = sum(r[chi,i,j] for chi in range(twog))/(2**g * PmQ[j]);
+                    PQ[idxi] = sum(r[idxchi, idxi, idx0] for idxchi in range(twog))/(2**g * PmQ[idx0]);
                     
 
         if lvl2:
-            for i in D:
+            for idx in range(point0._ng):
                 # in level 2, in this case we only computed
                 # PQ[i]PmQ[j]+PQ[j]PmQ[i] so we correct to get PQ[i]
                 # we have to do it here to be sure we have computed PQ[j]
-                #FIXME Makes no sense, we are substracting 0 all the time
-                #FIXME j should be chosen to be a coordinate with PmQ[j]!= 0.
-                #Should it just be PQ[i] -= PQ[i0]*PmQ[i]/PmQ[i0]?
-                if PmQ[i] == 0:
-                    PQ[i] -= PQ[j]*PmQ[i]/PmQ[j]
+                if PmQ[idx] == 0:
+                    PQ[idx] -= PQ[idx0] * PmQ[idx] / PmQ[idx0]
         #FIXME Find a way to improve how to deal with fields of definition
         try:
             pq = point0.point(PQ, Q._R, good_lift = (self._good_lift and Q._good_lift and PmQ._good_lift), check=check)
@@ -396,11 +388,11 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         point0 = self.abelian_variety
         D = point0.numbering
         twotorsion = point0.two_torsion
-        for i in D:
+        for idx, i in enumerate(D):
             lambda2 = sum(self[i + t]*PmQ[i + t] for t in twotorsion)
             if lambda2 == 0:
                 continue
-            elt = (0, i, i)
+            elt = (twotorsion(0), idx, idx)
             r = point0.addition_formula(P, Q, [elt])
             lambda1 = r[elt] #lambda1 = \sum PQ[i+t]PmQ[i+t]/2^g
             return lambda1/lambda2
@@ -411,7 +403,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         # TODO!
         # in practise this never happen, so I just call diff_add in this case
         PQ2 = P.diff_add(Q,PmQ)
-        i0 = PQ2.get_nonzero_coord()
+        i0, _ = PQ2.get_nonzero_coord()
         return PQ2[i0]/self[i0];
 
     def _diff_add_PQ(self,P,Q,PmQ):
@@ -420,10 +412,10 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         obtained with P.diff_add(Q, PmQ).
         """
         point0 = self.abelian_variety
-        PQn = [0]*point0._ng
+        PQn = []
         c = self._diff_add_PQfactor(P, Q, PmQ)
-        for i, value in enumerate(self):
-            PQn[i] = c*self
+        for val in self:
+            PQn.append(c*val)
         return point0.point(PQn, Q._R)
 
     def _add_(self, other):
@@ -476,28 +468,28 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         if lvl2:
             #n == 2
             PmQ = ThetaStructure(level=n, g=g)
-            for i0, i1 in product(D,D): #TODO: Check if this can be done with combinations_with_replacement instead of product
-                if i0 == i1:
+            for (idx0, i0), (idx1, i1) in product(enumerate(D), repeat=2): #TODO: Check if this can be done with combinations_with_replacement instead of product
+                if idx0 == idx1:
                     continue
-                L = [(chi,i,i0) for chi, i in product(twotorsion, D) if eval_car(chi, i + i0) == 1]\
-                    + [(chi,i,i1) for chi, i in product(twotorsion, D) if eval_car(chi, i + i1) == 1]
+                L = [(chi, i, i0) for chi, i in product(twotorsion, D) if eval_car(chi, i + i0) == 1]\
+                    + [(chi, i, i1) for chi, i in product(twotorsion, D) if eval_car(chi, i + i1) == 1]
                 r = point0.addition_formula(self, other, L) #ThetaStructure(level=[2,n,n], g=g)
                 kappa0 = ThetaStructure(level=n, g=g)
                 kappa1 = ThetaStructure(level=n, g=g)
-                for i in D:
-                    cartosum = [chi for chi in twotorsion if eval_car(chi, i + i0) == 1]
-                    kappa0[i] = sum(r[chi, i, i0] for chi in cartosum)/len(cartosum)
-                    if i == i0 and kappa0[i0] == 0:
+                for idx, i in enumerate(D):
+                    cartosum = [idxchi for idxchi, chi in enumerate(twotorsion) if eval_car(chi, i + i0) == 1]
+                    kappa0[idx] = sum(r[idxchi, idx, idx0] for idxchi in cartosum)/len(cartosum)
+                    if idx == idx0 and kappa0[idx0] == 0:
                         continue
-                    cartosum = [chi for chi in twotorsion if eval_car(chi, i + i1) == 1]
-                    kappa1[i] = sum(r[chi, i, i1] for chi in cartosum)/len(cartosum)
-                F = kappa1[i0].parent()
+                    cartosum = [idxchi for idxchi, chi in enumerate(twotorsion) if eval_car(chi, i + i1) == 1]
+                    kappa1[idx] = sum(r[idxchi, idx, idx1] for idxchi in cartosum)/len(cartosum)
+                F = kappa1[idx0].parent()
                 R = PolynomialRing(F, 'X')
-                invkappa0 = 1/kappa0[i0]
-                PmQ[i0] = F(1)
-                PQ[i0] = kappa0[i0]
-                poly = R([kappa1[i1]*invkappa0, - 2*kappa0[i1]*invkappa0, 1])
-                roots = [el[0] for el in poly.roots()]
+                invkappa0 = 1/kappa0[idx0]
+                PmQ[idx0] = F(1)
+                PQ[idx0] = kappa0[idx0]
+                poly = R([kappa1[idx1]*invkappa0, - 2*kappa0[idx1]*invkappa0, 1])
+                roots = [el for el, _ in poly.roots()]
                 # it can happen that P and Q are not rational in the av but
                 # rational in the kummer variety, so P+Q won't be rational
                 ## TODO: Find tests where this happens
@@ -507,24 +499,24 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
                     roots = [el for el, _ in poly.roots(F)]
                 if len(roots) == 1:
                     roots = roots*2
-                PmQ[i1] = roots[0]*PmQ[i0]
-                PQ[i1] = roots[1]*PQ[i0]
+                PmQ[idx1] = roots[0]*PmQ[idx0]
+                PQ[idx1] = roots[1]*PQ[idx0]
 
-                M = Matrix([[PmQ[i0], PmQ[i1]], [PQ[i0], PQ[i1]]])
+                M = Matrix([[PmQ[idx0], PmQ[idx1]], [PQ[idx0], PQ[idx1]]])
                 if not M.is_invertible():
                     continue
-                for i in D:
-                    if i == i0 or i == i1:
+                for idx, i in enumerate(D):
+                    if idx == idx0 or idx == idx1:
                         continue
-                    v = Vector([kappa0[i], kappa1[i]])
+                    v = Vector([kappa0[idx], kappa1[idx]])
                     w = M.solve_left(v)
-                    PQ[i], PmQ[i] = w
+                    PQ[idx], PmQ[idx] = w
                 return point0.point(PQ, F), point0.point(PmQ, F)
         else:
             L = [(chi, i, i0) for chi, i in product(twotorsion, D)] #FIXME: i0 is an int, check that it doesn't break in point0.addition_formula
         r = point0.addition_formula(self, other, L) #ThetaStructure(level=[2,n,n], g=g)
         for i in range(ng):
-            PQ[i] = sum(r[chi, i, i0] for chi in range(twog))
+            PQ[i] = sum(r[idxchi, i, i0] for idxchi in range(twog))
         if all(coor == 0 for coor in PQ):
             return self._add(other, i0 + 1)
         #FIXME Find a way to improve how to deal with fields of definition
@@ -551,8 +543,8 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         n = point0.level
         g = point0.dimension
         mPcoord = ThetaStructure(level=n, g=g)
-        for i in D:
-            mPcoord[-i] = self[i]
+        for i, val in zip(D, self):
+            mPcoord[-i] = val
         return point0.point(mPcoord, self._R)
 
     def _rmul_(self, k):

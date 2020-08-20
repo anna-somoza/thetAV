@@ -89,21 +89,23 @@ class AbelianVariety(AlgebraicScheme):
             dual = ThetaStructure(level=[2,n,n], g=g)
             DD = [2*d for d in D]
 
-            for i in D:
-                if T[i] != T[-i]:
-                    raise ValueError('The given list does not define a valid thetanullpoint')
+            if any(T[idx] != T[-i] for idx, i in enumerate(D)): 
+                raise ValueError('The given list does not define a valid thetanullpoint')
 
-            for chi, i, j in product(twotorsion, D, D):
+            for idx, (j, i, chi) in enumerate(product(D, D, twotorsion)):
                 ii, jj, tt = reduce_twotorsion_couple(i, j);
-                if dual[chi, ii, jj] == None:
-                    dual[chi, ii, jj] = sum(eval_car(chi,t)*T[ii + t]*T[jj + t] for t in twotorsion)
-                dual[chi,i,j] = eval_car(chi,tt)*dual[chi, ii, jj]
+                idx2 = dual.idx([chi, ii, jj])
+                if dual[idx2] == None:
+                    dual[idx2] = sum(eval_car(chi,t)*T[ii + t]*T[jj + t] for t in twotorsion)
+                dual[idx] = eval_car(chi,tt)*dual[idx2]
 
-            for (i, j), (k, l) in combinations_with_replacement(combinations_with_replacement(D,2), 2):
+            for elem in combinations_with_replacement(combinations_with_replacement(enumerate(D),2), 2):
+                ((idxi, i), (idxj, j)), ((idxk, k), (idxl, l)) = elem
                 if i + j + k + l in DD:
                     m = D([ZZ(x)/2 for x in i + j + k + l])
-                    for chi in twotorsion:
-                        if dual[chi, i, j]*dual[chi, k, l] != dual[chi, m-i, m-j]*dual[chi, m-k, m-l]:
+                    for idxchi in range(len(twotorsion)):
+                        if dual[idxchi, idxi, idxj]*dual[idxchi, idxk, idxl] != \
+                                dual[idxchi, m - i, m - j]*dual[idxchi, m - k, m - l]:
                             raise ValueError('The given list does not define a valid thetanullpoint')
 
         PP = ProjectiveSpace(R, n**g -1) #Do we need this?
@@ -180,14 +182,6 @@ class AbelianVariety(AlgebraicScheme):
         """
         return self._twotorsion
 
-    @property
-    def data(self):
-        """
-        Return a tuple with the level, dimension, numbering group and twotorsion numbering group
-        of self.
-        """
-        return self.level, self.dimension, self.numbering, self.two_torsion
-
     def change_ring(self, R):
         """
         Return the Abelian Variety over the ring `R`.
@@ -215,12 +209,11 @@ class AbelianVariety(AlgebraicScheme):
         The Abelian Variety over the ring `R`.
         """
         if R not in _Fields:
-            raise TypeError("Argument (=%s) must be a field."%R)
+            raise TypeError(f"Argument (={R}) must be a field.")
         if self.base_ring() is R:
             return self
         if not R.has_coerce_map_from(self.base_ring()):
-            raise ValueError('no natural map from the base ring (=%s) to R (=%s)!'
-                             % (self.base_ring(), R))
+            raise ValueError(f'no natural map from the base ring (={self.base_ring()}) to R (={R})!')
         return self.change_ring(R)
 
     def _point_homset(self, *args, **kwds):
@@ -246,31 +239,7 @@ class AbelianVariety(AlgebraicScheme):
 
     __call__ = point
 
-    #TODO: check all places where is used and remove (see get_nonzero_coordinate in av_point. As an alternative, programe it as a method of ThetaStructure.
-    def _idx_to_char(self, x, twotorsion=False):
-        """
-        Return the caracteristic in D that corresponds to a given integer index.
-        """
-        g = self.dimension
-        if twotorsion:
-            n = 2
-            D = self._twotorsion
-        else:
-            n = self.level
-            D = self._D
-        return D(ZZ(x).digits(n, padto=g))
-
-    # def _char_to_idx(self, x, twotorsion=False):
-        # """
-        # Return the integer index that corresponds to a given caracteristic in D.
-        # """
-        # if twotorsion:
-            # n = 2
-        # else:
-            # n = self.level
-        # return ZZ(list(x), n)
-
-    def riemann_relation(self, chi, i=None, j=None):
+    def riemann_relation(self, *data):
         """
         Computes the riemann relation associated to a given chi, i, j and stores it in P._riemann.
         Depends on which coordinates of P are zero.
@@ -288,12 +257,12 @@ class AbelianVariety(AlgebraicScheme):
         element of Zmod(n)^g.
         """
         #TODO this cold be handled by an *args type of input (I think)
-        if i == None and j == None:
-            if len(chi) != 3:
-                raise TypeError("Input should be a tuple of length 3 or 3 elements.")
-            chi, i, j = chi
-        elif i == None or j == None:
-            raise TypeError("Input should be a tuple of length 3 or 3 elements.")
+        if len(data) == 3:
+            chi, i, j = data
+        elif len(data) == 1:
+            chi, i, j = data[0]
+        else:
+            raise ValueError(f'Expected a triplet (chi, i, j))')
 
         D = self.numbering
         DD = [2*d for d in D]
@@ -316,7 +285,7 @@ class AbelianVariety(AlgebraicScheme):
             if u + v not in DD:
                 continue
             k, l, _ = reduce_symtwotorsion_couple(k0 + u, l0 + v);
-            el = (chi, k, l)
+            el = self._dual.idx([chi, k, l])
             if self._dual[el] == None:
                 self._dual[el] = sum(eval_car(chi,t)*self.thetanullpoint[k + t]*self.thetanullpoint[l + t] for t in twotorsion)
             if self._dual[el] != 0:
@@ -325,7 +294,7 @@ class AbelianVariety(AlgebraicScheme):
                 break
         else: #If we leave the for loop without encountering a break
             for t in twotorsion:
-                self._riemann[chi, i+t, j+t] = []
+                self._riemann[chi, i + t, j + t] = []
             return
             
         kk0, ll0, tkl = reduce_symtwotorsion_couple(kk, ll)
@@ -351,16 +320,15 @@ class AbelianVariety(AlgebraicScheme):
         g = self.dimension
         r = ThetaStructure(level=[2,n,n], g=g)
         for el in L:
-            if r[el] != None:
+            idx = r.idx(el)
+            if r[idx] != None:
                 continue
-            #TODO: Are we sure that this pair (i,j) is reduced as in riemann? Or it is not 
-            #done like that? check.
-            if self._riemann[el] == None:
+            if self._riemann[idx] == None:
                 #TODO: We can also make it a function that returns said riemann relations,
                 #and if they are not computed yet, it computes them and then returns them!
                 # That would deal with 4 lines of code and also give a public method to access _riemann.
                 self.riemann_relation(el) 
-            IJ = self._riemann[el]
+            IJ = self._riemann[idx]
             if len(IJ) == 0:
                 raise ValueError("Can't compute the addition! Either we are in level 2 and \
                                  computing a normal addition, or a differential addition with \
