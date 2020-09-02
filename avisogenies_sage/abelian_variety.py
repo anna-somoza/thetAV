@@ -14,7 +14,7 @@ TODO:
 changes
 * In __repr__, include the base field
 * in __richcmp__ (should it be one-underscored?), consider the following
-        You are encouraged to make your parent “unique”. That’s to say, parents should only evaluate equal if they are identical. Sage provides frameworks to create unique parents. We use here the most easy one: Inheriting from the class sage.structure.unique_representation.UniqueRepresentation is enough. Making parents unique can be quite important for an efficient implementation, because the repeated creation of “the same” parent would take a lot of time.
+        You are encouraged to make your parent “unique”. That's to say, parents should only evaluate equal if they are identical. Sage provides frameworks to create unique parents. We use here the most easy one: Inheriting from the class sage.structure.unique_representation.UniqueRepresentation is enough. Making parents unique can be quite important for an efficient implementation, because the repeated creation of “the same” parent would take a lot of time.
         (From http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html)
 
 
