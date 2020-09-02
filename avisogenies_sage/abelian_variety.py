@@ -14,7 +14,7 @@ TODO:
 changes
 * In __repr__, include the base field
 * in __richcmp__ (should it be one-underscored?), consider the following
-        You are encouraged to make your parent “unique”. That’s to say, parents should only evaluate equal if they are identical. Sage provides frameworks to create unique parents. We use here the most easy one: Inheriting from the class sage.structure.unique_representation.UniqueRepresentation is enough. Making parents unique can be quite important for an efficient implementation, because the repeated creation of “the same” parent would take a lot of time.
+        You are encouraged to make your parent “unique”. That's to say, parents should only evaluate equal if they are identical. Sage provides frameworks to create unique parents. We use here the most easy one: Inheriting from the class sage.structure.unique_representation.UniqueRepresentation is enough. Making parents unique can be quite important for an efficient implementation, because the repeated creation of “the same” parent would take a lot of time.
         (From http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html)
 
 
@@ -39,7 +39,7 @@ from sage.categories.fields import Fields
 _Fields = Fields()
 from six import integer_types
 from sage.rings.integer import Integer
-from itertools import product
+from itertools import product, combinations_with_replacement
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 ZZ = IntegerRing()
@@ -51,46 +51,6 @@ from sage.schemes.generic.morphism import SchemeMorphism_point
 from sage.schemes.generic.homset import SchemeHomset_points
 from sage.structure.richcmp import richcmp_method, richcmp
 from .av_point import AbelianVarietyPoint
-
-##Note that this might change if we have to distinguish level 2 from the rest.
-def is_Abelian_Variety(X):
-    """
-    Return True if `X` is of type AbelianVariety.
-
-    EXAMPLES::
-
-        sage: from avisogenies.abelian_variety import AbelianVariety, is_Abelian_Variety
-        sage: P2.<x, y, z> = ProjectiveSpace(QQ, 2)
-        sage: C = Curve(x^3 + y^3 + z^3)
-        sage: J = Jacobian(C)
-        sage: K = KummerSurface(J)
-        sage: is_Abelian_Variety(K)
-        True
-
-    ::
-
-        sage: E = EllipticCurve('37a1')
-        sage: is_Abelian_Variety(E)
-        False
-    """
-    return isinstance(X, AbelianVariety)
-
-###We could also create some overwrite option for this
-# def Jacobian(C):
-    # """
-    # EXAMPLES::
-
-        # sage: from sage.schemes.jacobians.abstract_jacobian import Jacobian
-        # sage: P2.<x, y, z> = ProjectiveSpace(QQ, 2)
-        # sage: C = Curve(x^3 + y^3 + z^3)
-        # sage: Jacobian(C)
-        # Jacobian of Projective Plane Curve over Rational Field defined by x^3 + y^3 + z^3
-    # """
-    # try:
-        # return C.jacobian()
-    # except AttributeError:
-        # return Jacobian_generic(C)
-
 
 #Note that there is a constructor with the name AbelianVariety. Either overwrite it
 #or change name. Maybe create different possible constructors? See EllipticCurve.
@@ -110,7 +70,8 @@ class AbelianVariety(AlgebraicScheme):
     -  ``T`` - a list of length n^g elements of R - the theta null point determining the abelian variety.
 
     EXAMPLES::
-
+    
+        sage: from avisogenies_sage import AbelianVariety
         sage: FF = GF(331)
         sage: A = AbelianVariety(FF, 2,2,[328,213,75,1]); A
         Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1)
@@ -143,37 +104,31 @@ class AbelianVariety(AlgebraicScheme):
 
         if check:
             idx = lambda i : ZZ(list(i), n)
-            idx2 = lambda i : ZZ(list(i), 2)
             dual = {}
             DD = [2*d for d in D]
 
-            for i in D:
-                if T[idx(i)] != T[idx(-i)]:
-                    raise ValueError('The given list does not define a valid thetanullpoint')
+            if any(T[idx(-i)] != val for i, val in zip(D, T)):
+                raise ValueError('The given list does not define a valid thetanullpoint')
 
-            for i, j in product(D,D):
-                for chi in twotorsion:
-                    ii, jj, tt = reduce_twotorsion_couple(i, j);
-                    el = (idx2(chi), idx(ii), idx(jj))
+            for (idxi, i), (idxj, j) in product(enumerate(D), repeat=2):
+                ii, jj, tt = reduce_twotorsion_couple(i, j);
+                for idxchi, chi in enumerate(twotorsion):
+                    el = (idxchi, idx(ii), idx(jj))
                     if el not in dual:
-                        dual[el] = sum([eval_car(chi,t)*T[idx(ii + t)]*T[idx(jj + t)] for t in twotorsion])
-                    el2 = (idx2(chi), idx(i), idx(j))
-                    dual[el2] = eval_car(chi,tt)*dual[el]
+                        dual[el] = sum(eval_car(chi,t)*T[idx(ii + t)]*T[idx(jj + t)] for t in twotorsion)
+                    dual[(idxchi, idxi, idxj)] = eval_car(chi,tt)*dual[el]
 
-            S = []
-            for i, j, k, l in product(D, repeat=4):
+            for elem in combinations_with_replacement(combinations_with_replacement(enumerate(D),2), 2):
+                ((idxi, i), (idxj, j)), ((idxk, k), (idxl, l)) = elem
                 if i + j + k + l in DD:
-                    s = sorted([i,j,k,l])
-                    if s not in S:
-                        S.append(s)
-                        m = D([ZZ(x)/2 for x in i + j + k + l])
-                        for chi in twotorsion:
-                            el1 = (idx2(chi), idx(i), idx(j))
-                            el2 = (idx2(chi), idx(k), idx(l))
-                            el3 = (idx2(chi), idx(m-i), idx(m-j))
-                            el4 = (idx2(chi), idx(m-k), idx(m-l))
-                            if dual[el1]*dual[el2] != dual[el3]*dual[el4]:
-                                raise ValueError('The given list does not define a valid thetanullpoint')
+                    m = D([ZZ(x)/2 for x in i + j + k + l])
+                    for idxchi in range(len(twotorsion)):
+                        el1 = (idxchi, idxi, idxj)
+                        el2 = (idxchi, idxk, idxl)
+                        el3 = (idxchi, idx(m-i), idx(m-j))
+                        el4 = (idxchi, idx(m-k), idx(m-l))
+                        if dual[el1]*dual[el2] != dual[el3]*dual[el4]:
+                            raise ValueError('The given list does not define a valid thetanullpoint')
 
         PP = ProjectiveSpace(R, n**g -1)
         #Given a characteristic x in (Z/nZ)^g its theta constant is at position ZZ(x, n)
@@ -201,7 +156,7 @@ class AbelianVariety(AlgebraicScheme):
         then self and `X` are equal if and only if their theta null points are
         equal as projective points.
         """
-        if not is_Abelian_Variety(X):
+        if not isinstance(X, AbelianVariety):
             return NotImplemented
         #Question: If the fields of def are different, should this say False?
         return richcmp(self._thetanullpoint._coords, X._thetanullpoint._coords, op)
@@ -311,7 +266,7 @@ class AbelianVariety(AlgebraicScheme):
             n = self._level
         return ZZ(list(x), n)
 
-    def riemann_relation(self, chi, i=None, j=None):
+    def riemann_relation(self, *data):
         """
         Computes the riemann relation associated to a given chi, i, j and stores it in P._riemann.
         Depends on which coordinates of P are zero.
@@ -328,24 +283,26 @@ class AbelianVariety(AlgebraicScheme):
         -  ``j`` - the index of a coordinate of P. For now we are assuming that they are an
         element of Zmod(n)^g.
         """
-        if i == None and j == None:
-            if len(chi) != 3:
-                raise TypeError("Input should be a tuple of length 3 or 3 elements.")
-            char = self._idx_to_char
-            i = char(chi[1])
-            j = char(chi[2])
-            chi = char(chi[0],True)
-        elif i == None or j == None:
+        idx = self._char_to_idx
+        char = self._idx_to_char
+        if len(data) == 1:
+            idxchi, idxi, idxj = data[0]
+            i = char(idxi)
+            j = char(idxj)
+            chi = char(idxchi,True)
+        elif len(data) == 3:
+            chi, i, j = data
+            idxchi = idx(chi, True)
+            idxi = idx(i)
+            idxj = idx(j)
+        else:
             raise TypeError("Input should be a tuple of length 3 or 3 elements.")
+
         ##TODO: Accept both integers and elements of D/twotorsion as input.
-        n = self._level
-        g = self._dimension
         D = self._D
         DD = [2*d for d in D]
         twotorsion = self._twotorsion
-        idx = self._char_to_idx
-        char = self._idx_to_char
-        if (idx(chi, True), idx(i), idx(j)) in self._riemann:
+        if (idxchi, idxi, idxj) in self._riemann:
             return
         i, j, tij = reduce_twotorsion_couple(i,j)
          # we try to find k and l to apply the addition formulas such that
@@ -359,32 +316,27 @@ class AbelianVariety(AlgebraicScheme):
             k0 = i
             l0 = j
 
-        r = {} #not sure yet of why.
         for u, v in product(D,D):
             if u + v not in DD:
                 continue
             k, l, _ = reduce_symtwotorsion_couple(k0 + u,l0 + v);
-            el = (idx(chi, True), idx(k), idx(l))
+            el = (idxchi, idx(k), idx(l))
             if el not in self._dual:
-                if el not in r:
-                    r[el] = sum([eval_car(chi,t)*self._thetanullpoint[idx(k + t)]*self._thetanullpoint[idx(l + t)] for t in twotorsion])
-                self._dual[el] = r[el]
-            if self._dual[el]:
+                self._dual[el] = sum(eval_car(chi,t)*self._thetanullpoint[idx(k + t)]*self._thetanullpoint[idx(l + t)] for t in twotorsion)
+            if self._dual[el] != 0:
                 kk = k0 + u
                 ll = l0 + v
                 break
         else: #If we leave the for loop without encountering a break
             for t in twotorsion:
-                self._riemann[(idx(chi, True), idx(i+t), idx(j+t))] = []
-            return
-            self._riemann[(idx(chi, True), idx(i), idx(j))] = []
+                self._riemann[(idxchi, idx(i + t), idx(j + t))] = []
             return
         kk0, ll0, tkl = reduce_symtwotorsion_couple(kk, ll)
         i2, j2, k2, l2 = get_dual_quadruplet(i, j, kk, ll)
         i20, j20, tij2 = reduce_twotorsion_couple(-i2, j2)
         k20, l20, tkl2 = reduce_twotorsion_couple(k2, l2)
         for t in twotorsion:
-            self._riemann[(idx(chi, True), idx(i+t), idx(j+t))] = [i, j, t, kk0, ll0, tkl, i20, j20, tij2, k20, l20, tkl2]
+            self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, t, kk0, ll0, tkl, i20, j20, tij2, k20, l20, tkl2] #DIFF Maybe we only need to store the sum of all twotorsion.
         return
 
     def addition_formula(self, P, Q, L):
@@ -397,7 +349,6 @@ class AbelianVariety(AlgebraicScheme):
         
             Q should be the point living in the big field
         """
-        D = self._D
         twotorsion = self._twotorsion
         idx = self._char_to_idx
         char = self._idx_to_char
@@ -409,7 +360,6 @@ class AbelianVariety(AlgebraicScheme):
                 self.riemann_relation(el) #see if we prefer to pass the char, the idx, or both (as an argument with default evaluation?). We can also make it a function that returns said riemann relations, and if they are not computed yet, it computes them and then returns them! That would deal with 4 lines of code and also give a public method to access _riemann.
             IJ = self._riemann[el]
             if not len(IJ):
-                print(el, eval_car(char(el[0]), char(el[1])+char(el[2])))
                 raise ValueError("Can't compute the addition! Either we are in level 2 and computing a normal addition, or a differential addition with null even theta null points.")
             ci0, cj0 = IJ[0:2]
             k0, l0 = map(idx, IJ[3:5])
@@ -419,9 +369,9 @@ class AbelianVariety(AlgebraicScheme):
 
             chi = char(el[0], True)
 
-            s1 = sum([eval_car(chi,t)*Q[idx(ci20 + t)]*Q[idx(cj20+t)] for t in twotorsion ])
-            s2 = sum([eval_car(chi,t)*P[idx(ck20 + t)]*P[idx(cl20+t)] for t in twotorsion ])
-            A = self._dual[(el[0],k0,l0)]
+            s1 = sum(eval_car(chi, t)*Q[idx(ci20 + t)]*Q[idx(cj20 + t)] for t in twotorsion)
+            s2 = sum(eval_car(chi, t)*P[idx(ck20 + t)]*P[idx(cl20 + t)] for t in twotorsion)
+            A = self._dual[(el[0], k0, l0)]
             # we prefer to store the data in Q because for a differential
             # addition we will have i2=j2=0, so  in level 4, we gain.
             # s1A = s1/A
@@ -453,7 +403,6 @@ def reduce_symtwotorsion(x):
     return x2, tx2
 
 def reduce_symcouple(x,y):
-    D = x.parent()
     xred = reduce_sym(x)
     yred = reduce_sym(y)
     if xred < yred:
@@ -494,4 +443,3 @@ def eval_car(chi,t):
             r[i] = ZZ(r[i])/halflevels[i]
         t = twotorsion(r)
     return ZZ(-1)**(chi*t);
-
