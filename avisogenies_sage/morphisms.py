@@ -1248,8 +1248,6 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
         t /= prod(points[i][0] - points[k][0] for i, k in product(I, range(g)) if k not in I)
         Y+=t
 
-    print(Y)
-
     #Cases where I contains exactly one of the two.
     """
     With the formula in [Coss]_, t would be computed as follows
