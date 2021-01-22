@@ -803,9 +803,9 @@ class ThetaPoint_Analytic:
 
         for idxb, b in enumerate(D): #char(b) in Zmod(4)^g
             for a in twotorsion:
-                ttb = twotorsion(b)
-                ib = 1/2*(V(b) - V(ttb))
-                sign = (-1)**(a*ib)
+                ttb = twotorsion(list(b))
+                ib = D((V(b) - V(ttb))/2)
+                sign = (-1)**ZZ(a*ib)
                 point[idxb] += self[idx(a, ttb)]*sign
 
         return A(point)
@@ -912,8 +912,8 @@ class ThetaNullPoint_Analytic:
         for idxb, b in enumerate(D): #char(b) in Zmod(4)^g
             for a in twotorsion:
                 ttb = twotorsion(b)
-                ib = 1/2*(V(b) - V(ttb))
-                sign = (-1)**(a*ib)
+                ib = D((V(b) - V(ttb))/2) #Probably very inefficient, look for an alternative
+                sign = (-1)**ZZ(a*ib)
                 point[idxb] += self._coord[idx(a, ttb)]*sign
 
         self._algebraic = AbelianVariety(R, n, g, point)
@@ -1242,11 +1242,13 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
     #Cases where I doesn't contain the indices of the repeated cases or it contains both (if possible): normal.
     for I in chain.from_iterable(combinations(range(g-2), r) for r in [n, n-2] if r >=0):
         if len(I) == n-2:
-            I = I + (g-2, g-1)  #DIFF: In Magma implementation, in this case, missing y_{-1}^2 ?
+            I = I + (g-2, g-1)  #DIFF: In Magma implementation, in this case, missing y_{-1}^2 ? See Definition 5.1.26 on pg 116
         t = prod(points[i][1] for i in I)
         t *= prod(points[k][0] - a[l] for l, k in product(S, range(g)) if k not in I)
         t /= prod(points[i][0] - points[k][0] for i, k in product(I, range(g)) if k not in I)
         Y+=t
+
+    print(Y)
 
     #Cases where I contains exactly one of the two.
     """
@@ -1261,7 +1263,7 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
             P = K(P/(x-y))
         except TypeError:
             raise ValueError('P={P} should be divisible by {x - y}')
-        t = P(points[1][0],points[1][0])*prod((points[-1][0] - a[l])**2 for l in S)
+        t = P(points[-1][0],points[-1][0])*prod((points[-1][0] - a[l])**2 for l in S)
 
         t /= 2*points[-1][1]*prod(points[-1][0] - a[l] for l in S)
 
@@ -1306,7 +1308,7 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
     except TypeError:
         raise ValueError('P={P} should be divisible by {x - y}')
 
-    t01 = P(points[1][0],points[1][0])/(2*points[-1][1])*prod(points[-1][0] - a[l] for l in S)
+    t01 = P(points[-1][0],points[-1][0])/(2*points[-1][1])*prod(points[-1][0] - a[l] for l in S)
 
     t02 = 1/prod(((points[i][0]-points[-1][0])**2 for i in range(g-2)), F(1))
 
@@ -1328,7 +1330,7 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
             P = K(P/(x-y))
         except TypeError:
             raise ValueError('P={P} should be divisible by {x - y}')
-        t2 *= P(points[1][0],points[1][0])
+        t2 *= P(points[-1][0],points[-1][0])
 
         Y += t1 + t2
 
