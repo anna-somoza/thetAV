@@ -736,3 +736,43 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         r, k1Q = lPQ.equal_points(Q, proj=True, factor=True)
         assert r
         return k1P*k0P/(k1Q*k0Q)
+
+    
+    def three_way_add(P, Q, R, PQ, QR, PR):
+        from .abelian_variety import eval_car, reduce_twotorsion_couple
+        point0 = P.abelian_variety()
+        O = point0._thetanullpoint
+        n = point0._level
+        g = point0._dimension
+        D = point0._D
+        twotorsion = point0._twotorsion
+        ng = n**g
+        twog = 2**g
+        PQR = [0]*ng
+        lvl2 = (n == 2)
+        idx = point0._char_to_idx
+        idxi0 = P.get_nonzero_coord()
+        i0 = point0._idx_to_char(idxi0)
+        for idxI, I in enumerate(D):
+            if P[idxI] == 0:
+                idxJ, J = idxi0, i0
+                i1, j1, t1 = reduce_twotorsion_couple(I - J, 0)
+                i2, j2, t2 = reduce_twotorsion_couple(I, J)
+                val = 0
+                for chi in twotorsion:
+                    l2 = sum(eval_car(chi, t)*Q[idx(i1 + t)]*R[idx(j1 + t)] for t in twotorsion)
+                    l3 = sum(eval_car(chi, t)*O[idx(i2 + t)]*QR[idx(j2 + t)] for t in twotorsion)
+                    l4 = sum(eval_car(chi, t)*PR[idx(i1 + t)]*PQ[idx(j1 + t)] for t in twotorsion)
+                    val += eval_car(chi, t2)*l3*l4/l2
+                PQR[idxI] = val/(2**g*P[idxJ])
+            else:
+                idxJ, J = idxI, I
+                i2, j2, t2 = reduce_twotorsion_couple(I, J)
+                val = 0
+                for chi in twotorsion:
+                    l2 = sum(eval_car(chi, t)*Q[idxt]*R[idxt] for idxt, t in enumerate(twotorsion))
+                    l3 = sum(eval_car(chi, t)*O[idx(i2 + t)]*QR[idx(j2 + t)] for t in twotorsion)
+                    l4 = sum(eval_car(chi, t)*PR[idxt]*PQ[idxt] for idxt, t in enumerate(twotorsion))
+                    val += eval_car(chi, t2)*l3*l4/l2
+                PQR[idxI] = val/(2**g*P[idxJ])
+        return point0.point(PQR, P._R)
