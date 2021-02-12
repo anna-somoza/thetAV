@@ -237,7 +237,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
 
     def good_lift(self):
         """
-        Indicates if the given point is the affine lift compatible with
+        Indicates if the given point is an affine lift compatible with
         the lift of the theta null point.
         """
         return self._good_lift

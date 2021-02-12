@@ -273,7 +273,7 @@ class AbelianVariety(AlgebraicScheme):
 
         INPUT:
 
-        -  ``P`` - a theta null point => DL : Not anymore ?
+        -  ``P`` - a theta null point 
 
         -  ``chi`` - a character, given by its dual element in Z(2) as a subset of Z(n).
 

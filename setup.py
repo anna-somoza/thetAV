@@ -42,6 +42,6 @@ setup(
     keywords = "SageMath packaging",
     packages = ['avisogenies_sage'],
     cmdclass = {'test': SageTest}, # adding a special setup command for tests
-    setup_requires   = ['sage-package'],
-    install_requires = ['sage-package', 'sphinx'],
+#    setup_requires   = ['sage-package'],
+#    install_requires = ['sage-package', 'sphinx'],
 )
