@@ -65,6 +65,13 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         point_homset = X.point_homset()
         if is_SchemeMorphism(v) or isinstance(v, AbelianVarietyPoint) or is_Vector(v):
             v = list(v)
+        if isinstance(v,dict):
+            try:
+                ig = X._itemgetter
+            except AttributeError:
+                _ = X.general_point()
+                ig = X._itemgetter
+            v = ig(v)
         if v == 0 or v == (0,):
             if check:
                 ## if check, we should make sure that v has been checked when generated.
@@ -363,9 +370,11 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         if lvl2:
             for i in range(ng):
                 # in level 2, in this case we only computed
-                # PQ[i]PmQ[j]+PQ[j]PmQ[i] so we correct to get PQ[i]
+                # (PQ[i]PmQ[j]+PQ[j]PmQ[i])/PmQ[j] so we correct to get PQ[i]
                 # we have to do it here to be sure we have computed PQ[j]
                 # FIXME We are substracting 0 all the time? Doesn't make too much sense...
+                # In the case with PmQ[i] == 0 (j = i0) we have computed (PQ[i]PmQ[i0] + PQ[i0]PmQ[i])/PmQ[i0] = PQ[i]
+                # In the case with PmQ[i] != 0 (j = i) we have computed (PQ[i]PmQ[i] + PQ[i]PmQ[i])/PmQ[i] = 2*PQ[i]
                 if PmQ[i] == 0:
                     PQ[i] -= PQ[j]*PmQ[i]/PmQ[j]
         try:
@@ -599,7 +608,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         if algorithm == 'Montgomery':
             mP = -self
             n1P = self.diff_add(self, point0)
-            for i in range(2, len(kb)+1):
+            for i in range(2, len(kb)+1): #FIXME: We can change this to walk the vector kb in reversed order?
                 if kb[-i] == 1:
                     nn11P = n1P.diff_add(n1P,point0)
                     nP = nP.diff_add(n1P,mP)
@@ -776,3 +785,15 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
                     val += eval_car(chi, t2)*l3*l4/l2
                 PQR[idxI] = val/(2**g*P[idxJ])
         return point0.point(PQR, P._R)
+
+    def scale(self, k, R=None):
+        """
+        Given an affine lift point 'P' and a factor 'k' in the field of definition, returns the
+        affine lift given by kx.
+        """
+        v = self._coords
+        A = self.abelian_variety()
+        if R==None:
+            R = self._R
+        assert k in R, f'k={k} not in R={R}'
+        return A.point(list(map(lambda i : k*i, v)), R)
