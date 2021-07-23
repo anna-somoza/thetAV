@@ -1248,7 +1248,7 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
         t /= prod(points[i][0] - points[k][0] for i, k in product(I, range(g)) if k not in I)
         Y+=t
 
-    print(Y)
+    #print(Y) ##TO BE REMOVED
 
     #Cases where I contains exactly one of the two.
     """
