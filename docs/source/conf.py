@@ -393,7 +393,7 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
     html_static_path.append(SAGE_LOCAL + "/lib/mathjax")    # conda
     html_static_path.append(SAGE_SHARE + "/mathjax")  # sage distribution
 else:
-     extensions.append('sphinx.ext.pngmath')
+     extensions.append('sphinx.ext.imgmath')
 
 # This is to make the verbatim font smaller;
 # Verbatim environment is not breaking long lines
