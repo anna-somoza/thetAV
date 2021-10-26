@@ -10,8 +10,19 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - sage=9.4
+  - python=3
+  - sage=9.0
+  - setuptools_scm
+  - sphinx
+  - sphinxcontrib-websupport
+  - sphinxcontrib-bibtex
+  - lrslib
+  - normaliz
+  - boost-cpp      # For installing PyNormaliz
+  - mathjax
   - pip
   - pip:
+    - pynormaliz==2.8
+    - sage-package
     - myst_parser
-    - .
+    - matplotlib
