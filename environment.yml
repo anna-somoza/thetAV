@@ -20,10 +20,12 @@ dependencies:
   - normaliz
   - boost-cpp      # For installing PyNormaliz
   - mathjax
+  - pandoc
   - pip
   - pip:
     - pynormaliz==2.8
     - sage-package
     - myst_parser
     - matplotlib
+    - nbsphinx
     - .

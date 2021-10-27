@@ -51,14 +51,12 @@ print("Using sys.path = {}".format(sys.path))
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    #'sage_autodoc',            ## Not available on conda-forge sage!
-    #'sage_package.sphinx',
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
     'sphinx.ext.extlinks',
     'matplotlib.sphinxext.plot_directive',
     'myst_parser',
-    #'sphinxcontrib.bibtex'
+    'nbsphinx'
 ]
 
 ### from Sage src/doc/common/conf.py
@@ -389,9 +387,9 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
     ## html_static_path.append(mathjax_static)
     ## exclude_patterns=['**/'+os.path.join(mathjax_relative, i) for i in ('docs', 'README*', 'test',
     ##                                                                     'unpacked', 'LICENSE')]
-    from sage.env import SAGE_LOCAL, SAGE_SHARE
-    html_static_path.append(SAGE_LOCAL + "/lib/mathjax")    # conda
-    html_static_path.append(SAGE_SHARE + "/mathjax")  # sage distribution
+    ## from sage.env import SAGE_LOCAL, SAGE_SHARE
+    ## html_static_path.append(SAGE_LOCAL + "/lib/mathjax")    # conda
+    ## html_static_path.append(SAGE_SHARE + "/mathjax")  # sage distribution
 else:
      extensions.append('sphinx.ext.imgmath')
 

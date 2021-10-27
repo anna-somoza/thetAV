@@ -27,7 +27,7 @@ Based on the Magma implementation by Romain Cosset.
 /***** (7) Theta to Mumford
 /**************************************************************************/
 
-REFERENCES ::
+REFERENCES:
 
 .. [VanW] P. Van Wamelen. Equations for the Jacobian of a hyperelliptic curve.
    Trans. Am. Math. Soc, 350(8), pp.3083-3106, 1998.
@@ -59,15 +59,15 @@ def eta_prime(g, L, normalized=False):
     Following a definition analogous to that in [VanW, page 3089]_, returns eta_prime as
     a vector in ZZ^g.
 
-    INPUT ::
+    INPUT:
 
-        - `g` - an Integer. The length of eta_prime.
-        - `L` - an Integer or a list of integers. If it is a list, it returns the sum of eta_prime
-                for all elements in the list.
-        - `normalized`(default: False) - a boolean. It returns the vector reduced mod 2ZZ^g,
-                that is, with entries 0 or 1.
+    - ``g`` -- an Integer; the length of eta_prime.
+    - ``L`` -- an Integer or a list of integers; if it is a list, it returns the sum of eta_prime
+      for all elements in the list.
+    - ``normalized`` (default: False) - a boolean; it returns the vector reduced mod 2ZZ^g,
+      that is, with entries 0 or 1.
 
-    NOTE::
+    .. NOTE::
 
         The indexes are shifted to start at 0 with respect to the reference
 
@@ -110,15 +110,15 @@ def eta_second(g, L, normalized=False):
     Following a definition analogous to that in [VanW, page 3089]_, returns eta_second as
     a vector in ZZ^g.
 
-    INPUT ::
+    INPUT:
 
-        - `g` - an Integer. The length of eta_second.
-        - `L` - an Integer or a list of integers. If it is a list, it returns the sum of eta_second
-                for all elements in the list.
-        - `normalized`(default: False) - a boolean. It returns the vector reduced mod 2ZZ^g,
-                that is, with entries 0 or 1.
+    - ``g`` - an Integer. The length of eta_second.
+    - ``L`` - an Integer or a list of integers. If it is a list, it returns the sum of eta_second
+            for all elements in the list.
+    - ``normalized`` (default: False) - a boolean. It returns the vector reduced mod 2ZZ^g,
+            that is, with entries 0 or 1.
 
-    NOTE::
+    .. NOTE::
 
         The indexes are shifted to start at 0 with respect to the reference
 
@@ -161,17 +161,17 @@ def eta(g, L, normalized=False, idx=False):
     Following a definition analogous to that in [VanW, page 3089]_, returns eta as
     a vector in ZZ^(2*g).
 
-    INPUT ::
+    INPUT:
 
-        - `g` - an Integer. The half-length of eta.
-        - `L` - an Integer or a list of integers. If it is a list, it returns the sum of eta_second
-                for all elements in the list.
-        - `normalized`(default: False) - a boolean. It returns the vector reduced mod 2ZZ^g,
-                that is, with entries 0 or 1.
-        - `idx`(default: False) - a boolean. If both normalize and idx are True, then `eta`
-                computes the integer with base-2 representation given by eta.
+    - ``g`` -- an Integer. The half-length of eta.
+    - ``L`` -- an Integer or a list of integers. If it is a list, it returns the sum of eta_second
+            for all elements in the list.
+    - ``normalized`` (default: False) -- a boolean. It returns the vector reduced mod 2ZZ^g,
+      that is, with entries 0 or 1.
+    - ``idx`` (default: False) -- a boolean. If both normalize and idx are True, then ``eta``
+      computes the integer with base-2 representation given by eta.
 
-    NOTE::
+    .. NOTE::
 
         The indexes are shifted to start at 0 with respect to the reference
 
@@ -189,7 +189,7 @@ def eta(g, L, normalized=False, idx=False):
         (0, 0, 0, 0, 0, 0, 0, 1)
 
     If normalized=True and idx=True, returns the integer with base-2 representation given
-    by the eta vector.
+    by the eta vector ::
 
         sage: eta(4, [6,7], normalized=True, idx=True)
         128
@@ -313,13 +313,13 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
     The element of E as defined in Definition 5.1.3 in [Coss]_, where the roots sqrt(a_i - a_j)
     are expressed in terms of theta constants and sqrt(a_1 - a_0).
 
-    NOTE::
+    .. NOTE::
 
         The indexes are shifted to start at 0 with respect to the reference.
 
-    EXAMPLES ::
+    EXAMPLES:
 
-    In order to see the vector representation of the keys in `numer` and `denom` one can use the `str` or `print` methods:
+    In order to see the vector representation of the keys in `numer` and `denom` one can use the `str` or `print` methods ::
 
         sage: from avisogenies_sage import EpElement
         sage: from collections import Counter
@@ -511,11 +511,11 @@ def constant_f(g, A, C):
     """
     Return the expression of f_A as an element of Ep, as defined by Definition 3 in [VanW, page 3095].
 
-    INPUT ::
+    INPUT:
 
-        - `g` : an Integer, the dimension.
-        - `A` : a set.
-        - `C` : a choice of C as in [Coss]_ (see :func:`choice_of_C_Cosset` and :func:`choice_of_all_C_Cosset`).
+    - `g` : an Integer, the dimension.
+    - `A` : a set.
+    - `C` : a choice of C as in [Coss]_ (see :func:`choice_of_C_Cosset` and :func:`choice_of_all_C_Cosset`).
 
     EXAMPLES ::
 
@@ -603,16 +603,16 @@ def choice_of_C_Cosset(g, A):
     """
     Make a choice for the constant C as in Definition 5.1.5 of [Coss]_.
 
-    INPUT ::
+    INPUT:
 
-        - `g` : an Integer, the dimension.
-        - `A` : a set.
+    - `g` : an Integer, the dimension.
+    - `A` : a set.
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import choice_of_C_Cosset
-    sage: choice_of_C_Cosset(5, {0,1,2})
-    {3, 4}
+        sage: from avisogenies_sage import choice_of_C_Cosset
+        sage: choice_of_C_Cosset(5, {0,1,2})
+        {3, 4}
 
     """
     if len(A) > g + 1:
@@ -644,19 +644,19 @@ def choice_of_all_C_Cosset(g):
     """
     Make a choice for all the constant C as in Definition 5.1.5 of [Coss]_.
 
-    INPUT ::
+    INPUT:
 
-        - `g` : an Integer, the dimension.
+    - `g` : an Integer, the dimension.
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import choice_of_all_C_Cosset
-    sage: g = 5; C = choice_of_all_C_Cosset(g)
-    sage: C[frozenset({1,3,4})]
-    {0, 5}
-    sage: B = frozenset(range(2*g + 1))
-    sage: C[B.difference({1,3,4})]
-    {0, 5}
+        sage: from avisogenies_sage import choice_of_all_C_Cosset
+        sage: g = 5; C = choice_of_all_C_Cosset(g)
+        sage: C[frozenset({1,3,4})]
+        {0, 5}
+        sage: B = frozenset(range(2*g + 1))
+        sage: C[B.difference({1,3,4})]
+        {0, 5}
 
     """
     C = {}
@@ -673,18 +673,18 @@ def sign_s_A(g, A, C):
     """
     Compute the sign of s_A as defined in Section 5.1.4 of [Coss]_.
 
-    INPUT ::
+    INPUT:
 
-        - `g` : an Integer, the dimension.
-        - `A` : a set.
-        - `C` : a choice of all C as in [Coss]_ (see :func:`choice_of_all_C_Cosset`).
+    - `g` : an Integer, the dimension.
+    - `A` : a set.
+    - `C` : a choice of all C as in [Coss]_ (see :func:`choice_of_all_C_Cosset`).
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import choice_of_all_C_Cosset, sign_s_A
-    sage: g = 5; C = choice_of_all_C_Cosset(g)
-    sage: sign_s_A(g, [1, 2, 3], C)
-    1
+        sage: from avisogenies_sage import choice_of_all_C_Cosset, sign_s_A
+        sage: g = 5; C = choice_of_all_C_Cosset(g)
+        sage: sign_s_A(g, [1, 2, 3], C)
+        1
 
     """
     if len(A) == 0 or len(A) == 1:
@@ -730,8 +730,8 @@ def sign_s_A(g, A, C):
 class ThetaPoint_Analytic:
     """
     Components:
-        - level, // an integer
-        - coord, // a ThetaStructure of level 2 and g = 2*g
+    - level, // an integer
+    - coord, // a ThetaStructure of level 2 and g = 2*g
     """
     def __init__(self, thc, v):  #Equivalent to "AnalyticThetaPoint" intrinsic method in magma
         l = thc._level
@@ -987,20 +987,20 @@ def IgusaTheorem(A, TH):
     Apply Igusa theorems to the theta with caracteristic given in the list A
     The theta in the summation are taken from TH #FIXME: Add reference
 
-    INPUT ::
+    INPUT:
 
-        - A - A list with 4 eta vectors.
-        - TH - A list of 4 analytic theta points.
+    - A - A list with 4 eta vectors.
+    - TH - A list of 4 analytic theta points.
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import *
-    sage: g = 2; A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
-    sage: P = A([255 , 89 , 30 , 1])
-    sage: thp = AlgebraicToAnalyticThetaPoint(P)
-    sage: thc = thp._codomain; thO = thc(0)
-    sage: IgusaTheorem([eta(g,{2*x for x in range(g+1)})]*4, [thp,thO,thO,thO])
-    56
+        sage: from avisogenies_sage import *
+        sage: g = 2; A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: P = A([255 , 89 , 30 , 1])
+        sage: thp = AlgebraicToAnalyticThetaPoint(P)
+        sage: thc = thp._codomain; thO = thc(0)
+        sage: IgusaTheorem([eta(g,{2*x for x in range(g+1)})]*4, [thp,thO,thO,thO])
+        56
 
     """
     if len(A)!=4 or len(TH)!=4:
@@ -1030,7 +1030,7 @@ def constant_f2_level2(a, thc, A, C):
     """
     Compute the constant f_S^2 from the theta constant of level 2
 
-    INPUT ::
+    INPUT:
 
     - `a` - list of x-coordinates of the Weierstrass points.
     - `thc` - the theta null point associated to the jacobian of the curve.
@@ -1039,12 +1039,12 @@ def constant_f2_level2(a, thc, A, C):
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import *
-    sage: g = 2; A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
-    sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
-    sage: a = [0,1,4,6,7]
-    sage: A = {3,4}; constant_f2_level2(a, thc, A, choice_of_C_Cosset(g, A))
-    170
+        sage: from avisogenies_sage import *
+        sage: g = 2; A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
+        sage: a = [0,1,4,6,7]
+        sage: A = {3,4}; constant_f2_level2(a, thc, A, choice_of_C_Cosset(g, A))
+        170
 
     """
     g = thc._dimension
@@ -1067,7 +1067,7 @@ def eltEp_to_eltE(a, thc, f, rac=None):
     """
     Let f be an element of Ep. Evaluate f.
 
-    INPUT ::
+    INPUT:
 
     - `a` - list of x-coordinates of the Weierstrass points.
     - `thc` - the theta null point associated to the jacobian of the curve.
@@ -1076,13 +1076,13 @@ def eltEp_to_eltE(a, thc, f, rac=None):
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import *
-    sage: g = 2; A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
-    sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
-    sage: a = [0,1,4,6,7]
-    sage: f = bp_sqrt(g, 4, 2)
-    sage: eltEp_to_eltE(a, thc, f*f)
-    249
+        sage: from avisogenies_sage import *
+        sage: g = 2; A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
+        sage: a = [0,1,4,6,7]
+        sage: f = bp_sqrt(g, 4, 2)
+        sage: eltEp_to_eltE(a, thc, f*f)
+        249
 
     """
     level = thc._level
@@ -1125,12 +1125,12 @@ def AddTwoTorsion(th, eta):
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import *
-    sage: g = 2; A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
-    sage: P = A([255 , 89 , 30 , 1])
-    sage: thp = AlgebraicToAnalyticThetaPoint(P)
-    sage: AddTwoTorsion(thp, eta(g, 2))._coord #FIXME change when _repr_ is done.
-    [163, 328, 50, 185, 96, 217, 63, 183, 53, 307, 229, 76, 56, 118, 48, 199]
+        sage: from avisogenies_sage import *
+        sage: g = 2; A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: P = A([255 , 89 , 30 , 1])
+        sage: thp = AlgebraicToAnalyticThetaPoint(P)
+        sage: AddTwoTorsion(thp, eta(g, 2))._coord #FIXME change when _repr_ is done.
+        [163, 328, 50, 185, 96, 217, 63, 183, 53, 307, 229, 76, 56, 118, 48, 199]
 
     """
     thc = th.abelian_variety()
@@ -1159,7 +1159,7 @@ def YS_fromMumford_Generic(g, a, S, points):
     Equation (5.1) in [Coss]_..
     D can be writen as D = sum_1^g P_i - g P_infty.
 
-    INPUT ::
+    INPUT:
 
     - `a` - list of x-coordinates of the Weierstrass points.
     - `thc` - the theta null point associated to the jacobian of the curve.
@@ -1169,11 +1169,11 @@ def YS_fromMumford_Generic(g, a, S, points):
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import YS_fromMumford_Generic
-    sage: g = 2; a = [0,1,4,6,7]; S = [0,2,3]
-    sage: points = [(2, 4), (3, 8)]
-    sage: YS_fromMumford_Generic(g, a, S, points)
-    92
+        sage: from avisogenies_sage import YS_fromMumford_Generic
+        sage: g = 2; a = [0,1,4,6,7]; S = [0,2,3]
+        sage: points = [(2, 4), (3, 8)]
+        sage: YS_fromMumford_Generic(g, a, S, points)
+        92
 
     """
     if len(S) < 2 or len(S) > 2*g - 1:
@@ -1193,7 +1193,7 @@ def YS_fromMumford_Generic(g, a, S, points):
 def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
     """
     Let D be a point in Jac(C)\\Theta. D can be writen as
-     D = sum_1^g P_i - g P_infty
+    D = sum_1^g P_i - g P_infty
     Assume that there exists i <=> j such that P_i = P_j but the other P_k are distinct
     Let points be the list of coordinates (x,y) (as tuples) of P_i
     Let a be the x-coordinate of the Weierstrass points of the curve
@@ -1204,13 +1204,14 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import YS_fromMumford_Delta
-    sage: F = GF(331); g = 2; a = [0, 1, 2, 3, 4]; S = [0,2,3]
-    sage: points = [(F(5), F(38))]*2
-    sage: YS_fromMumford_Delta(g, [F(el) for el in a], S, points)
-    64
+        sage: from avisogenies_sage import YS_fromMumford_Delta
+        sage: F = GF(331); g = 2; a = [0, 1, 2, 3, 4]; S = [0,2,3]
+        sage: points = [(F(5), F(38))]*2
+        sage: YS_fromMumford_Delta(g, [F(el) for el in a], S, points)
+        64
 
-    #TODO: Test against Magma (minus the possible mistake)!
+    .. NOTE:: 
+        TODO: Test against Magma (minus the possible mistake)!
     """
     if len(S) < 2 or len(S) > 2*g - 1:
         raise ValueError(F'Expected length of S={S} between 2 and {2*g - 1}')
@@ -1251,55 +1252,54 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
     #print(Y) ##TO BE REMOVED
 
     #Cases where I contains exactly one of the two.
-    """
-    With the formula in [Coss]_, t would be computed as follows
+    
+    # With the formula in [Coss]_, t would be computed as follows
 
-    for I in combinations(range(g-2), n-1):
-        #First summand of p_I in [Coss, page 118].
+    # for I in combinations(range(g-2), n-1):
+        # #First summand of p_I in [Coss, page 118].
 
-        P = prod(x - a[l] for l in range(2*g + 1) if l not in S)*prod(y - a[l] for l in S)
-        P -= prod(y - a[l] for l in range(2*g + 1) if l not in S)*prod(x - a[l] for l in S)
-        try:
-            P = K(P/(x-y))
-        except TypeError:
-            raise ValueError('P={P} should be divisible by {x - y}')
-        t = P(points[-1][0],points[-1][0])*prod((points[-1][0] - a[l])**2 for l in S)
+        # P = prod(x - a[l] for l in range(2*g + 1) if l not in S)*prod(y - a[l] for l in S)
+        # P -= prod(y - a[l] for l in range(2*g + 1) if l not in S)*prod(x - a[l] for l in S)
+        # try:
+            # P = K(P/(x-y))
+        # except TypeError:
+            # raise ValueError('P={P} should be divisible by {x - y}')
+        # t = P(points[-1][0],points[-1][0])*prod((points[-1][0] - a[l])**2 for l in S)
 
-        t /= 2*points[-1][1]*prod(points[-1][0] - a[l] for l in S)
+        # t /= 2*points[-1][1]*prod(points[-1][0] - a[l] for l in S)
 
-        t *= prod(points[i][1] for i in I)
-        t /= prod(points[i][0] - points[-2][0] for i in I)
+        # t *= prod(points[i][1] for i in I)
+        # t /= prod(points[i][0] - points[-2][0] for i in I)
 
-        t *= prod(points[k][0] - a[l] for l, k in product(S, range(g-2)) if k not in I)
-        t /= prod(points[i][0] - points[k][0] for i, k in product(I + (-1,), range(g-2)) if k not in I)
+        # t *= prod(points[k][0] - a[l] for l, k in product(S, range(g-2)) if k not in I)
+        # t /= prod(points[i][0] - points[k][0] for i, k in product(I + (-1,), range(g-2)) if k not in I)
 
-        Y += t
+        # Y += t
 
-        #Second summand of p_I in [Coss, page 118]
+        # #Second summand of p_I in [Coss, page 118]
 
-        t = points[-2][1]
-        t *= prod(points[i][1] for i in I)
-        t *= prod(points[-1][0] - a[l] for l in S)
+        # t = points[-2][1]
+        # t *= prod(points[i][1] for i in I)
+        # t *= prod(points[-1][0] - a[l] for l in S)
 
-        t *= prod(points[k][0]-a[l] for l, k in product(S, range(g-2)) if k not in I)
-        t /= prod(points[i][0]-points[k][0] for i, k in product(I, range(g-2) if k not in I)
+        # t *= prod(points[k][0]-a[l] for l, k in product(S, range(g-2)) if k not in I)
+        # t /= prod(points[i][0]-points[k][0] for i, k in product(I, range(g-2) if k not in I)
 
-        t /= prod((points[i][0]-points[-2][0])**2 for i in I)
-        t /= prod((points[-1][0]-points[k][0])**2 for k in range(g-2) if k not in I)
+        # t /= prod((points[i][0]-points[-2][0])**2 for i in I)
+        # t /= prod((points[-1][0]-points[k][0])**2 for k in range(g-2) if k not in I)
 
-        P = prod(points[i][0] - x for i in I)*prod(y - points[k][0] for k in range(g-2) if k not in I)
-        P -= prod(points[i][0] - y for i in I)*prod(x - points[k][0] for k in range(g-2) if k not in I)
-        try:
-          P = K(P/(x-y))
-        except TypeError:
-          raise ValueError('P={P} should be divisible by {x - y}')
+        # P = prod(points[i][0] - x for i in I)*prod(y - points[k][0] for k in range(g-2) if k not in I)
+        # P -= prod(points[i][0] - y for i in I)*prod(x - points[k][0] for k in range(g-2) if k not in I)
+        # try:
+          # P = K(P/(x-y))
+        # except TypeError:
+          # raise ValueError('P={P} should be divisible by {x - y}')
 
-        t *= P(points[1][0],points[1][0])
+        # t *= P(points[1][0],points[1][0])
 
-        Y += t
+        # Y += t
 
     #We reorganize de computation for sake of efficiency
-    """
 
     P = prod(x - a[l] for l in range(2*g + 1) if l not in S)*prod(y - a[l] for l in S)
     P -= prod(y - a[l] for l in range(2*g + 1) if l not in S)*prod(x - a[l] for l in S)
@@ -1339,7 +1339,7 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
 def prodYp_fromMumford_with2torsion(g, a, S, points, V, C):
     """
     Let D be a point in Jac(C)\\Theta. D can be writen as
-     D = sum_1^g P_i - g P_infty
+    D = sum_1^g P_i - g P_infty
     Let points be the list of coordinates (x,y) (as tuples) of P_i
     Let a be the x-coordinate of th Weierstrass points of the curve
     Let S = [S1, S2, S3, S4] with S1 ^ S2 ^ S3 ^ S4 == {}
@@ -1348,18 +1348,18 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C):
     Assume that all P_i are distinct.
 
     Compute the function
-        prod Y_Si' / prod a_l
+    prod Y_Si' / prod a_l
     where the second product is over l in V compted twice iff it appears in all Si
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import choice_of_all_C_Cosset, prodYp_fromMumford_with2torsion
-    sage: F = GF(331); g = 2; a = list(map(F, [0, 1, 2, 3, 4]))
-    sage: S = [{0,2,3},{0},{2,4}, {3,4}]; V = {1}
-    sage: points = [(F(1), F(0)), (F(8), F(10))]
-    sage: C = choice_of_all_C_Cosset(g)
-    sage: prodYp_fromMumford_with2torsion(g, a, S, points, V, C)
-    187
+        sage: from avisogenies_sage import choice_of_all_C_Cosset, prodYp_fromMumford_with2torsion
+        sage: F = GF(331); g = 2; a = list(map(F, [0, 1, 2, 3, 4]))
+        sage: S = [{0,2,3},{0},{2,4}, {3,4}]; V = {1}
+        sage: points = [(F(1), F(0)), (F(8), F(10))]
+        sage: C = choice_of_all_C_Cosset(g)
+        sage: prodYp_fromMumford_with2torsion(g, a, S, points, V, C)
+        187
 
     """
 
@@ -1435,7 +1435,7 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C):
 def Y_fromMumford_with2torsion(g,a,S,points,V):
     """
     Let D be a point in Jac(C)\\Theta. D can be writen as
-     D = sum_1^g P_i - g P_infty
+    D = sum_1^g P_i - g P_infty
     Let points be the list of coordinates (x,y) (as tuples) of P_i
     Let a be the x-coordinate of th Weierstrass points of the curve
 
@@ -1447,21 +1447,21 @@ def Y_fromMumford_with2torsion(g,a,S,points,V):
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import Y_fromMumford_with2torsion
-    sage: F = GF(331); g = 2; a = list(map(F, [0, 1, 2, 3, 4]))
-    sage: S = {0,2,3,4}; V = {0,2}
-    sage: points = [(F(0), F(0)), (F(2), F(0))]
-    sage: Y_fromMumford_with2torsion(g,a,S,points,V)
-    307
+        sage: from avisogenies_sage import Y_fromMumford_with2torsion
+        sage: F = GF(331); g = 2; a = list(map(F, [0, 1, 2, 3, 4]))
+        sage: S = {0,2,3,4}; V = {0,2}
+        sage: points = [(F(0), F(0)), (F(2), F(0))]
+        sage: Y_fromMumford_with2torsion(g,a,S,points,V)
+        307
 
     TESTS::
 
-    sage: from avisogenies_sage import Y_fromMumford_with2torsion
-    sage: F = GF(331); g = 2; a = list(map(F, [0, 1, 2, 3, 4]))
-    sage: S = {0,2,3,4}; V = {0}
-    sage: points = [(F(0), F(0)), (F(8), F(10))]
-    sage: Y_fromMumford_with2torsion(g,a,S,points,V)
-    300
+        sage: from avisogenies_sage import Y_fromMumford_with2torsion
+        sage: F = GF(331); g = 2; a = list(map(F, [0, 1, 2, 3, 4]))
+        sage: S = {0,2,3,4}; V = {0}
+        sage: points = [(F(0), F(0)), (F(8), F(10))]
+        sage: Y_fromMumford_with2torsion(g,a,S,points,V)
+        300
 
     """
     if not V < S or len(V) == 0:
@@ -1502,7 +1502,7 @@ def Y_fromMumford_with2torsion(g,a,S,points,V):
 def MumfordToTheta_2_Generic(a, thc2, points):
     """
     Let D be a point in Jac(C)\\Theta. D can be writen as
-     D = sum_1^g P_i - g P_infty
+    D = sum_1^g P_i - g P_infty
     Let points be the list of coordinates (x,y) (as tuples) of P_i
     Let a be the x-coordinate of th Weierstrass points of the curve
     Let thc2 be the theta constant of level 2
@@ -1511,14 +1511,14 @@ def MumfordToTheta_2_Generic(a, thc2, points):
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import *
-    sage: F = GF(331); g = 2; n = 2
-    sage: a = list(map(F, [0, 1, 2, 3, 4]))
-    sage: points = [(F(7), F(62)), (F(8), F(10))]
-    sage: A = AbelianVariety(F, n, g, [328 , 213 , 75 , 1], check=True)
-    sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
-    sage: MumfordToTheta_2_Generic(a, thc, points)._coord #FIXME change when _repr_ is done
-    [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
+        sage: from avisogenies_sage import *
+        sage: F = GF(331); g = 2; n = 2
+        sage: a = list(map(F, [0, 1, 2, 3, 4]))
+        sage: points = [(F(7), F(62)), (F(8), F(10))]
+        sage: A = AbelianVariety(F, n, g, [328 , 213 , 75 , 1], check=True)
+        sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
+        sage: MumfordToTheta_2_Generic(a, thc, points)._coord #FIXME change when _repr_ is done
+        [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
 
     """
     if thc2._level != 2:
@@ -1569,7 +1569,7 @@ def MumfordToTheta_2_Generic(a, thc2, points):
 def MumfordToTheta_4_Generic(a, rac, thc, points):
     """
     Let D be a point in Jac(C)\\Theta. D can be writen as
-     D = sum_1^g P_i - g P_infty
+    D = sum_1^g P_i - g P_infty
     Let points be the list of coordinates [x,y] of P_i
     Let a be the x-coordinate of th Weierstrass points of the curve
     Let thc be the theta constant of level 4 associated to the curve C
@@ -1675,7 +1675,7 @@ def MumfordToTheta_4_Generic(a, rac, thc, points):
 def MumfordToLevel2ThetaPoint(a, thc2, points):
     """
     Let D be a point in Jac(C)\\Theta. D can be writen as
-     D = sum_1^d P_i - g P_infty
+    D = sum_1^d P_i - g P_infty
     Let points be the list of coordinates [x,y] of P_i
     Let a be the x-coordinates of the Weierstrass points of the curve
     Let thc2 be the theta constant of level 2
@@ -1687,24 +1687,24 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import *
-    sage: F = GF(331); g = 2; n = 2
-    sage: a = list(map(F, [0, 1, 2, 3, 4]))
-    sage: points = [(F(7), F(62)), (F(8), F(10))]
-    sage: A = AbelianVariety(F, n, g, [328 , 213 , 75 , 1], check=True)
-    sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
-    sage: MumfordToLevel2ThetaPoint(a, thc, points)._coord #FIXME change when _repr_ is done
-    [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
+        sage: from avisogenies_sage import *
+        sage: F = GF(331); g = 2; n = 2
+        sage: a = list(map(F, [0, 1, 2, 3, 4]))
+        sage: points = [(F(7), F(62)), (F(8), F(10))]
+        sage: A = AbelianVariety(F, n, g, [328 , 213 , 75 , 1], check=True)
+        sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
+        sage: MumfordToLevel2ThetaPoint(a, thc, points)._coord #FIXME change when _repr_ is done
+        [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
 
 
-    sage: from avisogenies_sage import *
-    sage: F = GF(331); g = 2; n = 2
-    sage: a = list(map(F, [0, 1, 2, 3, 4]))
-    sage: points = [(F(7), F(62))]
-    sage: A = AbelianVariety(F, n, g, [328 , 213 , 75 , 1], check=True)
-    sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
-    sage: MumfordToLevel2ThetaPoint(a, thc, points)._coord #FIXME change when _repr_ is done, Magma output
-    [288, 101, 184, 91, 289, 74, 111, 10, 106, 54, 12, 0, 292, 48, 113, 243]
+        sage: from avisogenies_sage import *
+        sage: F = GF(331); g = 2; n = 2
+        sage: a = list(map(F, [0, 1, 2, 3, 4]))
+        sage: points = [(F(7), F(62))]
+        sage: A = AbelianVariety(F, n, g, [328 , 213 , 75 , 1], check=True)
+        sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
+        sage: MumfordToLevel2ThetaPoint(a, thc, points)._coord #FIXME change when _repr_ is done, Magma output
+        [288, 101, 184, 91, 289, 74, 111, 10, 106, 54, 12, 0, 292, 48, 113, 243]
 
     """
     if thc2._level != 2:
@@ -1788,7 +1788,7 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
 def MumfordToLevel4ThetaPoint(a, rac, thc, points):
     """
     Let D be a point in Jac(C)\\Theta. D can be writen as
-     D = sum_1^d P_i - g P_infty
+    D = sum_1^d P_i - g P_infty
     Let points be the list of coordinates [x,y] of P_i
     Let a be the x-coordinates of the Weierstrass points of the curve
     Let thc be the theta constant of level 4
@@ -1800,16 +1800,16 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import *
-    sage: F = GF(83^2); z, = F.gens(); Fx.<X> = PolynomialRing(F)
-    sage: g = 2; a = [F(0), 1, 3, 15, 20]; rac = sqrt(a[1] - a[0])
-    sage: thc = [1,  37,  56, 57, 34*z + 43, 0, 50*z + 73, 0, 30, 2*z + 82, 0, 0, 16*z + 37, 0, 0, 61*z + 21]
-    sage: thc = ThetaNullPoint_Analytic(4, [F(elem) for elem in thc], g)
-    sage: u = (X-43)*(X-10); v = z^954*X + z^2518
-    sage: points = sum(([(x, v(x))]*mult for x, mult in u.roots(u.splitting_field('t'))), [])
-    sage: th = MumfordToLevel4ThetaPoint(a, rac, thc, points); th
-    (78*z2 + 13 : 77*z2 + 26 : 43*z2 + 3 : 54*z2 + 67 : 77*z2 + 61 : 35*z2 + 2 : 31*z2 + 8 :
-    19*z2 + 38 : 25*z2 + 9 : z2 + 65 : 17*z2 + 75 : 18*z2 + 38 : 50*z2 + 17 : 41*z2 + 6 : 18*z2 + 48 : 39*z2 + 73)
+        sage: from avisogenies_sage import *
+        sage: F = GF(83^2); z, = F.gens(); Fx.<X> = PolynomialRing(F)
+        sage: g = 2; a = [F(0), 1, 3, 15, 20]; rac = sqrt(a[1] - a[0])
+        sage: thc = [1,  37,  56, 57, 34*z + 43, 0, 50*z + 73, 0, 30, 2*z + 82, 0, 0, 16*z + 37, 0, 0, 61*z + 21]
+        sage: thc = ThetaNullPoint_Analytic(4, [F(elem) for elem in thc], g)
+        sage: u = (X-43)*(X-10); v = z^954*X + z^2518
+        sage: points = sum(([(x, v(x))]*mult for x, mult in u.roots(u.splitting_field('t'))), [])
+        sage: th = MumfordToLevel4ThetaPoint(a, rac, thc, points); th
+        (78*z2 + 13 : 77*z2 + 26 : 43*z2 + 3 : 54*z2 + 67 : 77*z2 + 61 : 35*z2 + 2 : 31*z2 + 8 :
+        19*z2 + 38 : 25*z2 + 9 : z2 + 65 : 17*z2 + 75 : 18*z2 + 38 : 50*z2 + 17 : 41*z2 + 6 : 18*z2 + 48 : 39*z2 + 73)
     """
     if thc._level != 4:
         raise ValueError(F'Expected level-4 theta structure.')
@@ -1961,7 +1961,7 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
 def Ylm_fromTheta(a,rac,l,m,th,C):
     """
     Let D be a point in Jac(C)\\Theta
-        D is represented by the theta functions th of level 4
+    D is represented by the theta functions th of level 4
     Let a be the x-coordinate of th Weierstrass points of the curve
     Let rac be a root of a_1 - a_0
     Let C be the choice of sets in the definition of the f_A
@@ -1998,7 +1998,7 @@ def Ylm_fromTheta(a,rac,l,m,th,C):
 def ThetaToMumford_4_Generic(a, rac, th):
     """
     Let D be a point in Jac(C)\\Theta
-        D is represented by the theta functions th of level 4
+    D is represented by the theta functions th of level 4
     Let a be the x-coordinate of th Weierstrass points of the curve
     Let rac be a root of a_2-a_1
     Let thc be the theta constants of level 4
@@ -2057,7 +2057,7 @@ def ThetaToMumford_4_Generic(a, rac, th):
 def ThetaToMumford_2_Generic(a, th2):
     """
     Let D be a point in Jac(C)\\Theta
-        D is represented by the theta functions th2 of level 2
+    D is represented by the theta functions th2 of level 2
     Let a be the x-coordinate of th Weierstrass points of the curve
     Let thc2 be the theta constants of level 2
 
@@ -2065,13 +2065,13 @@ def ThetaToMumford_2_Generic(a, th2):
 
     EXAMPLES ::
 
-    sage: from avisogenies_sage import *
-    sage: F = GF(331); A = AbelianVariety(F, 2, 2, [328 , 213 , 75 , 1])
-    sage: P = A([255 , 89 , 30 , 1])
-    sage: thp = AlgebraicToAnalyticThetaPoint(P)
-    sage: a = list(map(F, [0, 1, 2, 3, 4]))
-    sage: ThetaToMumford_2_Generic(a, thp)
-    (139*x^2 + 117*x + 157, 57*x^2 + 70*x + 210)
+        sage: from avisogenies_sage import *
+        sage: F = GF(331); A = AbelianVariety(F, 2, 2, [328 , 213 , 75 , 1])
+        sage: P = A([255 , 89 , 30 , 1])
+        sage: thp = AlgebraicToAnalyticThetaPoint(P)
+        sage: a = list(map(F, [0, 1, 2, 3, 4]))
+        sage: ThetaToMumford_2_Generic(a, thp)
+        (139*x^2 + 117*x + 157, 57*x^2 + 70*x + 210)
 
     """
     thc2 = th2.abelian_variety()
@@ -2196,7 +2196,7 @@ def ThetaToMumford_2_Generic(a, th2):
 def ThetaToMumford_2_algclose(a,th2):
     """
     Let D be a point in Jac(C).
-        D is represented by the theta functions th2 of level 2
+    D is represented by the theta functions th2 of level 2
     Let a be the x-coordinate of th Weierstrass points of the curve
 
     Assume that the base field is algebraically closed
@@ -2245,7 +2245,7 @@ def ThetaToMumford_2_algclose(a,th2):
 def Level2ThetaPointToMumford(a, th2):
     """
     Let D be a point in Jac(C).
-        D is represented by the theta functions th2 of level 2
+    D is represented by the theta functions th2 of level 2
     Let a be the x-coordinate of th Weierstrass points of the curve
 
     Note. We use an extension field of degree 2
@@ -2296,7 +2296,7 @@ def Level2ThetaPointToMumford(a, th2):
 def Level4ThetaPointToMumford(a, rac, th):
     """
     Let D be a point in Jac(C)
-        D is represented by the theta functions th of level 4
+    D is represented by the theta functions th of level 4
     Let a be the x-coordinate of th Weierstrass points of the curve
     Let rac be a root of a_1 - a_0
 

@@ -1,36 +1,21 @@
 """
-Abelian varieties
-
 This module defines the base class of Abelian varieties with theta structure
 as an abstract Scheme.
 
 AUTHORS:
 
-- Anna Somoza (2020)
-
-
-TODO:
-
-changes
-* in __richcmp__ (should it be one-underscored?), consider the following
-        You are encouraged to make your parent “unique”. That's to say, parents should only evaluate equal if they are identical. Sage provides frameworks to create unique parents. We use here the most easy one: Inheriting from the class sage.structure.unique_representation.UniqueRepresentation is enough. Making parents unique can be quite important for an efficient implementation, because the repeated creation of “the same” parent would take a lot of time.
-        (From http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html)
-
-
-
-TO CONSIDER:
-*coerce (at least the zero element)
-*coordinate_ring (we don't have equations, but maybe we can compute them upon request?)
-
+- Anna Somoza (2021)
 """
+
 #*****************************************************************************
-#       Copyright (C) 2020 Anna Somoza <anna.somoza.henares@gmail.com>
+#       Copyright (C) 2021 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from sage.categories.fields import Fields
 _Fields = Fields()
 from six import integer_types
@@ -39,7 +24,7 @@ from itertools import product, combinations_with_replacement
 from sage.rings.all import IntegerRing, Zmod, PolynomialRing, FractionField
 ZZ = IntegerRing()
 from sage.structure.element import is_Vector
-from sage.arith.misc import two_squares, four_squares 
+from sage.arith.misc import two_squares, four_squares
 
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
@@ -49,7 +34,7 @@ from sage.structure.richcmp import richcmp_method, richcmp
 from .av_point import AbelianVarietyPoint
 
 #Note that there is a constructor with the name AbelianVariety. Either overwrite it
-#or change name. Maybe create different possible constructors? See EllipticCurve.
+#or change name.
 @richcmp_method
 class AbelianVariety(AlgebraicScheme):
     """
@@ -57,16 +42,16 @@ class AbelianVariety(AlgebraicScheme):
 
     INPUT:
 
-    -  ``R`` - a field of definition
+    -  ``R`` -- a field of definition
 
-    -  ``n`` - an integer - the level of the theta structure.
+    -  ``n`` -- an integer; the level of the theta structure.
 
-    -  ``g`` - an integer - the dimension of the abelian variety.
+    -  ``g`` -- an integer; the dimension of the abelian variety.
 
-    -  ``T`` - a list of length n^g - the theta null point determining the abelian variety.
+    -  ``T`` -- a list of length n^g; the theta null point determining the abelian variety.
 
     EXAMPLES::
-    
+
         sage: from avisogenies_sage import AbelianVariety
         sage: FF = GF(331)
         sage: A = AbelianVariety(FF, 2,2,[328,213,75,1]); A
@@ -130,8 +115,8 @@ class AbelianVariety(AlgebraicScheme):
         #i.digits(n, padto=g)
         self._dimension = g
         self._level = n
-        self._ng = n**g #To have easy access to the size of D
-        #Try to create a projective scheme class, it will give us the projective space associated to it
+        self._ng = n**g
+
         AlgebraicScheme.__init__(self, PP)
 
         self._thetanullpoint = self(tuple(R(a) for a in T))
@@ -311,15 +296,17 @@ class AbelianVariety(AlgebraicScheme):
 
         INPUT:
 
-        -  ``P`` - a theta null point
+        -  ``P`` -- a theta null point
 
-        -  ``chi`` - a character, given by its dual element in Z(2) as a subset of Z(n).
+        -  ``chi`` -- a character, given by its dual element in Z(2) as a subset of Z(n).
 
-        -  ``i`` - the index of a coordinate of P. For now we are assuming that they are an
-        element of Zmod(n)^g.
+        -  ``i`` -- the index of a coordinate of P. For now we are assuming that they are an
+           element of Zmod(n)^g.
 
-        -  ``j`` - the index of a coordinate of P. For now we are assuming that they are an
-        element of Zmod(n)^g.
+        -  ``j`` -- the index of a coordinate of P. For now we are assuming that they are an
+           element of Zmod(n)^g.
+
+
         """
         idx = self._char_to_idx
         char = self._idx_to_char
@@ -417,11 +404,17 @@ class AbelianVariety(AlgebraicScheme):
     def isogeny(self, l, Q, k, P=None ):
         """
         INPUT:
-            - self : An abelian variety given as a theta null point of level n and dimension g
-            - l : an integer
-            - Q : An univariate polynomial of degree l^g describing a l-torsion subgroup of A
-            - P : A point of the abelian variety given as a projective theta point
-            - k : a element of Zmod(n)^g
+
+        - ``self`` -- An abelian variety given as a theta null point of level n and dimension g
+
+        - ``l`` -- an integer
+
+        - ``Q`` -- An univariate polynomial of degree l^g describing a l-torsion subgroup of A
+
+        - ``P`` -- A point of the abelian variety given as a projective theta point
+
+        - ``k`` -- a element of Zmod(n)^g
+
         """
         if self.level() == 2:
             if P != None:
@@ -453,7 +446,7 @@ class AbelianVariety(AlgebraicScheme):
             W = B((t1[idx(k)]*t2[0]).mod(mu**l - Q.compatible_lift(l))) # lth power of lambda
             P0 = self.theta_null_point()
             return P0[idx(k)]*P0[0] + 2*evaluate_formal_points(W)(0)
-            
+
         sqfree = l.squarefree_part()
         l1 = ZZ((l/sqfree).sqrt())
         if sqfree == 1:
@@ -483,7 +476,7 @@ class AbelianVariety(AlgebraicScheme):
         eta1 = beta0*etamu
         D = self._D
         Zn = D.base_ring()
-        M = l1*matrix(Zn, 2, 2, [a, b, -b, a]) 
+        M = l1*matrix(Zn, 2, 2, [a, b, -b, a])
         J = (column_matrix(Zn, [k, D(0)])*M.inverse()).columns()
         idx = self._char_to_idx
         delta = l1IK.compatible_lift(l1aP, eta, l)
@@ -514,7 +507,7 @@ class AbelianVariety(AlgebraicScheme):
         eta2 = N[1,0]*etamu1 + N[1,1]*etamu2
         D = self._D
         Zn = D.base_ring()
-        M = matrix(Zn, 4, 4, [a, b, -c, -d, b, a, -d, c, c, d, a, -b, d, -c, b, a]) 
+        M = matrix(Zn, 4, 4, [a, b, -c, -d, b, a, -d, c, c, d, a, -b, d, -c, b, a])
         J = (column_matrix(Zn, [k]+[D(0)]*3)*M.inverse()).columns()
         idx = self._char_to_idx
         R = etamu1[idx(D(J[0]))]*etamu1[idx(D(J[1]))]*eta1[idx(D(J[2]))]*eta2[idx(D(J[3]))]

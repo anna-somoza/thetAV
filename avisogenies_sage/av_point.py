@@ -7,11 +7,11 @@
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-"""
-TODO:
 
-> On binary operations, test that all the points belong to the same abelian variety.
-"""
+#TODO:
+#
+#> On binary operations, test that all the points belong to the same abelian variety.
+
 from __future__ import print_function, division, absolute_import
 
 from itertools import product, combinations_with_replacement
@@ -302,7 +302,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         -  ``PmQ`` - The theta point `self - Q`.
 
         -  ``check`` - (default: False) check with the riemann relations that the
-        resulting point is indeed a point of the abelian variety.
+           resulting point is indeed a point of the abelian variety.
 
         OUTPUT: The theta point `self + Q`. If `self`, `Q` and `PmQ` are good lifts,
         then the output is also a good lift.
@@ -433,7 +433,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             (1 : 56*t^3 + 312*t^2 + 147*t + 287 : 277*t^3 + 295*t^2 + 7*t + 287 : 290*t^3 + 203*t^2 + 274*t + 10))
 
 
-        .. TODO ::
+        .. NOTE::
 
         Find tests that are not level 2!
             
@@ -445,10 +445,10 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         Normal addition between self and other on the affine plane with respect to i0.
         If (self - other)[i] == 0, then it tries with another affine plane.
 
-        .. SEEALSO ::
+        .. SEEALSO::
             :meth: `_add_`
 
-        .. TODO ::
+        .. NOTE::
             Deal with case where self or other is the thetanullpoint.
         """
         from .abelian_variety import eval_car
@@ -551,7 +551,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: 42*P
             (311 : 326 : 136 : 305)
 
-        .. TODO ::
+        .. NOTE::
 
         Find tests that are not level 2!
             
@@ -576,10 +576,10 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: P._mult(42)
             (311 : 326 : 136 : 305)
             
-        .. SEEALSO ::
+        .. SEEALSO::
             :meth: `_rmul_`
             
-        .. TODO ::
+        .. NOTE::
 
         Find tests that are not level 2!
             
@@ -622,7 +622,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         """
         Computes k*self + Q, k*self
         
-        EXAMPLES ::
+        EXAMPLES:
         
             sage: from avisogenies_sage import AbelianVariety
             sage: R.<X> = PolynomialRing(GF(331))
@@ -639,7 +639,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             ((41*t^3 + 291*t^2 + 122*t + 305 : 119*t^3 + 95*t^2 + 120*t + 68 : 81*t^3 + 168*t^2 + 326*t + 24 : 202*t^3 + 251*t^2 + 246*t + 169),
             (311 : 326 : 136 : 305))
         
-        .. TODO ::
+        .. NOTE::
         
             If we don't need kP, then we don't need to compute kP, only (k/2)P, so
             we lose 2 differential additions. Could be optimized here.
@@ -682,7 +682,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         """
         Computes the Weil pairing of self and Q, given all the points needed.
         
-        .. TODO ::
+        .. NOTE::
         
             Maybe this could be included in the :meth:`pairing` with a keyword
             argument points that by default is None and otherwise is a list
@@ -793,13 +793,19 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         Compute a lift of an l-torsion point that is compatible with the chosen afine lift of the
         theta null point.
 
-        INPUT ::
-            - 'self' - an l-torsion point of the abelian variety
-            - 'other' - a point of the abelian variety, or None if only the lift of an l-torsion
-            point is needed.
-            - 'add' - the point self + other, or None if only the lift of an l-torsion
-            point is needed.
-            - 'l' - the torsion
+        INPUT :
+        
+        - ``self`` -- an l-torsion point of the abelian variety
+        
+        - ``other`` -- a point of the abelian variety, or None if only the lift of an l-torsion
+          point is needed.
+        
+        - ``add`` -- the point self + other, or None if only the lift of an l-torsion
+          point is needed.
+        
+        - ``l`` -- the torsion
+        
+        
         """
         A = self.abelian_variety()
         if add == None:
