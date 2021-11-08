@@ -7,6 +7,7 @@
 
 ```{toctree}
 :maxdepth: 2
+:caption: Documentation
 
 abelian_variety
 av_point
@@ -17,6 +18,7 @@ morphisms
 
 ```{toctree}
 :maxdepth: 2
+:caption: Tutorials
 
 tutorials/example
 ```
@@ -26,3 +28,4 @@ tutorials/example
 * {ref}`genindex`
 * {ref}`modindex`
 * {ref}`search`
+* {doc}`todo`

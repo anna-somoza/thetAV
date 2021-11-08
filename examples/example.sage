@@ -33,4 +33,4 @@ PmQ = A2(PmQ_list, check=True)
 QP = Q.diff_add(A2(P), PmQ)
 
 l = 1889
-P.pairing(l, Q, QP)
+P.weil_pairing(l, Q, QP)

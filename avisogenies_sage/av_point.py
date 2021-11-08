@@ -1,3 +1,18 @@
+"""
+This module defines the base class of Theta points as elements of :class:`AbelianVariety`.
+
+
+AUTHORS:
+
+- Anna Somoza (2020-21): initial implementation
+
+.. todo::
+
+    - Add more info to the paragraph above
+    
+    - On binary operations, test that all the points belong to the same abelian variety.
+"""
+
 # ****************************************************************************
 #       Copyright (C) 2020 Anna Somoza <anna.somoza.henares@gmail.com>
 #
@@ -6,11 +21,6 @@
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
-
-#TODO:
-#
-#> On binary operations, test that all the points belong to the same abelian variety.
 
 from __future__ import print_function, division, absolute_import
 
@@ -54,6 +64,13 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: Q = B([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
              155*t^3 + 84*t^2 + 15*t + 170, 1], check=True); Q
             (158*t^3 + 67*t^2 + 9*t + 293 : 290*t^3 + 25*t^2 + 235*t + 280 : 155*t^3 + 84*t^2 + 15*t + 170 : 1)
+            
+        .. todo::
+        
+            - When ``v`` is a point already and ``check`` is `True`, we should make sure that v has been checked when generated.
+              maybe with a boolean in X (or in the point) that saves if it has been checked.
+              
+            - Make check on the point/AV a method that caches the result.
 
         """
         point_homset = X.point_homset()
@@ -68,8 +85,6 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             v = ig(v)
         if v == 0 or v == (0,):
             if check:
-                ## if check, we should make sure that v has been checked when generated.
-                # maybe with a boolean in X (or in the point) that saves if it has been checked.
                 pass
             v = X._thetanullpoint
         if len(v) != X._ng:
@@ -88,8 +103,6 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             dual = X._dual
             D = X._D
             twotorsion = X._twotorsion
-            ##Maybe this should be a function of X, with a boolean "full" to determine if the
-            #dictionary is complete.
             if len(dual) != X._ng:
                 for (idxi, i), (idxj, j) in product(enumerate(D), enumerate(D)):
                     ii, jj, tt = reduce_twotorsion_couple(i, j);
@@ -390,12 +403,6 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             r = point0.addition_formula(P, Q, [elt])
             lambda1 = r[elt] #lambda1 = \sum PQ[i+t]PmQ[i+t]/2^g
             return lambda1/lambda2
-        # Comments from the original Magma implementation:
-        # sometimes it does not suffice when PmQ has a 0 coordinate, meaning we should
-        # try to do the addition formula for i,j in D
-        # and handle the level 2 case
-        # TODO!
-        # in practise this never happen, so I just call diff_add in this case
         PQ2 = P.diff_add(Q,PmQ)
         i0 = PQ2.get_nonzero_coord()
         return PQ2[i0]/self[i0];
@@ -433,9 +440,9 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             (1 : 56*t^3 + 312*t^2 + 147*t + 287 : 277*t^3 + 295*t^2 + 7*t + 287 : 290*t^3 + 203*t^2 + 274*t + 10))
 
 
-        .. NOTE::
+        .. todo::
 
-        Find tests that are not level 2!
+            Find tests that are not level 2!
             
         """
         return self._add(other)
@@ -445,11 +452,15 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         Normal addition between self and other on the affine plane with respect to i0.
         If (self - other)[i] == 0, then it tries with another affine plane.
 
-        .. SEEALSO::
-            :meth: `_add_`
+        .. seealso::
+        
+            :meth:`_add_`
 
-        .. NOTE::
-            Deal with case where self or other is the thetanullpoint.
+        .. todo::
+        
+            - Deal with case where self or other is the thetanullpoint.
+            
+            - Find tests where P and Q are not rational in the av but rational in the kummer variety, so P+Q won't be rational
         """
         from .abelian_variety import eval_car
         point0 = self.abelian_variety()
@@ -499,7 +510,6 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
 
                     M = Matrix([[PmQ[i0], PmQ[i1]], [PQ[i0], PQ[i1]]])
                     if not M.is_invertible():
-                        # save(M, "error.sobj")
                         continue
                     for i in range(ng):
                         if i == i0 or i == i1:
@@ -551,9 +561,9 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: 42*P
             (311 : 326 : 136 : 305)
 
-        .. NOTE::
+        .. todo::
 
-        Find tests that are not level 2!
+            Find tests that are not level 2!
             
         """
         return self._mult(k)
@@ -577,11 +587,12 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             (311 : 326 : 136 : 305)
             
         .. SEEALSO::
+        
             :meth: `_rmul_`
             
-        .. NOTE::
+        .. todo::
 
-        Find tests that are not level 2!
+            Find tests that are not level 2!
             
         """
         if not isinstance(k, integer_types + (Integer,)):
@@ -639,7 +650,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             ((41*t^3 + 291*t^2 + 122*t + 305 : 119*t^3 + 95*t^2 + 120*t + 68 : 81*t^3 + 168*t^2 + 326*t + 24 : 202*t^3 + 251*t^2 + 246*t + 169),
             (311 : 326 : 136 : 305))
         
-        .. NOTE::
+        .. todo::
         
             If we don't need kP, then we don't need to compute kP, only (k/2)P, so
             we lose 2 differential additions. Could be optimized here.
@@ -682,7 +693,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         """
         Computes the Weil pairing of self and Q, given all the points needed.
         
-        .. NOTE::
+        .. todo::
         
             Maybe this could be included in the :meth:`pairing` with a keyword
             argument points that by default is None and otherwise is a list
@@ -699,7 +710,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         assert r
         return k1P*k0P/(k1Q*k0Q);
 
-    def pairing(self, l, Q, PQ=None):
+    def weil_pairing(self, l, Q, PQ=None):
         """
         Computes the Weil pairing of self and Q.
         
@@ -716,7 +727,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 , \
                 258*t^3 + 39*t^2 + 313*t + 150 , 1])
             sage: PQ = P.diff_add(Q, PmQ)
-            sage: P.pairing(1889, Q, PQ)
+            sage: P.weil_pairing(1889, Q, PQ)
             17*t^3 + 153*t^2 + 305*t + 187
         """
         if PQ == None:
@@ -735,6 +746,14 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         r, k1Q = lPQ.equal_points(Q, proj=True, factor=True)
         assert r
         return k1P*k0P/(k1Q*k0Q)
+        
+    def tate_pairing(self, l, Q, PQ=None):
+        """
+        Computes the Tate pairing of self and Q.
+        
+        .. todo:: Implement Tate pairing
+        """
+        pass
 
     
     def three_way_add(P, Q, R, PQ, QR, PR):
@@ -787,7 +806,6 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         assert k in R, f'k={k} not in R={R}'
         return A.point(list(map(lambda i : k*i, v)))
 
-    #TODO: Fix use of scale in this function
     def compatible_lift(self, l, other=None, add=None):
         """
         Compute a lift of an l-torsion point that is compatible with the chosen afine lift of the
@@ -805,7 +823,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         
         - ``l`` -- the torsion
         
-        
+        .. todo:: Fix use of scale in this function
         """
         A = self.abelian_variety()
         if add == None:

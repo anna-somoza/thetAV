@@ -4,7 +4,13 @@ as an abstract Scheme.
 
 AUTHORS:
 
-- Anna Somoza (2021)
+- Anna Somoza (2020-21): initial implementation
+
+.. todo::
+
+    - Decide if we want to change function name, since AbelianVariety already exists in sagemath.
+    
+    - Add more info to the paragraph above
 """
 
 #*****************************************************************************
@@ -24,6 +30,7 @@ from itertools import product, combinations_with_replacement
 from sage.rings.all import IntegerRing, Zmod, PolynomialRing, FractionField
 ZZ = IntegerRing()
 from sage.structure.element import is_Vector
+from sage.structure.coerce_maps import CallableConvertMap
 from sage.arith.misc import two_squares, four_squares
 
 from sage.schemes.projective.projective_space import ProjectiveSpace
@@ -49,13 +56,23 @@ class AbelianVariety(AlgebraicScheme):
     -  ``g`` -- an integer; the dimension of the abelian variety.
 
     -  ``T`` -- a list of length n^g; the theta null point determining the abelian variety.
+    
+    - ``check`` (default: False) -- A boolean; if True, checks that the riemann relations
+      are satisfied by the input.
 
     EXAMPLES::
 
         sage: from avisogenies_sage import AbelianVariety
-        sage: FF = GF(331)
-        sage: A = AbelianVariety(FF, 2,2,[328,213,75,1]); A
+        sage: FF1 = GF(331)
+        sage: A1 = AbelianVariety(FF1, 2, 2, [328,213,75,1]); A1
         Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
+        
+    TESTS::
+
+        sage: from avisogenies_sage import AbelianVariety
+        sage: FF2 = GF(10753)
+        sage: A2 = AbelianVariety(FF2, 4, 1, [732,45,98,7]); A2
+        Abelian variety of dimension 1 with theta null point (732 : 45 : 98 : 7) defined over Finite Field of size 10753
     """
     _point = AbelianVarietyPoint
 
@@ -77,8 +94,10 @@ class AbelianVariety(AlgebraicScheme):
         D = Zmod(n)**g
         twotorsion = Zmod(2)**g
         if not D.has_coerce_map_from(twotorsion):
-            from sage.matrix.constructor import identity_matrix
-            c = twotorsion.hom(n//2*identity_matrix(g), D)
+            s = n//2
+            def c(P, el):
+                return P(s*el.change_ring(ZZ))
+            c = CallableConvertMap(twotorsion, D, c)
             D.register_coercion(c)
 
         if check:
@@ -132,8 +151,8 @@ class AbelianVariety(AlgebraicScheme):
     def __richcmp__(self, X, op):
         """
         Compare the Abelian Variety self to `X`.  If `X` is an Abelian Variety,
-        then self and `X` are equal if and only if their theta null points are
-        equal as projective points.
+        then self and `X` are equal if and only if their fields of definition are
+        equal and their theta null points are equal as projective points.
 
         TESTS::
 
@@ -212,6 +231,12 @@ class AbelianVariety(AlgebraicScheme):
         return SchemeHomset_points(*args, **kwds)
 
     def equations(self):
+        """
+        .. todo:: 
+        
+            - Document function
+            - check cases when all equations are 0 (only level 2? Add equation from Gaudry in that case)
+        """
         try:
             return self._eqns
         except AttributeError:
@@ -238,7 +263,6 @@ class AbelianVariety(AlgebraicScheme):
                         Oel2 = sum(eval_car(chi,t)*O[idx(k + t)]*O[idx(l + t)] for t in twotorsion)
                         Oel3 = sum(eval_car(chi,t)*O[idx(m - i + t)]*O[idx(m - j + t)] for t in twotorsion)
                         eq = Pel1*Oel2 - Oel3*Pel4
-                        #TODO: check when it would give 0, and whether we gotta use it or not!
                         if eq!=0 and eq not in eqns:
                             eqns.append(eq)
             if eqns == [0]:
@@ -260,6 +284,8 @@ class AbelianVariety(AlgebraicScheme):
         OUTPUT:
 
         A point of the scheme.
+        
+        .. todo:: Add example
         """
         self = args[0]
         return self._point(*args, **kwds)
@@ -306,7 +332,7 @@ class AbelianVariety(AlgebraicScheme):
         -  ``j`` -- the index of a coordinate of P. For now we are assuming that they are an
            element of Zmod(n)^g.
 
-
+        .. todo:: Add examples or tests. Maybe make private?
         """
         idx = self._char_to_idx
         char = self._idx_to_char
@@ -368,6 +394,8 @@ class AbelianVariety(AlgebraicScheme):
         Given two points P and Q and a list L containing triplets [chi, i, j], compute
         sum_{t in Z(2)} chi(t) PpQ[i + t] PmQ[j + t]
         for every given triplet.
+        
+        .. todo:: Add examples or tests. Maybe make private.
         """
         twotorsion = self._twotorsion
         idx = self._char_to_idx
@@ -414,6 +442,9 @@ class AbelianVariety(AlgebraicScheme):
         - ``P`` -- A point of the abelian variety given as a projective theta point
 
         - ``k`` -- a element of Zmod(n)^g
+        
+        
+        .. todo:: Add more info to docstring. Add examples.
 
         """
         if self.level() == 2:
@@ -459,9 +490,15 @@ class AbelianVariety(AlgebraicScheme):
             return self._isogeny_fourSq(l, l1, a, b, c, d, Q, P, k)
 
     def _isogeny_1(self, l1, Q, P, k):
+        """
+        .. todo:: add minimal docstring (private function).
+        """
         pass
 
     def _isogeny_twoSq(self, l, l1, a, b, Q, P, k): ##Maybe add a line "if P != None"?
+        """
+        .. todo:: add minimal docstring (private function).
+        """
         S = Q.parent()
         B = S.quotient(Q)
         y, = B.gens()
@@ -484,6 +521,9 @@ class AbelianVariety(AlgebraicScheme):
         return evaluate_formal_points(B(R.mod(mu**l - delta)))
 
     def _isogeny_fourSq(self, l1, a, b, c, d, Q, P, k):
+        """
+        .. todo:: add minimal docstring (private function).
+        """
         #"Naive" implementation: Change to use three-way addition
         S = Q.parent().extend_variables('y0')
         B = S.quotient([q(v) for v in S.gens()])
@@ -515,11 +555,16 @@ class AbelianVariety(AlgebraicScheme):
             R = R.mod(eq)
         return evaluate_formal_points(B(R)) ##How does Evaluate work in this case?
 
-##TODO: Warning, the twotorsion elements should be returned as elements in the twotorsion.
 def reduce_sym(x):
+    """
+    .. todo:: add minimal docstring. Twotorsion elements should be returned as elements in the twotorsion.
+    """
     return min(x, -x)
 
 def reduce_twotorsion(x):
+    """
+    .. todo:: add minimal docstring. Twotorsion elements should be returned as elements in the twotorsion.
+    """
     r = list(x)
     D = x.parent()
     halflevels =[i.order()//2 for i in D.gens()]
@@ -530,6 +575,9 @@ def reduce_twotorsion(x):
     return  D(r), x-D(r)
 
 def reduce_symtwotorsion(x):
+    """
+    .. todo:: add minimal docstring. Twotorsion elements should be returned as elements in the twotorsion.
+    """
     x1, tx1 = reduce_twotorsion(x)
     x2, tx2 = reduce_twotorsion(-x)
     if x1 <= x2:
@@ -537,6 +585,9 @@ def reduce_symtwotorsion(x):
     return x2, tx2
 
 def reduce_symcouple(x,y):
+    """
+    .. todo:: add minimal docstring. Twotorsion elements should be returned as elements in the twotorsion.
+    """
     xred = reduce_sym(x)
     yred = reduce_sym(y)
     if xred < yred:
@@ -544,6 +595,9 @@ def reduce_symcouple(x,y):
     return yred, xred
 
 def reduce_twotorsion_couple(x,y):
+    """
+    .. todo:: add minimal docstring. Twotorsion elements should be returned as elements in the twotorsion.
+    """
     xred, tx = reduce_twotorsion(x)
     yred, ty = reduce_twotorsion(y)
     if xred < yred:
@@ -551,6 +605,9 @@ def reduce_twotorsion_couple(x,y):
     return yred, x+ty, ty
 
 def reduce_symtwotorsion_couple(x,y):
+    """
+    .. todo:: add minimal docstring. Twotorsion elements should be returned as elements in the twotorsion.
+    """
     xred, tx = reduce_symtwotorsion(x)
     yred, ty = reduce_symtwotorsion(y)
     if xred < yred:
@@ -558,6 +615,9 @@ def reduce_symtwotorsion_couple(x,y):
     return yred, reduce_sym(x+ty), ty
 
 def get_dual_quadruplet(x, y, u, v):
+    """
+    .. todo:: add minimal docstring. Twotorsion elements should be returned as elements in the twotorsion.
+    """
     r = x + y + u + v
     z = r.parent()([ZZ(e)//2 for e in list(r)])
     xbis = z - x
@@ -567,6 +627,9 @@ def get_dual_quadruplet(x, y, u, v):
     return xbis, ybis, ubis, vbis
 
 def eval_car(chi,t):
+    """
+    .. todo:: add minimal docstring.
+    """
     if chi.parent() != t.parent():
         r = list(t)
         D = t.parent()
@@ -579,6 +642,9 @@ def eval_car(chi,t):
     return ZZ(-1)**(chi*t);
 
 def evaluate_formal_points(w):
+    """
+    .. todo:: add minimal docstring.
+    """
     B = w.parent()
     q = B.modulus()
     S = q.parent()

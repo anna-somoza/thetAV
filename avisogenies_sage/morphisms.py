@@ -14,18 +14,26 @@ corresponding abelian varieties (their jacobians) with theta functions of level 
 The first half is from [VanW]_ and the last sections are algorithms from [Coss]_.
 Based on the Magma implementation by Romain Cosset.
 
-/************************* LAYOUT OF THE FILE ******************************/
-/***** (1) Half-integer characteristics and computations of sign with half-integer characteristics
-/***** (3) Manipulations of elements of Ep
-/***** (4) twisted theta
-/**************************************************************************/
-/***** (1) Analytic structures and change of theta structures
-/***** (3) Auxiliary functions
-/***** (4) Expression of Ep
-/***** (5) Add two torsion
-/***** (6) Mumford to Theta
-/***** (7) Theta to Mumford
-/**************************************************************************/
+LAYOUT:
+
+    1 - Half-integer characteristics and computations of sign with half-integer characteristics
+    
+    3 - Manipulations of elements of Ep
+    
+    4 - twisted theta
+
+
+    1 - Analytic structures and change of theta structures
+    
+    3 - Auxiliary functions
+    
+    4 - Expression of Ep
+    
+    5 - Add two torsion
+    
+    6 - Mumford to Theta
+    
+    7 - Theta to Mumford
 
 REFERENCES:
 
@@ -35,6 +43,12 @@ REFERENCES:
 .. [Coss] R. Cosset. Applications des fonctions thêta à la cryptographie sur courbes hyperelliptiques.
    PhD thesis, Université Henri Poincaré – Nancy 1, 2011.
 
+
+.. todo::
+
+    - Reformat info above.
+    - Sort documentation by source (to maintain layout)
+    
 """
 
 from .abelian_variety import AbelianVariety
@@ -724,14 +738,19 @@ def sign_s_A(g, A, C):
 ##***** (1) Structures and change of theta structures*****//
 
 
-#TODO: Add examples to all class functions
-#TODO: Add _repr_ to the classes and modify the examples accordingly
-#TODO: Field of definition
 class ThetaPoint_Analytic:
     """
     Components:
     - level, // an integer
     - coord, // a ThetaStructure of level 2 and g = 2*g
+    
+    .. todo::
+    
+        - Add examples to all class functions
+        
+        - Add _repr_ to the classes and modify the examples accordingly
+        
+        - Field of definition
     """
     def __init__(self, thc, v):  #Equivalent to "AnalyticThetaPoint" intrinsic method in magma
         l = thc._level
@@ -884,6 +903,8 @@ class ThetaNullPoint_Analytic:
         OUTPUT:
 
         The corresponding theta null point in algebraic coordinates (see :class:`AbelianVariety`)
+        
+        .. todo:: Address FIXME.
         """
 
         try:
@@ -919,10 +940,12 @@ class ThetaNullPoint_Analytic:
         self._algebraic = AbelianVariety(R, n, g, point)
         return self._algebraic
 
-def AlgebraicToAnalyticThetaNullPoint(thc): ##TODO: as method in AbelianVariety
+def AlgebraicToAnalyticThetaNullPoint(thc):
     """
     Let thc be a theta null point given by algebraic coordinates (i.e. :class:`AbelianVariety`). Compute the
     corresponding theta null point (i.e. :class:`ThetaNullPoint_Analytic`) in analytic coordinates.
+    
+    .. todo:: Add as method in AbelianVariety.
     """
     n = thc._level
     g = thc._dimension
@@ -948,10 +971,12 @@ def AlgebraicToAnalyticThetaNullPoint(thc): ##TODO: as method in AbelianVariety
 
     raise NotImplementedError
 
-def AlgebraicToAnalyticThetaPoint(th, thc=None): ##TODO: as method in AbelianVarietyPoint
+def AlgebraicToAnalyticThetaPoint(th, thc=None):
     """
     Let th be a theta point given by algebraic coordinates (i.e. :class:`AbelianVarietyPoint`). Compute the
     corresponding theta null point in analytic coordinates (i.e. :class:`ThetaNull_Analytic`).
+    
+    .. todo:: Add as method in AbelianVarietyPoint.
     """
     tnp = th.abelian_variety()
     O = tnp.theta_null_point()
@@ -1002,6 +1027,7 @@ def IgusaTheorem(A, TH):
         sage: IgusaTheorem([eta(g,{2*x for x in range(g+1)})]*4, [thp,thO,thO,thO])
         56
 
+    .. todo:: Add reference, see FIXME.
     """
     if len(A)!=4 or len(TH)!=4:
         raise ValueError
@@ -1131,7 +1157,8 @@ def AddTwoTorsion(th, eta):
         sage: thp = AlgebraicToAnalyticThetaPoint(P)
         sage: AddTwoTorsion(thp, eta(g, 2))._coord #FIXME change when _repr_ is done.
         [163, 328, 50, 185, 96, 217, 63, 183, 53, 307, 229, 76, 56, 118, 48, 199]
-
+        
+    .. todo:: Address FIXME.
     """
     thc = th.abelian_variety()
     level = thc._level
@@ -1210,8 +1237,7 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
         sage: YS_fromMumford_Delta(g, [F(el) for el in a], S, points)
         64
 
-    .. NOTE:: 
-        TODO: Test against Magma (minus the possible mistake)!
+    .. todo:: Test against Magma (minus the possible mistake)!
     """
     if len(S) < 2 or len(S) > 2*g - 1:
         raise ValueError(F'Expected length of S={S} between 2 and {2*g - 1}')
@@ -1361,6 +1387,7 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C):
         sage: prodYp_fromMumford_with2torsion(g, a, S, points, V, C)
         187
 
+    .. todo:: Address FIXME.
     """
 
     if len(V) < 1 or len(V) > g:
@@ -1463,6 +1490,7 @@ def Y_fromMumford_with2torsion(g,a,S,points,V):
         sage: Y_fromMumford_with2torsion(g,a,S,points,V)
         300
 
+    .. todo:: Address FIXME.
     """
     if not V < S or len(V) == 0:
         raise ValueError(F'V={V} should be a non-empty subset of S={S}')
@@ -1498,7 +1526,6 @@ def Y_fromMumford_with2torsion(g,a,S,points,V):
 
     return Y
 
-#TODO: Test against Magma in the case that uses YS_fromMumford_Delta
 def MumfordToTheta_2_Generic(a, thc2, points):
     """
     Let D be a point in Jac(C)\\Theta. D can be writen as
@@ -1520,6 +1547,11 @@ def MumfordToTheta_2_Generic(a, thc2, points):
         sage: MumfordToTheta_2_Generic(a, thc, points)._coord #FIXME change when _repr_ is done
         [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
 
+    .. todo:: 
+    
+        - Test against Magma in the case that uses YS_fromMumford_Delta
+        
+        - Address FIXME.
     """
     if thc2._level != 2:
         raise ValueError(F'Expected level-2 theta structure.')
@@ -1565,7 +1597,6 @@ def MumfordToTheta_2_Generic(a, thc2, points):
 
     return thc2(th2)
 
-#TODO: Test against Magma, add examples
 def MumfordToTheta_4_Generic(a, rac, thc, points):
     """
     Let D be a point in Jac(C)\\Theta. D can be writen as
@@ -1577,6 +1608,12 @@ def MumfordToTheta_4_Generic(a, rac, thc, points):
     Assume that all P_i are distinct.
 
     Return the theta functions of level 4 associated to points.
+    
+    .. todo:: 
+    
+        - Test against Magma, add examples
+        
+        - Address FIXME.
     """
     if thc._level != 4:
         raise ValueError(F'Expected level-4 theta structure.')
@@ -1706,6 +1743,13 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
         sage: MumfordToLevel2ThetaPoint(a, thc, points)._coord #FIXME change when _repr_ is done, Magma output
         [288, 101, 184, 91, 289, 74, 111, 10, 106, 54, 12, 0, 292, 48, 113, 243]
 
+
+    .. todo:: 
+    
+        - Add tests that cover the missing cases.
+        
+        - Address FIXME.
+    
     """
     if thc2._level != 2:
         raise ValueError(F'Expected level-2 theta structure.')
@@ -1810,6 +1854,12 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
         sage: th = MumfordToLevel4ThetaPoint(a, rac, thc, points); th
         (78*z2 + 13 : 77*z2 + 26 : 43*z2 + 3 : 54*z2 + 67 : 77*z2 + 61 : 35*z2 + 2 : 31*z2 + 8 :
         19*z2 + 38 : 25*z2 + 9 : z2 + 65 : 17*z2 + 75 : 18*z2 + 38 : 50*z2 + 17 : 41*z2 + 6 : 18*z2 + 48 : 39*z2 + 73)
+        
+    .. todo:: 
+    
+        - Check question in code.
+        
+        - Address FIXME.
     """
     if thc._level != 4:
         raise ValueError(F'Expected level-4 theta structure.')
@@ -1957,7 +2007,6 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
 
 ##***** (7) Theta to Mumford *****//
 
-#TODO: Test against Magma, add examples
 def Ylm_fromTheta(a,rac,l,m,th,C):
     """
     Let D be a point in Jac(C)\\Theta
@@ -1967,6 +2016,12 @@ def Ylm_fromTheta(a,rac,l,m,th,C):
     Let C be the choice of sets in the definition of the f_A
 
     Compute the function Y_{l,m}
+    
+    .. todo::
+    
+        - Test against Magma, add examples.
+        
+        - Address FIXME.
     """
     thc = th.abelian_variety()
     g = thc._dimension
@@ -1994,7 +2049,6 @@ def Ylm_fromTheta(a,rac,l,m,th,C):
 
     return Y
 
-#TODO: Test against Magma, add examples
 def ThetaToMumford_4_Generic(a, rac, th):
     """
     Let D be a point in Jac(C)\\Theta
@@ -2004,6 +2058,12 @@ def ThetaToMumford_4_Generic(a, rac, th):
     Let thc be the theta constants of level 4
 
     Compute the Mumford polynomials associated to D
+    
+    .. todo:: 
+    
+        - Test against Magma, add examples
+        
+        - Address FIXME.
     """
     thc = th.abelian_variety()
     g = thc._dimension
@@ -2073,6 +2133,7 @@ def ThetaToMumford_2_Generic(a, th2):
         sage: ThetaToMumford_2_Generic(a, thp)
         (139*x^2 + 117*x + 157, 57*x^2 + 70*x + 210)
 
+    .. todo:: Address FIXME.
     """
     thc2 = th2.abelian_variety()
     g = thc2._dimension
@@ -2191,8 +2252,6 @@ def ThetaToMumford_2_Generic(a, th2):
 
     return u, v2
 
-#FIXME: Difference with funcion above? Do we need this or can we join them somehow?
-#TODO: Test against Magma, add examples
 def ThetaToMumford_2_algclose(a,th2):
     """
     Let D be a point in Jac(C).
@@ -2202,6 +2261,12 @@ def ThetaToMumford_2_algclose(a,th2):
     Assume that the base field is algebraically closed
 
     Compute the Mumford polynomials (u,v^2) associated to D
+    
+    .. todo:: 
+    
+        - Difference with funcion above? Do we need this or can we join them somehow?
+        
+        - Test against Magma, add examples
     """
     thc2 = th2.abelian_variety()
     g = thc2._dimension
@@ -2241,16 +2306,19 @@ def ThetaToMumford_2_algclose(a,th2):
 
     return u,v2
 
-#TODO: Test against Magma, add examples
 def Level2ThetaPointToMumford(a, th2):
     """
     Let D be a point in Jac(C).
     D is represented by the theta functions th2 of level 2
     Let a be the x-coordinate of th Weierstrass points of the curve
 
-    Note. We use an extension field of degree 2
+    .. NOTE::
+    
+        We use an extension field of degree 2
 
     Compute the Mumford polynomials (u,v^2) associated to D
+    
+    .. todo:: Test against Magma, add examples
     """
     thc2 = th2.abelian_variety()
     g = thc2._dimension
@@ -2292,7 +2360,6 @@ def Level2ThetaPointToMumford(a, th2):
 
     return u,v2
 
-#TODO: Test against Magma, add examples
 def Level4ThetaPointToMumford(a, rac, th):
     """
     Let D be a point in Jac(C)
@@ -2301,6 +2368,8 @@ def Level4ThetaPointToMumford(a, rac, th):
     Let rac be a root of a_1 - a_0
 
     Compute the Mumford polynomials associated to D
+    
+    .. todo:: Test against Magma, add examples
     """
     thc = th.abelian_variety()
     g = thc._dimension
