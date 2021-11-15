@@ -361,7 +361,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
                 L += [(chi, i, j) for chi, charchi in enumerate(twotorsion) if eval_car(charchi, chari + charj) == 1] ##Change eval_car to accept also integers?
             else:
                 L += [(chi, i, j) for chi in range(twog)]
-        r = point0.addition_formula(self, Q, L)
+        r = point0._addition_formula(self, Q, L)
         for i, chari in enumerate(D):
             if PmQ[i] == 0:
                 j = i0
@@ -400,7 +400,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             if lambda2 == 0:
                 continue
             elt = (0, idx(i), idx(i))
-            r = point0.addition_formula(P, Q, [elt])
+            r = point0._addition_formula(P, Q, [elt])
             lambda1 = r[elt] #lambda1 = \sum PQ[i+t]PmQ[i+t]/2^g
             return lambda1/lambda2
         PQ2 = P.diff_add(Q,PmQ)
@@ -479,7 +479,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
                         continue
                     L = [(chi,i,i0) for chi in range(twog) for i in range(ng) if eval_car(char(chi),char(i)+char(i0)) == 1]\
                         + [(chi,i,i1) for chi in range(twog) for i in range(ng) if eval_car(char(chi),char(i)+char(i1)) == 1]
-                    r = point0.addition_formula(self, other, L)
+                    r = point0._addition_formula(self, other, L)
                     kappa0 = [0]*ng
                     kappa1 = [0]*ng
                     for i in range(ng):
@@ -522,7 +522,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             raise ValueError("Failed to compute normal addition.")
         else:
             L = [(chi, i, i0) for chi in range(twog) for i in range(ng)]
-        r = point0.addition_formula(self, other, L)
+        r = point0._addition_formula(self, other, L)
         for i in range(ng):
             PQ[i] = sum(r[(chi, i, i0)] for chi in range(twog))
         if all(coor == 0 for coor in PQ):

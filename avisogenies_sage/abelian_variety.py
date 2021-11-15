@@ -8,7 +8,7 @@ AUTHORS:
 
 .. todo::
 
-    - Decide if we want to change function name, since AbelianVariety already exists in sagemath.
+    - Decide if we want to change function name, since AbelianVariety already exists in Sagemath.
     
     - Add more info to the paragraph above
 """
@@ -40,8 +40,6 @@ from sage.schemes.generic.homset import SchemeHomset_points
 from sage.structure.richcmp import richcmp_method, richcmp
 from .av_point import AbelianVarietyPoint
 
-#Note that there is a constructor with the name AbelianVariety. Either overwrite it
-#or change name.
 @richcmp_method
 class AbelianVariety(AlgebraicScheme):
     """
@@ -189,21 +187,34 @@ class AbelianVariety(AlgebraicScheme):
 
     def theta_null_point(self):
         """
-        Return the theta null points as a point of the abelian variety.
+        Return the theta null point as a point of the abelian variety.
+        
+        TEST::
+        
+            sage: from avisogenies_sage import AbelianVariety
+            sage: FF1 = GF(331)
+            sage: A1 = AbelianVariety(FF1, 2, 2, [328,213,75,1]); A1
+            Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
+            sage: type(A1.theta_null_point()) is AbelianVarietyPoint
+            True
+            
         """
         return self._thetanullpoint
 
     def change_ring(self, R):
         """
-        Return the Abelian Variety over the ring `R`.
-
-        INPUT:
-
-        - ``R`` -- a field. The new base ring.
-
-        OUTPUT:
-
-        The Abelian Variety over the ring `R`.
+        Return the abelian variety over the ring `R`.
+        
+        TEST::
+        
+            sage: from avisogenies_sage import AbelianVariety
+            sage: FF1 = GF(331); FF2 = GF(331^2)
+            sage: A1 = AbelianVariety(FF1, 2, 2, [328,213,75,1]); A1
+            Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
+            sage: A2 = A1.change_ring(FF2); A2
+            Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over over Finite Field in z2 of size 331^2
+            sage: A1 == A2
+            False
         """
         return AbelianVariety(R, self.level(), self.dimension(), self.theta_null_point())
 
@@ -232,10 +243,14 @@ class AbelianVariety(AlgebraicScheme):
 
     def equations(self):
         """
+        Returns a list of defining equations for the abelian variety.
+        
         .. todo:: 
         
-            - Document function
-            - check cases when all equations are 0 (only level 2? Add equation from Gaudry in that case)
+            - Give more info in the description.
+            - Find a couple of examples
+            - Is level 2 the only case were the riemann relations don't give equations?
+            - Add equation from Gaudry for level 2.
         """
         try:
             return self._eqns
@@ -285,7 +300,15 @@ class AbelianVariety(AlgebraicScheme):
 
         A point of the scheme.
         
-        .. todo:: Add example
+        EXAMPLE::
+            
+            sage: from avisogenies_sage import AbelianVariety
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A.point([255 , 89 , 30 , 1]); P
+            (255 : 89 : 30 : 1)
+            sage: type(P) is AbelianVarietyPoint
+            True
+
         """
         self = args[0]
         return self._point(*args, **kwds)
@@ -294,7 +317,14 @@ class AbelianVariety(AlgebraicScheme):
 
     def _idx_to_char(self, x, twotorsion=False):
         """
-        Return the caracteristic in D that corresponds to a given integer index.
+        Return the caracteristic in ``D`` that corresponds to a given integer index.
+        
+        ..todo::
+        
+            - Make public?
+            
+            - rename?
+            
         """
         g = self._dimension
         if twotorsion:
@@ -307,7 +337,14 @@ class AbelianVariety(AlgebraicScheme):
 
     def _char_to_idx(self, x, twotorsion=False):
         """
-        Return the integer index that corresponds to a given caracteristic in D.
+        Return the integer index that corresponds to a given caracteristic in ``D``.
+        
+        ..todo::
+        
+            - Make public?
+            
+            - rename?
+            
         """
         if twotorsion:
             n = 2
@@ -317,12 +354,12 @@ class AbelianVariety(AlgebraicScheme):
 
     def riemann_relation(self, *data):
         """
-        Computes the riemann relation associated to a given chi, i, j and stores it in P._riemann.
+        Computes the riemann relation associated to a given triple chi, i, j and stores it in the private variable _riemann.
         Depends on which coordinates of P are zero.
 
         INPUT:
-
-        -  ``P`` -- a theta null point
+        
+        Either 3 variables
 
         -  ``chi`` -- a character, given by its dual element in Z(2) as a subset of Z(n).
 
@@ -331,8 +368,37 @@ class AbelianVariety(AlgebraicScheme):
 
         -  ``j`` -- the index of a coordinate of P. For now we are assuming that they are an
            element of Zmod(n)^g.
+           
+       Or a triple of 3 integers, the integer representation of ``chi``, ``i`` and ``j``.
 
-        .. todo:: Add examples or tests. Maybe make private?
+        .. todo:: 
+        
+            - Maybe make private?
+        
+            - Finish test?
+            
+            - Rename?
+            
+            - We can also make it a function that returns said riemann relations, and if they are not computed yet, it computes them and then returns them! That would deal with 4 lines of code and also give a public method to access _riemann. As try except key error then compute.
+            
+            - If we only want the addition of the two-torsion elements, why not store _riemann only with that? see l 485
+        
+        EXAMPLE::
+        
+            sage: from avisogenies_sage import AbelianVariety
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: L = (3,2,1)
+            sage: A.riemann_relation(L)
+            sage: L in A._riemann
+            True
+            
+        Or equivalently::
+        
+            sage: char = A._char_to_idx
+            sage: A.riemann_relation(char(3), char(2), char(1))
+            sage: L in A._riemann
+            True
+            
         """
         idx = self._char_to_idx
         char = self._idx_to_char
@@ -389,13 +455,16 @@ class AbelianVariety(AlgebraicScheme):
             self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, t, kk0, ll0, tkl, i20, j20, tij2, k20, l20, tkl2] #DIFF Maybe we only need to store the sum of all twotorsion.
         return
 
-    def addition_formula(self, P, Q, L):
+    def _addition_formula(self, P, Q, L):
         """
         Given two points P and Q and a list L containing triplets [chi, i, j], compute
         sum_{t in Z(2)} chi(t) PpQ[i + t] PmQ[j + t]
         for every given triplet.
         
-        .. todo:: Add examples or tests. Maybe make private.
+        .. todo:: 
+        
+            - Add tests.
+            
         """
         twotorsion = self._twotorsion
         idx = self._char_to_idx
@@ -405,7 +474,7 @@ class AbelianVariety(AlgebraicScheme):
             if el in r:
                 continue
             if el not in self._riemann: #Are we sure that this pair (i,j) is reduced as in riemann? Or it is not done like that? check.
-                self.riemann_relation(el) #see if we prefer to pass the char, the idx, or both (as an argument with default evaluation?). We can also make it a function that returns said riemann relations, and if they are not computed yet, it computes them and then returns them! That would deal with 4 lines of code and also give a public method to access _riemann.
+                self.riemann_relation(el)
             IJ = self._riemann[el]
             if not len(IJ):
                 raise ValueError("Can't compute the addition! Either we are in level 2 and computing a normal addition, or a differential addition with null even theta null points.")
@@ -420,15 +489,11 @@ class AbelianVariety(AlgebraicScheme):
             s1 = sum(eval_car(chi, t)*Q[idx(ci20 + t)]*Q[idx(cj20 + t)] for t in twotorsion)
             s2 = sum(eval_car(chi, t)*P[idx(ck20 + t)]*P[idx(cl20 + t)] for t in twotorsion)
             A = self._dual[(el[0], k0, l0)]
-            # we prefer to store the data in Q because for a differential
-            # addition we will have i2=j2=0, so  in level 4, we gain.
-            # s1A = s1/A
             S = eval_car(chi, tt)*s2*s1/A
             for t in twotorsion:
                 r[(el[0], idx(ci0+t), idx(cj0+t))] = eval_car(chi,t)*S
         return r
 
-    #TODO: Fix all use of scale & general points
     def isogeny(self, l, Q, k, P=None ):
         """
         INPUT:
@@ -444,7 +509,11 @@ class AbelianVariety(AlgebraicScheme):
         - ``k`` -- a element of Zmod(n)^g
         
         
-        .. todo:: Add more info to docstring. Add examples.
+        .. todo:: 
+        
+            - Add more info to docstring. Add examples.
+            
+            - Fix all use of scale & general points.
 
         """
         if self.level() == 2:
@@ -491,13 +560,13 @@ class AbelianVariety(AlgebraicScheme):
 
     def _isogeny_1(self, l1, Q, P, k):
         """
-        .. todo:: add minimal docstring (private function).
+        .. todo:: add minimal docstring (private function) and test.
         """
         pass
 
     def _isogeny_twoSq(self, l, l1, a, b, Q, P, k): ##Maybe add a line "if P != None"?
         """
-        .. todo:: add minimal docstring (private function).
+        .. todo:: add minimal docstring (private function) and test.
         """
         S = Q.parent()
         B = S.quotient(Q)
@@ -522,7 +591,7 @@ class AbelianVariety(AlgebraicScheme):
 
     def _isogeny_fourSq(self, l1, a, b, c, d, Q, P, k):
         """
-        .. todo:: add minimal docstring (private function).
+        .. todo:: add minimal docstring (private function) and test.
         """
         #"Naive" implementation: Change to use three-way addition
         S = Q.parent().extend_variables('y0')

@@ -63,6 +63,9 @@ extensions = [
 # Display todos by setting to True
 todo_include_todos = True
 
+# List autodoc in source order
+autodoc_member_order = 'bysource'
+
 ### from Sage src/doc/common/conf.py
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
@@ -439,6 +442,7 @@ for macro in sage_latex_macros():
     # used when building html version
     pngmath_latex_preamble += macro + '\n'
 
+autodoc_member_order = 'bysource'
 
 ## The following is needed on conda-forge sagemath
 from sage.repl.user_globals import initialize_globals
