@@ -191,7 +191,7 @@ class AbelianVariety(AlgebraicScheme):
         
         TEST::
         
-            sage: from avisogenies_sage import AbelianVariety
+            sage: from avisogenies_sage import AbelianVariety, AbelianVarietyPoint
             sage: FF1 = GF(331)
             sage: A1 = AbelianVariety(FF1, 2, 2, [328,213,75,1]); A1
             Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
@@ -212,7 +212,7 @@ class AbelianVariety(AlgebraicScheme):
             sage: A1 = AbelianVariety(FF1, 2, 2, [328,213,75,1]); A1
             Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
             sage: A2 = A1.change_ring(FF2); A2
-            Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over over Finite Field in z2 of size 331^2
+            Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field in z2 of size 331^2
             sage: A1 == A2
             False
         """
@@ -302,7 +302,7 @@ class AbelianVariety(AlgebraicScheme):
         
         EXAMPLE::
             
-            sage: from avisogenies_sage import AbelianVariety
+            sage: from avisogenies_sage import AbelianVariety, AbelianVarietyPoint
             sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
             sage: P = A.point([255 , 89 , 30 , 1]); P
             (255 : 89 : 30 : 1)
@@ -354,8 +354,8 @@ class AbelianVariety(AlgebraicScheme):
 
     def riemann_relation(self, *data):
         """
-        Computes the riemann relation associated to a given triple chi, i, j and stores it in the private variable _riemann.
-        Depends on which coordinates of P are zero.
+        Returns the riemann relation associated to a given triple chi, i, j. If it is not computed,
+        it computes it and stores it in the private variable _riemann.
 
         INPUT:
         
@@ -373,15 +373,13 @@ class AbelianVariety(AlgebraicScheme):
 
         .. todo:: 
         
-            - Maybe make private?
-        
-            - Finish test?
+            - Check change with David.
             
             - Rename?
             
-            - We can also make it a function that returns said riemann relations, and if they are not computed yet, it computes them and then returns them! That would deal with 4 lines of code and also give a public method to access _riemann. As try except key error then compute.
+            - If we only want the addition of the two-torsion elements, why not store _riemann only with that? see _addition_formula
             
-            - If we only want the addition of the two-torsion elements, why not store _riemann only with that? see l 485
+            - Private or public?
         
         EXAMPLE::
         
@@ -389,37 +387,62 @@ class AbelianVariety(AlgebraicScheme):
             sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
             sage: L = (3,2,1)
             sage: A.riemann_relation(L)
-            sage: L in A._riemann
-            True
+            [(0, 0),
+             (1, 1),
+             (0, 1),
+             (0, 0),
+             (1, 1),
+             (1, 1),
+             (0, 0),
+             (1, 1),
+             (1, 1),
+             (0, 0),
+             (1, 1),
+             (1, 1)]
             
         Or equivalently::
         
-            sage: char = A._char_to_idx
+            sage: char = A._idx_to_char
             sage: A.riemann_relation(char(3), char(2), char(1))
-            sage: L in A._riemann
-            True
+            [(0, 0),
+             (1, 1),
+             (0, 1),
+             (0, 0),
+             (1, 1),
+             (1, 1),
+             (0, 0),
+             (1, 1),
+             (1, 1),
+             (0, 0),
+             (1, 1),
+             (1, 1)]
             
         """
         idx = self._char_to_idx
         char = self._idx_to_char
         if len(data) == 1:
-            idxchi, idxi, idxj = data[0]
-            i = char(idxi)
-            j = char(idxj)
-            chi = char(idxchi,True)
+            try:
+                return self._riemann[tuple(data[0])]
+            except KeyError:
+                idxchi, idxi, idxj = data[0]
+                i = char(idxi)
+                j = char(idxj)
+                chi = char(idxchi,True)
         elif len(data) == 3:
             chi, i, j = data
             idxchi = idx(chi, True)
             idxi = idx(i)
             idxj = idx(j)
+            try:
+                return self._riemann[(idxchi, idxi, idxj)]
+            except KeyError:
+                pass
         else:
             raise TypeError("Input should be a tuple of length 3 or 3 elements.")
-
+            
         D = self._D
         DD = [2*d for d in D]
         twotorsion = self._twotorsion
-        if (idxchi, idxi, idxj) in self._riemann:
-            return
         i, j, tij = reduce_twotorsion_couple(i,j)
          # we try to find k and l to apply the addition formulas such that
          # we can reuse the maximum the computations
@@ -446,14 +469,14 @@ class AbelianVariety(AlgebraicScheme):
         else: #If we leave the for loop without encountering a break
             for t in twotorsion:
                 self._riemann[(idxchi, idx(i + t), idx(j + t))] = []
-            return
+            return []
         kk0, ll0, tkl = reduce_symtwotorsion_couple(kk, ll)
         i2, j2, k2, l2 = get_dual_quadruplet(i, j, kk, ll)
         i20, j20, tij2 = reduce_twotorsion_couple(-i2, j2)
         k20, l20, tkl2 = reduce_twotorsion_couple(k2, l2)
         for t in twotorsion:
             self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, t, kk0, ll0, tkl, i20, j20, tij2, k20, l20, tkl2] #DIFF Maybe we only need to store the sum of all twotorsion.
-        return
+        return self._riemann[(idxchi, idxi, idxj)]
 
     def _addition_formula(self, P, Q, L):
         """
@@ -473,9 +496,7 @@ class AbelianVariety(AlgebraicScheme):
         for el in L:
             if el in r:
                 continue
-            if el not in self._riemann: #Are we sure that this pair (i,j) is reduced as in riemann? Or it is not done like that? check.
-                self.riemann_relation(el)
-            IJ = self._riemann[el]
+            IJ = self.riemann_relation(el) #Are we sure that this pair (i,j) is reduced as in riemann? Or it is not done like that? check.
             if not len(IJ):
                 raise ValueError("Can't compute the addition! Either we are in level 2 and computing a normal addition, or a differential addition with null even theta null points.")
             ci0, cj0 = IJ[0:2]
