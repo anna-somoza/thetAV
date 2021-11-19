@@ -19,15 +19,18 @@ FF2.<t> = poly.splitting_field()
 
 Q_list = [158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
  155*t^3 + 84*t^2 + 15*t + 170, 1]
-Q = A(Q_list, R=FF2, check=True)
+A2 = A.change_ring(FF2)
+Q = A2(Q_list, check=True)
 
-P+Q
+A == A2 #False
+
+A2(P)+Q
 
 PmQ_list = (62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 ,
  258*t^3 + 39*t^2 + 313*t + 150 , 1)
-PmQ = A.point(PmQ_list, R=FF2, check=True)
+PmQ = A2(PmQ_list, check=True)
 
-QP = Q.diff_add(P, PmQ)
+QP = Q.diff_add(A2(P), PmQ)
 
 l = 1889
-P.pairing(l, Q, QP)
+P.weil_pairing(l, Q, QP)

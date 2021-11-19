@@ -1,0 +1,5 @@
+**/build
+.eggs
+**/.ipynb_checkpoints
+**.pyc
+avisogenies_sage.egg-info/
