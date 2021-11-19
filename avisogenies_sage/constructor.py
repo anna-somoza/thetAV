@@ -35,12 +35,12 @@ def AbelianVariety(*data):
     
     Giving the data of the theta structure associated to an Abelian Variety we can create an instance of :class:`~avisogenies_sage.abelian_variety.AbelianVariety_ThetaStructure`::
     
+        sage: from avisogenies_sage import AbelianVariety
         sage: AbelianVariety(GF(331), 2, 2, [328,213,75,1])
         Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
     
     But the function is also compatible with the functionality currently available in Sagemath::
     
-        sage: from avisogenies_sage import AbelianVariety
         sage: AbelianVariety(Gamma0(37))
         Abelian variety J0(37) of dimension 2
         sage: AbelianVariety('37a')
