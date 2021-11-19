@@ -1,4 +1,4 @@
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/sage)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/doc)
 
 The aim of this project is to recode all the functions of avisogenies with improvements in the algorithms and in Sagemath
 In  particular we have now an algorithm to compute isogenies which is very efficient and simple to implement : it improves the preceding algorithms for l=3 mod 4 and for cyclic isogeny in general.
@@ -6,7 +6,7 @@ In  particular we have now an algorithm to compute isogenies which is very effic
 Type variété abélienne: thêta null point
 Type Jacobienne (via un type courbe)
 
-- Equations: Riemann relations, take a random point, test if a piont is on the AV;
+- Equations: Riemann relations, take a random point, test if a point is on the AV;
 - Equations for the moduli space of abelian varieties with theta structure ;
 - Arithmetic: normal addition, differential addition, exponentiation, threewayadd,
   compatible addition (level 2), P \pm Q (level 2)
@@ -21,9 +21,9 @@ Type Jacobienne (via un type courbe)
 From the package directory, run
 
 ```sh
-$ sage -pip install .
+$ make install
 ```
 
 ## Usage
-For examples on how to use the package, see the [binder demo](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/sage?filepath=.%2Fexample.ipynb
-) or the file `example.sage`.
+For examples on how to use the package, see the live [binder demo](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/doc?filepath=.%2Fdocs/source/tutorials/example.ipynb
+), the tutorials in the documentation or the file `/examples/example.sage`.

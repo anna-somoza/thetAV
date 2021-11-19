@@ -51,7 +51,7 @@ REFERENCES:
     
 """
 
-from .abelian_variety import AbelianVariety
+from .abelian_variety import AbelianVariety_ThetaStructure
 from collections import Counter, namedtuple
 from itertools import product, combinations, chain
 from .tools import TowerOfField, rangeS
@@ -128,9 +128,9 @@ def eta_second(g, L, normalized=False):
 
     - ``g`` - an Integer. The length of eta_second.
     - ``L`` - an Integer or a list of integers. If it is a list, it returns the sum of eta_second
-            for all elements in the list.
+      for all elements in the list.
     - ``normalized`` (default: False) - a boolean. It returns the vector reduced mod 2ZZ^g,
-            that is, with entries 0 or 1.
+      that is, with entries 0 or 1.
 
     .. NOTE::
 
@@ -527,9 +527,9 @@ def constant_f(g, A, C):
 
     INPUT:
 
-    - `g` : an Integer, the dimension.
-    - `A` : a set.
-    - `C` : a choice of C as in [Coss]_ (see :func:`choice_of_C_Cosset` and :func:`choice_of_all_C_Cosset`).
+    - ``g`` - an Integer, the dimension.
+    - ``A`` - a set.
+    - ``C`` - a choice of C as in [Coss]_ (see :func:`choice_of_C_Cosset` and :func:`choice_of_all_C_Cosset`).
 
     EXAMPLES ::
 
@@ -619,8 +619,8 @@ def choice_of_C_Cosset(g, A):
 
     INPUT:
 
-    - `g` : an Integer, the dimension.
-    - `A` : a set.
+    - ``g`` - an Integer, the dimension.
+    - ``A`` - a set.
 
     EXAMPLES ::
 
@@ -660,7 +660,7 @@ def choice_of_all_C_Cosset(g):
 
     INPUT:
 
-    - `g` : an Integer, the dimension.
+    - ``g`` - an Integer, the dimension.
 
     EXAMPLES ::
 
@@ -689,9 +689,9 @@ def sign_s_A(g, A, C):
 
     INPUT:
 
-    - `g` : an Integer, the dimension.
-    - `A` : a set.
-    - `C` : a choice of all C as in [Coss]_ (see :func:`choice_of_all_C_Cosset`).
+    - ``g`` - an Integer, the dimension.
+    - ``A`` - a set.
+    - ``C`` - a choice of all C as in [Coss]_ (see :func:`choice_of_all_C_Cosset`).
 
     EXAMPLES ::
 
@@ -792,9 +792,9 @@ class ThetaPoint_Analytic:
 
         INPUT:
 
-        - `self`: a theta null point given by analytic coordinates (see :class:`ThetaPoint_Analytic`).
+        - ``self``- a theta null point given by analytic coordinates (see :class:`ThetaPoint_Analytic`).
 
-        - `g`: the dimension of the ab. variety? #Maybe it should be a variable in self?
+        - ``g``- the dimension of the ab. variety? #Maybe it should be a variable in self?
 
         OUTPUT:
 
@@ -898,11 +898,11 @@ class ThetaNullPoint_Analytic:
 
         INPUT:
 
-        - `self`: a theta null point given by analytic coordinates (see :class:`ThetaNullPoint_Analytic`).
+        - ``self``- a theta null point given by analytic coordinates (see :class:`ThetaNullPoint_Analytic`).
 
         OUTPUT:
 
-        The corresponding theta null point in algebraic coordinates (see :class:`AbelianVariety`)
+        The corresponding theta null point in algebraic coordinates (see :class:`AbelianVariety_ThetaStructure`)
         
         .. todo:: Address FIXME.
         """
@@ -922,7 +922,7 @@ class ThetaNullPoint_Analytic:
             for b in range(ng): #char(b) in Zmod(2)^g
                 point[b] = sum(self._coord[a + 2**g*b] for a in range(ng))
             assert point[0] != 0 #See Equation (3.12) in [Coss]
-            return AbelianVariety(R, n, g, point)
+            return AbelianVariety_ThetaStructure(R, n, g, point)
 
         #if n == 4:
         D = Zmod(n)**g
@@ -937,15 +937,15 @@ class ThetaNullPoint_Analytic:
                 sign = (-1)**ZZ(a*ib)
                 point[idxb] += self._coord[idx(a, ttb)]*sign
 
-        self._algebraic = AbelianVariety(R, n, g, point)
+        self._algebraic = AbelianVariety_ThetaStructure(R, n, g, point)
         return self._algebraic
 
 def AlgebraicToAnalyticThetaNullPoint(thc):
     """
-    Let thc be a theta null point given by algebraic coordinates (i.e. :class:`AbelianVariety`). Compute the
+    Let thc be a theta null point given by algebraic coordinates (i.e. :class:`AbelianVariety_ThetaStructure`). Compute the
     corresponding theta null point (i.e. :class:`ThetaNullPoint_Analytic`) in analytic coordinates.
     
-    .. todo:: Add as method in AbelianVariety.
+    .. todo:: Add as method in AbelianVariety_ThetaStructure.
     """
     n = thc._level
     g = thc._dimension
@@ -1014,13 +1014,13 @@ def IgusaTheorem(A, TH):
 
     INPUT:
 
-    - A - A list with 4 eta vectors.
-    - TH - A list of 4 analytic theta points.
+    - ``A`` - A list with 4 eta vectors.
+    - ``TH`` - A list of 4 analytic theta points.
 
     EXAMPLES ::
 
         sage: from avisogenies_sage import *
-        sage: g = 2; A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: g = 2; A = AbelianVariety_ThetaStructure(GF(331), 2, 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
         sage: thp = AlgebraicToAnalyticThetaPoint(P)
         sage: thc = thp._codomain; thO = thc(0)
@@ -1058,15 +1058,15 @@ def constant_f2_level2(a, thc, A, C):
 
     INPUT:
 
-    - `a` - list of x-coordinates of the Weierstrass points.
-    - `thc` - the theta null point associated to the jacobian of the curve.
-    - `A` - a set
-    - `C` - a choice of C as in [Coss]_ (see :func:`choice_of_C_Cosset` and :func:`choice_of_all_C_Cosset`).
+    - ``a`` - list of x-coordinates of the Weierstrass points.
+    - ``thc`` - the theta null point associated to the jacobian of the curve.
+    - ``A`` - a set
+    - ``C`` - a choice of C as in [Coss]_ (see :func:`choice_of_C_Cosset` and :func:`choice_of_all_C_Cosset`).
 
     EXAMPLES ::
 
         sage: from avisogenies_sage import *
-        sage: g = 2; A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: g = 2; A = AbelianVariety_ThetaStructure(GF(331), 2, 2, [328 , 213 , 75 , 1])
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
         sage: a = [0,1,4,6,7]
         sage: A = {3,4}; constant_f2_level2(a, thc, A, choice_of_C_Cosset(g, A))
@@ -1095,15 +1095,15 @@ def eltEp_to_eltE(a, thc, f, rac=None):
 
     INPUT:
 
-    - `a` - list of x-coordinates of the Weierstrass points.
-    - `thc` - the theta null point associated to the jacobian of the curve.
-    - `f` - an EpElement.
-    - `rac` - a root of <a_1 - a_0>
+    - ``a`` - list of x-coordinates of the Weierstrass points.
+    - ``thc`` - the theta null point associated to the jacobian of the curve.
+    - ``f`` - an EpElement.
+    - ``rac`` - a root of <a_1 - a_0>
 
     EXAMPLES ::
 
         sage: from avisogenies_sage import *
-        sage: g = 2; A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: g = 2; A = AbelianVariety_ThetaStructure(GF(331), 2, 2, [328 , 213 , 75 , 1])
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
         sage: a = [0,1,4,6,7]
         sage: f = bp_sqrt(g, 4, 2)
@@ -1152,7 +1152,7 @@ def AddTwoTorsion(th, eta):
     EXAMPLES ::
 
         sage: from avisogenies_sage import *
-        sage: g = 2; A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: g = 2; A = AbelianVariety_ThetaStructure(GF(331), 2, 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
         sage: thp = AlgebraicToAnalyticThetaPoint(P)
         sage: AddTwoTorsion(thp, eta(g, 2))._coord #FIXME change when _repr_ is done.
@@ -1188,11 +1188,11 @@ def YS_fromMumford_Generic(g, a, S, points):
 
     INPUT:
 
-    - `a` - list of x-coordinates of the Weierstrass points.
-    - `thc` - the theta null point associated to the jacobian of the curve.
-    - `S` - an iterable.
-    - `points` - a list of coordinates (x,y) (as tuples) of the points P_i in D. Assume
-        that all P_i are distinct.
+    - ``a`` - list of x-coordinates of the Weierstrass points.
+    - ``thc`` - the theta null point associated to the jacobian of the curve.
+    - ``S`` - an iterable.
+    - ``points`` - a list of coordinates (x,y) (as tuples) of the points P_i in D. Assume
+      that all P_i are distinct.
 
     EXAMPLES ::
 
@@ -1542,7 +1542,7 @@ def MumfordToTheta_2_Generic(a, thc2, points):
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62)), (F(8), F(10))]
-        sage: A = AbelianVariety(F, n, g, [328 , 213 , 75 , 1], check=True)
+        sage: A = AbelianVariety_ThetaStructure(F, n, g, [328 , 213 , 75 , 1], check=True)
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
         sage: MumfordToTheta_2_Generic(a, thc, points)._coord #FIXME change when _repr_ is done
         [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
@@ -1728,7 +1728,7 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62)), (F(8), F(10))]
-        sage: A = AbelianVariety(F, n, g, [328 , 213 , 75 , 1], check=True)
+        sage: A = AbelianVariety_ThetaStructure(F, n, g, [328 , 213 , 75 , 1], check=True)
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
         sage: MumfordToLevel2ThetaPoint(a, thc, points)._coord #FIXME change when _repr_ is done
         [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
@@ -1738,7 +1738,7 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62))]
-        sage: A = AbelianVariety(F, n, g, [328 , 213 , 75 , 1], check=True)
+        sage: A = AbelianVariety_ThetaStructure(F, n, g, [328 , 213 , 75 , 1], check=True)
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
         sage: MumfordToLevel2ThetaPoint(a, thc, points)._coord #FIXME change when _repr_ is done, Magma output
         [288, 101, 184, 91, 289, 74, 111, 10, 106, 54, 12, 0, 292, 48, 113, 243]
@@ -2126,7 +2126,7 @@ def ThetaToMumford_2_Generic(a, th2):
     EXAMPLES ::
 
         sage: from avisogenies_sage import *
-        sage: F = GF(331); A = AbelianVariety(F, 2, 2, [328 , 213 , 75 , 1])
+        sage: F = GF(331); A = AbelianVariety_ThetaStructure(F, 2, 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
         sage: thp = AlgebraicToAnalyticThetaPoint(P)
         sage: a = list(map(F, [0, 1, 2, 3, 4]))

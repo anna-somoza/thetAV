@@ -11,6 +11,7 @@ AUTHORS:
     - Add more info to the paragraph above
     
     - On binary operations, test that all the points belong to the same abelian variety.
+    
 """
 
 # ****************************************************************************
@@ -38,40 +39,43 @@ from sage.misc.constant_function import ConstantFunction
 from sage.modules.free_module_element import vector as Vector
 
 class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
+    """
+    Constructor for a point on an abelian variety.
+
+    INPUT:
+
+    - ``X`` -- an abelian variety
+    - ``v`` -- data determining a point (another point or a tuple of coordinates)
+    - ``good_lift`` -- a boolean (default: `False`); indicates if the given affine lift
+      is a good lift, i.e. a lift compatible with the lift of the theta null point.
+    - ``check`` -- a boolean (default: `False`); indicates if computations to check
+      the correctness of the input data should be performed, using the Riemann Relations.
+
+    EXAMPLES ::
+
+        sage: from avisogenies_sage import AbelianVariety
+        sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: P = A([255 , 89 , 30 , 1]); P
+        (255 : 89 : 30 : 1)
+        sage: R.<X> = PolynomialRing(GF(331))
+        sage: poly = X^4 + 3*X^2 + 290*X + 3
+        sage: F.<t> = poly.splitting_field()
+        sage: B = A.change_ring(F)
+        sage: Q = B([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
+         155*t^3 + 84*t^2 + 15*t + 170, 1], check=True); Q
+        (158*t^3 + 67*t^2 + 9*t + 293 : 290*t^3 + 25*t^2 + 235*t + 280 : 155*t^3 + 84*t^2 + 15*t + 170 : 1)
+        
+    .. todo::
+    
+        - When ``v`` is a point already and ``check`` is `True`, we should make sure that v has been checked when generated.
+          maybe with a boolean in X (or in the point) that saves if it has been checked.
+          
+        - Make check on the point/AV a method that caches the result.
+
+    """
     def __init__(self, X, v, good_lift=False, check=False):
         """
-        Constructor for a point on an abelian variety.
-
-        INPUT:
-
-        - ``X`` -- an abelian variety
-        - ``v`` -- data determining a point (another point or a tuple of coordinates)
-        - ``good_lift`` -- a boolean (default: `False`); indicates if the given affine lift
-                is a good lift, i.e. a lift compatible with the lift of the theta null point.
-        - ``check`` -- a boolean (default: `False`); indicates if computations to check
-                the correctness of the input data should be performed, using the Riemann Relations.
-
-        EXAMPLES ::
-
-            sage: from avisogenies_sage import AbelianVariety
-            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
-            sage: P = A([255 , 89 , 30 , 1]); P
-            (255 : 89 : 30 : 1)
-            sage: R.<X> = PolynomialRing(GF(331))
-            sage: poly = X^4 + 3*X^2 + 290*X + 3
-            sage: F.<t> = poly.splitting_field()
-            sage: B = A.change_ring(F)
-            sage: Q = B([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
-             155*t^3 + 84*t^2 + 15*t + 170, 1], check=True); Q
-            (158*t^3 + 67*t^2 + 9*t + 293 : 290*t^3 + 25*t^2 + 235*t + 280 : 155*t^3 + 84*t^2 + 15*t + 170 : 1)
-            
-        .. todo::
-        
-            - When ``v`` is a point already and ``check`` is `True`, we should make sure that v has been checked when generated.
-              maybe with a boolean in X (or in the point) that saves if it has been checked.
-              
-            - Make check on the point/AV a method that caches the result.
-
+        Initialize.
         """
         point_homset = X.point_homset()
         if is_SchemeMorphism(v) or isinstance(v, AbelianVarietyPoint) or is_Vector(v):
@@ -174,19 +178,56 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         """
         return tuple(self._coords)
 
-    def equal_points(self, Q, proj = True, factor = False):
+    def good_lift(self):
+        """
+        Indicates if the given point is the affine lift compatible with
+        the lift of the theta null point.
+        
+        .. todo:: Used? Needed?
+        """
+        return self._good_lift
+
+    def scheme(self):
+        """
+        Return the scheme of this point, i.e., the abelian variety it is on.
+        This is synonymous with :meth:`abelian_variety` which is perhaps more
+        intuitive.
+        """
+
+        return self.codomain()
+
+    def abelian_variety(self):
+        """
+        Return the abelian variety that this point is on.
+
+        EXAMPLES::
+
+            sage: from avisogenies_sage import AbelianVariety
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1]); A
+            Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
+            sage: P = A([255 , 89 , 30 , 1])
+            sage: P.abelian_variety()
+            Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
+
+        """
+        return self.scheme()
+
+    def is_equal(self, Q, proj = True, factor = False):
         """
         Check whether two ThetaPoints are equal or not.
         If proj = true we compare them as projective points,
         and if factor = True, return as a second argument
-        the rapport Q/P
+        the rapport Q/P.
 
         INPUT:
-            - ``Q`` - a point.
-            - ``proj`` - a boolean (default: `True`). Wether the comparison
-                    is done as projective points.
-            - ``factor`` - a boolean (default: `False`). If True, as a second
-                    argument is returned, the rapport right/self.
+        
+        - ``Q`` - a point.
+    
+        - ``proj`` - a boolean (default: `True`). Wether the comparison
+          is done as projective points.
+    
+        - ``factor`` - a boolean (default: `False`). If True, as a second
+          argument is returned, the rapport right/self.
 
         EXAMPLES ::
 
@@ -195,15 +236,15 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: P = A([255 , 89 , 30 , 1]) #A 1889-torsion point
             sage: 1889*P
             (12 : 141 : 31 : 327)
-            sage: A(0).equal_points(1889*P)
+            sage: A(0).is_equal(1889*P)
             True
 
         If the points are equal as projective points but not as affine points,
-        one can obtain the factor:
+        one can obtain the factor::
 
-            sage: (1889*P).equal_points(A(0), proj=False)
+            sage: (1889*P).is_equal(A(0), proj=False)
             False
-            sage: _, k = A(0).equal_points(1889*P, factor=True); k
+            sage: _, k = A(0).is_equal(1889*P, factor=True); k
             327
 
         """
@@ -245,40 +286,9 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             return op == op_NE
 
         if op in [op_EQ, op_NE]:
-            return self.equal_points(right) == (op == op_EQ)
+            return self.is_equal(right) == (op == op_EQ)
         return richcmp(self._coords, right._coords, op)
 
-    def good_lift(self):
-        """
-        Indicates if the given point is the affine lift compatible with
-        the lift of the theta null point.
-        """
-        return self._good_lift
-
-    def scheme(self):
-        """
-        Return the scheme of this point, i.e., the abelian variety it is on.
-        This is synonymous with :meth:`abelian_variety` which is perhaps more
-        intuitive.
-        """
-
-        return self.codomain()
-
-    def abelian_variety(self):
-        """
-        Return the abelian variety that this point is on.
-
-        EXAMPLES::
-
-            sage: from avisogenies_sage import AbelianVariety
-            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1]); A
-            Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
-            sage: P = A([255 , 89 , 30 , 1])
-            sage: P.abelian_variety()
-            Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
-
-        """
-        return self.scheme()
 
     def __bool__(self):
         """
@@ -296,7 +306,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
 
     __nonzero__ = __bool__
 
-    def get_nonzero_coord(self, idx=True):
+    def _get_nonzero_coord(self, idx=True):
         for i, val in enumerate(self):
             if val != 0:
                 if idx:
@@ -345,7 +355,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         twog = 2**g
         PQ = [0]*ng
         lvl2 = (n == 2)
-        i0 = PmQ.get_nonzero_coord()
+        i0 = PmQ._get_nonzero_coord()
         if lvl2:
             from .abelian_variety import eval_car
             char = point0._idx_to_char
@@ -404,7 +414,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             lambda1 = r[elt] #lambda1 = \sum PQ[i+t]PmQ[i+t]/2^g
             return lambda1/lambda2
         PQ2 = P.diff_add(Q,PmQ)
-        i0 = PQ2.get_nonzero_coord()
+        i0 = PQ2._get_nonzero_coord()
         return PQ2[i0]/self[i0];
 
     def _diff_add_PQ(self,P,Q,PmQ):
@@ -575,8 +585,8 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         INPUT:
         
         - ``algorithm`` (default: 'Montgomery'): The chosen algorithm for the computation.
-            It can either be 'Montgomery' for a Montgomery ladder type algorithm, or 
-            'SquareAndMultiply' for the usual square and multiply algorithm (only for level > 2).
+          It can either be 'Montgomery' for a Montgomery ladder type algorithm, or 
+          'SquareAndMultiply' for the usual square and multiply algorithm (only for level > 2).
 
         EXAMPLES ::
 
@@ -689,24 +699,27 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
              n1P = nn1P
         return n1PQ, n1P
 
-    def pairing_from_points(self,Q,lP,lQ,lPQ,PlQ):
+    def weil_pairing_from_points(self,Q,lP,lQ,lPQ,PlQ):
         """
         Computes the Weil pairing of self and Q, given all the points needed.
         
         .. todo::
         
-            Maybe this could be included in the :meth:`pairing` with a keyword
-            argument points that by default is None and otherwise is a list
-            [lP, lQ, lPQ, PlQ]. But in that case we don't need l. 
+            - Maybe this could be included in the :meth:`weil_pairing` with a keyword
+              argument points that by default is None and otherwise is a list
+              [lP, lQ, lPQ, PlQ]. But in that case we don't need l. 
+            
+            - Add examples
+            
         """
         point0 = self.abelian_variety()._thetanullpoint
-        r, k0P = lP.equal_points(point0, proj=True, factor=True)
+        r, k0P = lP.is_equal(point0, proj=True, factor=True)
         assert r
-        r, k0Q = lQ.equal_points(point0, proj=True, factor=True)
+        r, k0Q = lQ.is_equal(point0, proj=True, factor=True)
         assert r
-        r, k1P = PlQ.equal_points(self, proj=True, factor=True)
+        r, k1P = PlQ.is_equal(self, proj=True, factor=True)
         assert r
-        r, k1Q = lPQ.equal_points(Q, proj=True, factor=True)
+        r, k1Q = lPQ.is_equal(Q, proj=True, factor=True)
         assert r
         return k1P*k0P/(k1Q*k0Q);
 
@@ -737,13 +750,13 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         point0 = self.abelian_variety()._thetanullpoint
         lPQ, lP = self.diff_multadd(l,PQ,Q)
         PlQ, lQ = Q.diff_multadd(l,PQ,self)
-        r, k0P = lP.equal_points(point0, proj=True, factor=True)
+        r, k0P = lP.is_equal(point0, proj=True, factor=True)
         assert r, "Bad pairing!"+str(self)
-        r, k0Q = lQ.equal_points(point0, proj=True, factor=True)
+        r, k0Q = lQ.is_equal(point0, proj=True, factor=True)
         assert r, "Bad pairing!"+str(Q)
-        r, k1P = PlQ.equal_points(self, proj=True, factor=True)
+        r, k1P = PlQ.is_equal(self, proj=True, factor=True)
         assert r
-        r, k1Q = lPQ.equal_points(Q, proj=True, factor=True)
+        r, k1Q = lPQ.is_equal(Q, proj=True, factor=True)
         assert r
         return k1P*k0P/(k1Q*k0Q)
         
@@ -757,6 +770,12 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
 
     
     def three_way_add(P, Q, R, PQ, QR, PR):
+        """
+        ..todo::
+        
+            Document
+            
+        """
         from .abelian_variety import eval_car, reduce_twotorsion_couple
         point0 = P.abelian_variety()
         O = point0._thetanullpoint
@@ -769,7 +788,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         PQR = [0]*ng
         lvl2 = (n == 2)
         idx = point0._char_to_idx
-        idxi0 = P.get_nonzero_coord()
+        idxi0 = P._get_nonzero_coord()
         i0 = point0._idx_to_char(idxi0)
         for idxI, I in enumerate(D):
             if P[idxI] == 0:
@@ -823,7 +842,11 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         
         - ``l`` -- the torsion
         
-        .. todo:: Fix use of scale in this function
+        .. todo:: 
+        
+            - Fix use of scale in this function
+            
+            - Add examples
         """
         A = self.abelian_variety()
         if add == None:

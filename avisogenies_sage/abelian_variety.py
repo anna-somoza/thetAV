@@ -11,6 +11,9 @@ AUTHORS:
     - Decide if we want to change function name, since AbelianVariety already exists in Sagemath.
     
     - Add more info to the paragraph above
+    
+    - Do we want to include the documentation for private functions? (:private-members: option in autodoc for all of
+      them, or :private-members: *comma separated list*)
 """
 
 #*****************************************************************************
@@ -41,9 +44,9 @@ from sage.structure.richcmp import richcmp_method, richcmp
 from .av_point import AbelianVarietyPoint
 
 @richcmp_method
-class AbelianVariety(AlgebraicScheme):
+class AbelianVariety_ThetaStructure(AlgebraicScheme):
     """
-    Base class for Abelian Varieties with theta structure.
+    Base class for Abelian Varieties with theta structure. See also :func:`AbelianVariety`.
 
     INPUT:
 
@@ -161,7 +164,7 @@ class AbelianVariety(AlgebraicScheme):
             sage: A == B
             False
         """
-        if not isinstance(X, AbelianVariety):
+        if not isinstance(X, AbelianVariety_ThetaStructure):
             return NotImplemented
         if self.base_ring() != X.base_ring():
             return False
@@ -216,7 +219,7 @@ class AbelianVariety(AlgebraicScheme):
             sage: A1 == A2
             False
         """
-        return AbelianVariety(R, self.level(), self.dimension(), self.theta_null_point())
+        return AbelianVariety_ThetaStructure(R, self.level(), self.dimension(), self.theta_null_point())
 
     def base_extend(self, R):
         """

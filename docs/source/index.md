@@ -3,18 +3,15 @@
 ```{include} ../../README.md
 ```
 
-## Documentation
-
 ```{toctree}
 :maxdepth: 2
 :caption: Documentation
 
+constructor
 abelian_variety
 av_point
 morphisms
 ```
-
-## Tutorials
 
 ```{toctree}
 :maxdepth: 2
