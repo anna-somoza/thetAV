@@ -57,8 +57,14 @@ extensions = [
     'matplotlib.sphinxext.plot_directive',
     'myst_parser',
     'sphinx.ext.todo',
-    'nbsphinx'
+    'nbsphinx',
+    'sphinx.ext.intersphinx'
 ]
+
+intersphinx_mapping = {
+    'sage': ('https://doc.sagemath.org/html/en/reference/modabvar', None),
+    'python': ('https://docs.python.org/3', None),
+}
 
 # Display todos by setting to True
 todo_include_todos = True

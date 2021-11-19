@@ -46,7 +46,7 @@ from .av_point import AbelianVarietyPoint
 @richcmp_method
 class AbelianVariety_ThetaStructure(AlgebraicScheme):
     """
-    Base class for Abelian Varieties with theta structure. See also :func:`AbelianVariety`.
+    Base class for Abelian Varieties with theta structure. See also :func:`~avisogenies_sage.constructor.AbelianVariety`.
 
     INPUT:
 

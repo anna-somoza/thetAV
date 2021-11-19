@@ -1,14 +1,10 @@
 """
-Constructor compatible with the Modular Abelian Varieties defined in Sagemath.
+Constructor for abelian varieties with extra structure.
 
 AUTHORS:
 
-- Anna Somoza (2020-21): initial implementation
+- Anna Somoza (2021): initial implementation
 
-.. note::
-
-    *explain what is going on*
-    
 """
 
 #*****************************************************************************
@@ -30,17 +26,19 @@ def AbelianVariety(*data):
 
     INPUT:
 
-    An integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups or a theta
-    structure (see :class:`AbelianVariety_ThetaStructure`).
+    An integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups (see :func:`~sage:sage.modular.abvar.constructor.AbelianVariety` in Sagemath) or a theta
+    structure (see :class:`~avisogenies_sage.abelian_variety.AbelianVariety_ThetaStructure`).
 
     OUTPUT: a modular abelian variety with extra structure.
     
-    .. todo::
+    EXAMPLES:
     
-        Break examples in several groups to emphasize the differences between sagemath basic functionality
-        and our added functionality.
+    Giving the data of the theta structure associated to an Abelian Variety we can create an instance of :class:`~avisogenies_sage.abelian_variety.AbelianVariety_ThetaStructure`::
     
-    EXAMPLES::
+        sage: AbelianVariety(GF(331), 2, 2, [328,213,75,1])
+        Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
+    
+    But the function is also compatible with the functionality currently available in Sagemath::
     
         sage: from avisogenies_sage import AbelianVariety
         sage: AbelianVariety(Gamma0(37))
@@ -55,8 +53,6 @@ def AbelianVariety(*data):
         Abelian variety J0(37) x J0(11) of dimension 3
         sage: AbelianVariety(37)
         Abelian variety J0(37) of dimension 2
-        sage: AbelianVariety(GF(331), 2, 2, [328,213,75,1])
-        Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
         sage: AbelianVariety([1,2,3])
         Traceback (most recent call last):
         ...

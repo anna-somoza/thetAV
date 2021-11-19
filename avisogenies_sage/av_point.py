@@ -1,5 +1,5 @@
 """
-This module defines the base class of Theta points as elements of :class:`AbelianVariety`.
+This module defines the base class of Theta points as elements of :class:`~avisogenies_sage.abelian_variety.AbelianVariety_ThetaStructure`.
 
 
 AUTHORS:
@@ -190,7 +190,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
     def scheme(self):
         """
         Return the scheme of this point, i.e., the abelian variety it is on.
-        This is synonymous with :meth:`abelian_variety` which is perhaps more
+        This is synonymous with :meth:`~.abelian_variety` which is perhaps more
         intuitive.
         """
 
@@ -464,7 +464,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
 
         .. seealso::
         
-            :meth:`_add_`
+            :meth:`~._add_`
 
         .. todo::
         
@@ -643,7 +643,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         """
         Computes k*self + Q, k*self
         
-        EXAMPLES:
+        EXAMPLES::
         
             sage: from avisogenies_sage import AbelianVariety
             sage: R.<X> = PolynomialRing(GF(331))
@@ -705,7 +705,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         
         .. todo::
         
-            - Maybe this could be included in the :meth:`weil_pairing` with a keyword
+            - Maybe this could be included in the :meth:`~.weil_pairing` with a keyword
               argument points that by default is None and otherwise is a list
               [lP, lQ, lPQ, PlQ]. But in that case we don't need l. 
             
