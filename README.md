@@ -1,4 +1,4 @@
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/sage)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/sage) [![Documentation Status](https://readthedocs.org/projects/avisogenies/badge/?version=latest)](https://avisogenies.readthedocs.io/en/latest/?badge=latest)
 
 The aim of this project is to recode all the functions of avisogenies with improvements in the algorithms and in Sagemath
 In  particular we have now an algorithm to compute isogenies which is very efficient and simple to implement : it improves the preceding algorithms for l=3 mod 4 and for cyclic isogeny in general.
