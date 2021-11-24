@@ -36,6 +36,7 @@ except ImportError:
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath(package_folder))
+sys.path.insert(0, os.path.abspath('./theme'))
 #sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 
 
@@ -58,13 +59,36 @@ extensions = [
     'myst_parser',
     'sphinx.ext.todo',
     'nbsphinx',
-    'sphinx.ext.intersphinx'
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.mathjax',
+    'lexer'
 ]
+
+#mathjax_path = 'http://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML'
+
 
 intersphinx_mapping = {
     'sage': ('https://doc.sagemath.org/html/en/reference/modabvar', None),
     'python': ('https://docs.python.org/3', None),
 }
+
+
+# We use MathJax to build the documentation unless the environment
+# variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
+# the user does not set this variable, then the script sage-env sets
+# it to "True".)
+
+#if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
+#            and os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'False'):#
+
+#    extensions.append('sphinx.ext.mathjax')
+#    mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
+
+#    from sage.misc.latex_macros import sage_mathjax_macros
+
+#else:
+#     extensions.append('sphinx.ext.imgmath')
+
 
 # Display todos by setting to True
 todo_include_todos = True
@@ -206,6 +230,7 @@ default_role = 'math'
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
+highlight_language = 'sagecon'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -374,37 +399,6 @@ texinfo_documents = [
 
 # -- Options copied from Sagemath conf.py file -------------------------------
 
-# We use MathJax to build the documentation unless the environment
-# variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
-# the user does not set this variable, then the script sage-env sets
-# it to "True".)
-
-if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
-            and os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'False'):
-
-    extensions.append('sphinx.ext.mathjax')
-    mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
-
-    from sage.misc.latex_macros import sage_mathjax_macros
-    # this is broken for now
-    # html_theme_options['mathjax_macros'] = sage_mathjax_macros()
-
-    ## from pkg_resources import Requirement, working_set
-    ## sagenb_path = working_set.find(Requirement.parse('sagenb')).location
-    ## mathjax_relative = os.path.join('sagenb','data','mathjax')
-
-    ## # It would be really nice if sphinx would copy the entire mathjax directory,
-    ## # (so we could have a _static/mathjax directory), rather than the contents of the directory
-
-    ## mathjax_static = os.path.join(sagenb_path, mathjax_relative)
-    ## html_static_path.append(mathjax_static)
-    ## exclude_patterns=['**/'+os.path.join(mathjax_relative, i) for i in ('docs', 'README*', 'test',
-    ##                                                                     'unpacked', 'LICENSE')]
-    ## from sage.env import SAGE_LOCAL, SAGE_SHARE
-    ## html_static_path.append(SAGE_LOCAL + "/lib/mathjax")    # conda
-    ## html_static_path.append(SAGE_SHARE + "/mathjax")  # sage distribution
-else:
-     extensions.append('sphinx.ext.imgmath')
 
 # This is to make the verbatim font smaller;
 # Verbatim environment is not breaking long lines
