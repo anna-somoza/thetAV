@@ -640,7 +640,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
 
     def diff_multadd(self, k, PQ, Q):
         """
-        Computes k*self + Q, k*self
+        Computes k*self + Q, k*self.
         
         EXAMPLES::
         
@@ -698,7 +698,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
              n1P = nn1P
         return n1PQ, n1P
 
-    def weil_pairing_from_points(self,Q,lP,lQ,lPQ,PlQ):
+    def _weil_pairing_from_points(P,Q,lP,lQ,lPQ,PlQ):
         """
         Computes the Weil pairing of self and Q, given all the points needed.
         
@@ -711,20 +711,35 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             - Add examples
             
         """
-        point0 = self.abelian_variety()._thetanullpoint
+        point0 = P.abelian_variety()._thetanullpoint
         r, k0P = lP.is_equal(point0, proj=True, factor=True)
         assert r
         r, k0Q = lQ.is_equal(point0, proj=True, factor=True)
         assert r
-        r, k1P = PlQ.is_equal(self, proj=True, factor=True)
+        r, k1P = PlQ.is_equal(P, proj=True, factor=True)
         assert r
         r, k1Q = lPQ.is_equal(Q, proj=True, factor=True)
         assert r
         return k1P*k0P/(k1Q*k0Q);
 
-    def weil_pairing(self, l, Q, PQ=None):
+    def weil_pairing(P, l, Q, PQ=None):
         """
-        Computes the Weil pairing of self and Q.
+        Computes the Weil pairing of P=self and Q.  See also 
+        :meth:`~._weil_pairing_from_points` to use precomputed points.
+        
+        INPUT:
+        
+        - ``l`` -- An integer
+        - ``P=self`` -- An l-torsion point
+        - ``Q`` -- Another l-torsion point
+        - ``PQ`` (default: None) -- The addition of ``P`` and ``Q``.
+        
+        OUTPUT:
+        
+        The nth power of the weil pairing of P and Q, where n is the level
+        of the theta structure.
+        
+        ..todo:: Should check that points belong to same AV.
         
         EXAMPLES ::
         
@@ -743,37 +758,95 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             17*t^3 + 153*t^2 + 305*t + 187
         """
         if PQ == None:
-            if self.abelian_variety()._level == 2:
+            if P.abelian_variety()._level == 2:
                 raise NotImplementedError
-            PQ = self + Q
-        point0 = self.abelian_variety()._thetanullpoint
-        lPQ, lP = self.diff_multadd(l,PQ,Q)
-        PlQ, lQ = Q.diff_multadd(l,PQ,self)
-        r, k0P = lP.is_equal(point0, proj=True, factor=True)
-        assert r, "Bad pairing!"+str(self)
-        r, k0Q = lQ.is_equal(point0, proj=True, factor=True)
+            PQ = P + Q
+        point0 = P.abelian_variety()._thetanullpoint
+        lPQ, lP = P.diff_multadd(l,PQ,Q) #lP + Q, lP
+        PlQ, lQ = Q.diff_multadd(l,PQ,P) #P + lQ, lQ
+        r, k0P = lP.is_equal(point0, proj=True, factor=True) #P is l-torsion, k0P is the factor
+        assert r, "Bad pairing!"+str(P)
+        r, k0Q = lQ.is_equal(point0, proj=True, factor=True) #Q is l-torsion, k0Q is the factor
         assert r, "Bad pairing!"+str(Q)
-        r, k1P = PlQ.is_equal(self, proj=True, factor=True)
+        r, k1P = PlQ.is_equal(P, proj=True, factor=True) #P + lQ == P, k1P is the factor
         assert r
-        r, k1Q = lPQ.is_equal(Q, proj=True, factor=True)
+        r, k1Q = lPQ.is_equal(Q, proj=True, factor=True) #lP+ Q == Q, k1Q is the factor
         assert r
         return k1P*k0P/(k1Q*k0Q)
         
-    def tate_pairing(self, l, Q, PQ=None):
+    def tate_pairing(P, l, Q, PQ=None):
         """
-        Computes the Tate pairing of self and Q.
+        Computes the Weil pairing of P=self and Q.
         
-        .. todo:: Implement Tate pairing
+        INPUT:
+        
+        - ``P=self`` -- A point
+        - ``l`` -- An integer
+        - ``Q`` -- An l-torsion point in the same av as P.
+        - ``PQ`` (default: None) -- The addition of P and Q.
+        
+        OUTPUT:
+        
+        The nth power of the tate pairing of P and Q, where n is the level
+        of the theta structure.
+        
+        ..todo::
+        
+            - Should check that points belong to same AV.
+            
+            - What power/root should I take?
+        
+        EXAMPLES ::
+        
+            sage: from avisogenies_sage import AbelianVariety
+            sage: R.<X> = PolynomialRing(GF(331))
+            sage: poly = X^4 + 3*X^2 + 290*X + 3
+            sage: F.<t> = poly.splitting_field()
+            sage: A = AbelianVariety(F, 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1])
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
+             155*t^3 + 84*t^2 + 15*t + 170, 1], check=True)
+            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 , \
+                258*t^3 + 39*t^2 + 313*t + 150 , 1])
+            sage: PQ = P.diff_add(Q, PmQ)
+            sage: P.tate_pairing(1889, Q, PQ)
+            313*t^3 + 144*t^2 + 38*t + 71
+            sage: Q.tate_pairing(1889, P, PQ)
+            130*t^3 + 124*t^2 + 49*t + 153
         """
-        pass
+        if PQ == None:
+            if P.abelian_variety()._level == 2:
+                raise NotImplementedError
+            PQ = P + Q
+        point0 = P.abelian_variety()._thetanullpoint
+        PlQ, lQ = Q.diff_multadd(l,PQ,P) #P + lQ, lQ
+        r, k0Q = lQ.is_equal(point0, proj=True, factor=True) #Q is l-torsion, k0Q is the factor
+        assert r, "Bad pairing!"+str(Q)
+        r, k1P = PlQ.is_equal(P, proj=True, factor=True) #P + lQ == P, k1P is the factor
+        assert r
+        return k1P/k0Q
 
     
     def three_way_add(P, Q, R, PQ, QR, PR):
         """
-        ..todo::
+        ..todo:: Document
         
-            Document
-            
+        EXAMPLES::
+        
+            sage: from avisogenies_sage import AbelianVariety
+            sage: R.<X> = PolynomialRing(GF(331))
+            sage: poly = X^4 + 3*X^2 + 290*X + 3
+            sage: F.<t> = poly.splitting_field()
+            sage: A = AbelianVariety(F, 2, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1])
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,\
+             155*t^3 + 84*t^2 + 15*t + 170, 1], check=True)
+            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 , \
+                258*t^3 + 39*t^2 + 313*t + 150 , 1])
+            sage: PQ = P.diff_add(Q, PmQ)
+            sage: P.diff_multadd(2, PQ, Q)[0] == P.three_way_add(P,Q,2*P, PQ, PQ)
+            True
+                        
         """
         from .abelian_variety import eval_car, reduce_twotorsion_couple
         point0 = P.abelian_variety()
