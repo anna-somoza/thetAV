@@ -36,7 +36,7 @@ except ImportError:
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath(package_folder))
-#sys.path.insert(0, os.path.abspath('./theme'))
+sys.path.insert(0, os.path.abspath('./theme'))
 #sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 
 
@@ -61,7 +61,7 @@ extensions = [
     'nbsphinx',
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
-#    'lexer'
+    'lexer'
 ]
 
 #mathjax_path = 'http://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML'

@@ -18,11 +18,19 @@ class SageConsoleLexer(PythonConsoleLexer):
 
     def get_tokens_unprocessed(self, text):
         if self.python3:
-            pylexer = Python3Lexer(**self.options)
-            tblexer = Python3TracebackLexer(**self.options)
+            try:
+                pylexer = Python3Lexer(**self.options)
+                tblexer = Python3TracebackLexer(**self.options)
+            except NameError:
+                pylexer = PythonLexer(**self.options)
+                tblexer = PythonTracebackLexer(**self.options)
         else:
-            pylexer = PythonLexer(**self.options)
-            tblexer = PythonTracebackLexer(**self.options)
+            try:
+                pylexer = Python2Lexer(**self.options)
+                tblexer = Python2TracebackLexer(**self.options)
+            except NameError:
+                pylexer = PythonLexer(**self.options)
+                tblexer = PythonTracebackLexer(**self.options)
 
         curcode = ''
         insertions = []
