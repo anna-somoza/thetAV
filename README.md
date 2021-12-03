@@ -20,7 +20,7 @@ Type Jacobienne (via un type courbe)
 ## To install the Sage package
 From the package directory, run
 
-```sh
+```console
 $ make install
 ```
 

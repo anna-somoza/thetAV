@@ -787,14 +787,11 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         
         OUTPUT:
         
-        The nth power of the tate pairing of P and Q, where n is the level
-        of the theta structure.
+        The r-th power of the tate pairing of P and Q, where r = (p^k - 1)/l.
         
         ..todo::
         
             - Should check that points belong to same AV.
-            
-            - What power/root should I take?
         
         EXAMPLES ::
         
@@ -818,13 +815,15 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             if P.abelian_variety()._level == 2:
                 raise NotImplementedError
             PQ = P + Q
-        point0 = P.abelian_variety()._thetanullpoint
+        A = P.abelian_variety()
+        point0 = A._thetanullpoint
         PlQ, lQ = Q.diff_multadd(l,PQ,P) #P + lQ, lQ
-        r, k0Q = lQ.is_equal(point0, proj=True, factor=True) #Q is l-torsion, k0Q is the factor
+        r, k0Q = point0.is_equal(lQ, proj=True, factor=True) #Q is l-torsion, k0Q is the factor lQ/point0
         assert r, "Bad pairing!"+str(Q)
-        r, k1P = PlQ.is_equal(P, proj=True, factor=True) #P + lQ == P, k1P is the factor
+        r, k1P = P.is_equal(PlQ, proj=True, factor=True) #P + lQ == P, k1P is the factor PlQ/P
         assert r
-        return k1P/k0Q
+        r = (A.base_ring().cardinality() - 1)/l
+        return (k1P/k0Q)**r
 
     
     def three_way_add(P, Q, R, PQ, QR, PR):
