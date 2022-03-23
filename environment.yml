@@ -22,7 +22,7 @@ dependencies:
   - mathjax
   - pandoc
   - pip
-  - jinja2
+  - jinja2=3
   - pip:
     - pynormaliz==2.8
     - sage-package

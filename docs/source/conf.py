@@ -73,6 +73,10 @@ intersphinx_mapping = {
 }
 
 
+myst_enable_extensions = [
+    "dollarmath"
+]
+
 # We use MathJax to build the documentation unless the environment
 # variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
 # the user does not set this variable, then the script sage-env sets
