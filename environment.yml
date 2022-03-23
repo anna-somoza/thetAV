@@ -22,11 +22,11 @@ dependencies:
   - mathjax
   - pandoc
   - pip
-  - jinja2=3
   - pip:
     - pynormaliz==2.8
     - sage-package
     - myst_parser
     - matplotlib
     - nbsphinx
+    - sphinxcontrib-svg2pdfconverter
     - .

@@ -61,7 +61,8 @@ extensions = [
     'nbsphinx',
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
-    'lexer'
+    'lexer',
+    'sphinxcontrib.inkscapeconverter'
 ]
 
 #mathjax_path = 'http://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML'
@@ -340,7 +341,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', package_name + '.tex', u'Documentation of ' + six.text_type(package_name),
+  ('index', package_name + '.tex', u'Documentation of avisogenies\_sage',
    authors, 'manual'),
 ]
 

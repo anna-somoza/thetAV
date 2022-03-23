@@ -597,7 +597,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             
         .. SEEALSO::
         
-            :meth: `_rmul_`
+            :meth:`~._rmul_`
             
         .. todo::
 
