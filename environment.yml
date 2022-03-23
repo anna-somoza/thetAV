@@ -23,7 +23,7 @@ dependencies:
   - pandoc
   - pip
   - pip:
-    - pynormaliz==2.8
+    - pynormaliz
     - sage-package
     - myst_parser
     - matplotlib
