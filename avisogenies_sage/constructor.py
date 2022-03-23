@@ -3,12 +3,12 @@ Constructor for abelian varieties with extra structure.
 
 AUTHORS:
 
-- Anna Somoza (2021): initial implementation
+- Anna Somoza (2021-22): initial implementation
 
 """
 
 #*****************************************************************************
-#       Copyright (C) 2021 Anna Somoza <anna.somoza.henares@gmail.com>
+#       Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -20,7 +20,7 @@ AUTHORS:
 from sage.modular.abvar.constructor import AbelianVariety as ModularAbelianVariety
 from .abelian_variety import AbelianVariety_ThetaStructure
 
-def AbelianVariety(*data):
+def AbelianVariety(*data, **kwargs):
     """
     Create the abelian variety corresponding to the given defining data.
 
@@ -58,8 +58,16 @@ def AbelianVariety(*data):
         ...
         TypeError: X must be an integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups
 
+    TEST:
+    
+    The constructor should also pass the named parameters::
+    
+        sage: from avisogenies_sage import AbelianVariety
+        sage: AbelianVariety(GF(331), 2, 2, [328,213,75,1], check=True)
+        Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
+
     """
     if len(data) > 1:
-        return AbelianVariety_ThetaStructure(*data)
+        return AbelianVariety_ThetaStructure(*data, **kwargs)
     
     return ModularAbelianVariety(data[0])

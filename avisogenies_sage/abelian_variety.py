@@ -4,22 +4,25 @@ as an abstract Scheme.
 
 AUTHORS:
 
-- Anna Somoza (2020-21): initial implementation
+- Anna Somoza (2020-22): initial implementation
+
+REFERENCES:
+
+.. [Gaud] P. Gaudry. Fast genus 2 arithmetic based on theta functions.
+   J. Math. Cryptol. 1 (3) (2007) 243–265.
 
 .. todo::
-    
+
     - Add more info to the paragraph above
-    
+
     - Change coeffs in examples to be powers of gen?
-    
+
     - Can we use equations to generate random points?
-    
-    - Move all functions at the end to tools module?
 
 """
 
 #*****************************************************************************
-#       Copyright (C) 2021 Anna Somoza <anna.somoza.henares@gmail.com>
+#       Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -43,11 +46,12 @@ from sage.schemes.generic.morphism import SchemeMorphism_point
 from sage.schemes.generic.homset import SchemeHomset_points
 from sage.structure.richcmp import richcmp_method, richcmp
 from .av_point import AbelianVarietyPoint
+from .tools import reduce_twotorsion_couple, reduce_symtwotorsion_couple, eval_car, get_dual_quadruplet
 
 @richcmp_method
 class AbelianVariety_ThetaStructure(AlgebraicScheme):
     r"""
-    Class for Abelian Varieties with theta structure. See also 
+    Class for Abelian Varieties with theta structure. See also
     :func:`~avisogenies_sage.constructor.AbelianVariety`.
 
     INPUT:
@@ -55,9 +59,9 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
     - ``R`` -- a field of definition
     - ``n`` -- an integer; the level of the theta structure.
     - ``g`` -- an integer; the dimension of the abelian variety.
-    - ``T`` - a list of length n\ :sup:`g` elements of R - the theta 
+    - ``T`` - a list of length n\ :sup:`g` elements of R - the theta
       null point determining the abelian variety.
-    - ``check`` (default: *False*) -- A boolean; if *True*, checks that 
+    - ``check`` (default: *False*) -- A boolean; if *True*, checks that
       the riemann relations are satisfied by the input.
 
     EXAMPLES::
@@ -66,7 +70,7 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
         sage: FF1 = GF(331)
         sage: A1 = AbelianVariety(FF1, 2, 2, [328,213,75,1]); A1
         Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
-        
+
     TESTS::
 
         sage: from avisogenies_sage import AbelianVariety
@@ -151,7 +155,7 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
 
     def __richcmp__(self, X, op):
         """
-        Compare the abelian variety self to X.  If X is an abelian 
+        Compare the abelian variety self to X.  If X is an abelian
         variety, then self and X are equal if and only if their fields
         of definition are equal and their theta null points are equal
         as projective points.
@@ -192,9 +196,9 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
     def theta_null_point(self):
         """
         Return the theta null point as a point of the abelian variety.
-        
+
         TEST::
-        
+
             sage: from avisogenies_sage import AbelianVariety
             sage: from avisogenies_sage.av_point import AbelianVarietyPoint
             sage: FF1 = GF(331)
@@ -202,16 +206,16 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
             Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
             sage: type(A1.theta_null_point()) is AbelianVarietyPoint
             True
-            
+
         """
         return self._thetanullpoint
 
     def change_ring(self, R):
         r"""
         Return the abelian variety with field of definition R.
-        
+
         TEST::
-        
+
             sage: from avisogenies_sage import AbelianVariety
             sage: FF1 = GF(331); FF2 = GF(331^2)
             sage: A1 = AbelianVariety(FF1, 2, 2, [328,213,75,1]); A1
@@ -241,30 +245,38 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
     def equations(self):
         """
         Returns a list of defining equations for the abelian variety.
-        
-        .. todo:: 
-        
-            - Give more info in the description.
+
+        If the theta null point has dmension 2 and level 2, these are
+        the equations as given by Gaudry in [Gaud].
+
+        Otherwise, these are computed using the Riemann relations.
+
+        .. todo::
+
             - Find a couple of examples
-            
+
         """
         try:
             return self._eqns
         except AttributeError:
             if self._level == 2:
-                #TODO: add genericity condition checks.
-                a,c,d,b = list(self._thetanullpoint)
-                A2 = (a^2 + b^2 + c^2 + d^2)/4
-                B2 = (a^2 + b^2 - c^2 - d^2)/4
-                C2 = (a^2 - b^2 + c^2 - d^2)/4
-                D2 = (a^2 - b^2 - c^2 + d^2)/4
-                E = a*b*c*d*A2*B2*C2*D2 /((a^2*d^2 - b^2*c^2)*(a^2*c^2 - b^2*d^2)*(a^2*b^2 - c^2*d^2))
-                F = (a^4 - b^4 - c^4 + d^4)/(a^2*d^2 - b^2*c^2)
-                G = (a^4 - b^4 + c^4 - d^4)/(a^2*c^2 - b^2*d^2)
-                H = (a^4 + b^4 - c^4 - d^4)/(a^2*b^2 - c^2*d^2)
-                x,z,t,y = list(P)
-                self._eqns = [x^4 + y^4 + z^4 + t^4 + 2*E*x*y*z*t - F*(x^2*t^2 + y^2*z^2) - G*(x^2*z^2 + y^2*t^2) - H*(x^2*y^2 + z^2*t^2)]
-                return self._eqns
+                if self._dimension == 2:
+                    #TODO: add genericity condition checks.
+                    a,c,d,b = list(self._thetanullpoint)
+                    A2 = (a^2 + b^2 + c^2 + d^2)/4
+                    B2 = (a^2 + b^2 - c^2 - d^2)/4
+                    C2 = (a^2 - b^2 + c^2 - d^2)/4
+                    D2 = (a^2 - b^2 - c^2 + d^2)/4
+                    E = a*b*c*d*A2*B2*C2*D2 /((a^2*d^2 - b^2*c^2)*(a^2*c^2 - b^2*d^2)*(a^2*b^2 - c^2*d^2))
+                    F = (a^4 - b^4 - c^4 + d^4)/(a^2*d^2 - b^2*c^2)
+                    G = (a^4 - b^4 + c^4 - d^4)/(a^2*c^2 - b^2*d^2)
+                    H = (a^4 + b^4 - c^4 - d^4)/(a^2*b^2 - c^2*d^2)
+                    x,z,t,y = list(P)
+                    self._eqns = [x^4 + y^4 + z^4 + t^4 + 2*E*x*y*z*t - F*(x^2*t^2 + y^2*z^2) - G*(x^2*z^2 + y^2*t^2) - H*(x^2*y^2 + z^2*t^2)]
+                    return self._eqns
+                else:
+                    raise NotImplementedError
+
             F = self.base_ring()
             R = PolynomialRing(F, 'x', self._ng)
             FF = FractionField(R)
@@ -301,7 +313,7 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
 
         INPUT:
 
-        - ``v`` -- anything that defines a point in an abelian variety 
+        - ``v`` -- anything that defines a point in an abelian variety
           with theta structure. See :class:`~avisogenies_sage.av_point.AbelianVarietyPoint`
           for details.
 
@@ -311,9 +323,9 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
         OUTPUT:
 
         A point of the scheme.
-        
+
         EXAMPLE::
-            
+
             sage: from avisogenies_sage import AbelianVariety
             sage: from avisogenies_sage.av_point import AbelianVarietyPoint
             sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
@@ -330,62 +342,75 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
 
     def _idx_to_char(self, idx, twotorsion=False):
         r"""
-        Return the caracteristic in ``D`` that corresponds to a given 
+        Return the caracteristic in ``D`` that corresponds to a given
         integer index.
-        
+
         INPUT:
-        
+
         - ``idx`` -- an integer between 0 and n\ :sup:`g` - 1.
         - ``twotorsion`` -- a bolean (default: *False*). If *True*, return
           an element of twotorsion = Zmod(2)^g, where g is the dimension
-          of self. Otherwise, return an element of D = Zmod(n)^g, where 
+          of self. Otherwise, return an element of D = Zmod(n)^g, where
           n is the level of self.
-        
+
+
+        EXAMPLES::
+
+
+
+
+
+        TEST::
+
+            sage: from avisogenies_sage import AbelianVariety
+            sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
+            sage: A._idx_to_char(-2)
+            Traceback (most recent call last):
+            ValueError: The integer idx = -2 does not represent a valid element of D = Vector space of dimension 2 over Ring of integers modulo 2
+
         ..todo::
-        
+
             - Make public?
-            
+
             - rename?
-            
+
             - Examples
-            
-            - Can we give a different name to D?
-            
-            - Add test of range for x.
-            
+
         """
         g = self._dimension
         if twotorsion:
             n = 2
-            D = self._twotorsion
+            universe = self._twotorsion
         else:
             n = self._level
-            D = self._D
-        return D(ZZ(idx).digits(n, padto=g))
+            universe = self._D
+        if idx < 0 or idx >= n**g:
+            raise ValueError(f"The integer idx = {idx} does not represent a valid element of D = {universe}")
+        return universe(ZZ(idx).digits(n, padto=g))
 
     def _char_to_idx(self, c, twotorsion=False):
         """
         Return the integer index that corresponds to a given caracteristic in ``D``.
-        
+
         INPUT:
-        
-        - ``c`` -- a element of Zmod(k)^g, where k is either 2 or the 
+
+        - ``c`` -- a element of Zmod(k)^g, where k is either 2 or the
           level of self.
         - ``twotorsion`` -- a bolean (default: *False*). If *True*, c
           is an element of twotorsion = Zmod(2)^g, where g is the dimension
-          of self. Otherwise, c is an element of D = Zmod(n)^g, where 
+          of self. Otherwise, c is an element of D = Zmod(n)^g, where
           n is the level of self.
-        
+
         ..todo::
-        
+
             - Make public?
-            
+
             - rename?
-            
+
             - Can we give a different name to D?
-            
+
             - Add test of range for x.
-            
+
         """
         if twotorsion:
             n = 2
@@ -399,7 +424,7 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
         it computes it and stores it in the private variable _riemann.
 
         INPUT:
-        
+
         Either 3 variables
 
         -  ``chi`` -- a character, given by its dual element in Z(2) as a subset of Z(n).
@@ -409,33 +434,33 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
 
         -  ``j`` -- the index of a coordinate of P. For now we are assuming that they are an
            element of Zmod(n)^g.
-           
+
        Or a triple of 3 integers, the integer representation of ``chi``, ``i`` and ``j``.
 
-        .. todo:: 
-        
+        .. todo::
+
             - Check change with David.
-            
+
             - Rename?
-            
+
             - If we only want the addition of the two-torsion elements, why not store _riemann only with that? see _addition_formula
-            
+
             - Private or public?
-        
+
         EXAMPLE::
-        
+
             sage: from avisogenies_sage import AbelianVariety
             sage: A = AbelianVariety(GF(331), 2, 2, [328 , 213 , 75 , 1])
             sage: print(A.riemann_relation((3,2,1)))
             [(0, 0), (1, 1), (0, 1), (0, 0), (1, 1), (1, 1), (0, 0), (1, 1), (1, 1), (0, 0), (1, 1), (1, 1)]
 
-            
+
         Or equivalently::
-        
+
             sage: char = A._idx_to_char
             sage: print(A.riemann_relation(char(3), char(2), char(1)))
             [(0, 0), (1, 1), (0, 1), (0, 0), (1, 1), (1, 1), (0, 0), (1, 1), (1, 1), (0, 0), (1, 1), (1, 1)]
-            
+
         """
         idx = self._char_to_idx
         char = self._idx_to_char
@@ -458,7 +483,7 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
                 pass
         else:
             raise TypeError("Input should be a tuple of length 3 or 3 elements.")
-            
+
         D = self._D
         DD = [2*d for d in D]
         twotorsion = self._twotorsion
@@ -503,11 +528,11 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
         compute
         `\\sum_{t \\in Z(2)} \\chi(t) (P+Q)_{i + t} (P-Q)_{j + t}`
         for every given triplet.
-        
-        .. todo:: 
-        
+
+        .. todo::
+
             - Add tests.
-            
+
         """
         twotorsion = self._twotorsion
         idx = self._char_to_idx
@@ -537,6 +562,8 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
 
     def isogeny(self, l, Q, k, P=None ):
         """
+        Old isogeny algorithm
+
         INPUT:
 
         - ``self`` -- An abelian variety given as a theta null point of level n and dimension g
@@ -544,12 +571,12 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
         - ``Q`` -- An univariate polynomial of degree l^g describing a l-torsion subgroup of A
         - ``P`` -- A point of the abelian variety given as a projective theta point
         - ``k`` -- a element of Zmod(n)^g
-        
-        
-        .. todo:: 
-        
-            - Add more info to docstring. Add examples.
-            
+
+
+        .. todo::
+
+            - Add more info to docstring & references. Add examples.
+
             - Fix all use of scale & general points.
 
         """
@@ -660,202 +687,3 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
         for eq in delta:
             R = R.mod(eq)
         return evaluate_formal_points(B(R)) ##How does Evaluate work in this case?
-
-def reduce_sym(x):
-    r"""
-    Returns the lexicographic minimum among x and -x for x an element in
-    Zmod(n)\ :sup:`g`.
-    
-    EXAMPLES::
-    
-        sage: D = Zmod(10)^4
-        sage: el = D([6, 6, 6, 3])
-        sage: from avisogenies_sage.abelian_variety import reduce_sym
-        sage: reduce_sym(el)
-        (4, 4, 4, 7)
-        
-    """
-    return min(x, -x)
-
-def reduce_twotorsion(x):
-    r"""
-    Returns elements y in Zmod(2n)\ :sup:`g`, t Zmod(2)\ :sup:`g` such that 
-    x = y + t and y is the lexicographic minimum of the elements in the 
-    class of x in Zmod(2n)\ :sup:`g` / Zmod(2)\ :sup:`g` with the usual 
-    inclusion of Zmod(2) into Zmod(2n).
-    
-    EXAMPLES::
-    
-        sage: D = Zmod(10)^4
-        sage: el = D([9, 2, 0, 8])
-        sage: from avisogenies_sage.abelian_variety import reduce_twotorsion
-        sage: reduce_twotorsion(el)
-        ((4, 2, 0, 3), (1, 0, 0, 1))
-
-    """
-    r = list(x)
-    D = x.parent()
-    n = D.rank()
-    T = Zmod(2)**n
-    t = [0]*n
-    halflevels =[i.order()//2 for i in D.gens()]
-    for i in range(n):
-        if r[i] >= halflevels[i]:
-            r[i] = r[i] - halflevels[i];
-            t[i] = 1
-    return  D(r), T(t)
-
-def reduce_symtwotorsion(x):
-    r"""
-    Returns elements y in Zmod(2n)\ :sup:`g`, t Zmod(2)\ :sup:`g` such that 
-    y is the lexicographic minimum among the elements in the classes of 
-    x and -x in Zmod(2n)\ :sup:`g` / Zmod(2)\ :sup:`g` with the usual 
-    inclusion of Zmod(2) into Zmod(2n), and t is such that y + t is 
-    either x or -x.
-    
-    EXAMPLES::
-    
-        sage: D = Zmod(10)^4
-        sage: el = D([8, 1, 5, 3])
-        sage: from avisogenies_sage.abelian_variety import reduce_symtwotorsion
-        sage: reduce_symtwotorsion(el)
-        ((2, 4, 0, 2), (0, 1, 1, 1))
-    
-    """
-    x1, tx1 = reduce_twotorsion(x)
-    x2, tx2 = reduce_twotorsion(-x)
-    if x1 <= x2:
-        return x1, tx1
-    return x2, tx2
-
-def reduce_symcouple(x,y):
-    r"""
-    Returns the lexicographic minimum of the symmetrical reduction of two
-    elements x, y in Zmod(n)\ :sup:`g`.
-    
-    
-    EXAMPLES::
-    
-        sage: D = Zmod(10)^4
-        sage: el1 = D([4, 0, 5, 1]); el2 = D([9, 4, 6, 9])
-        sage: from avisogenies_sage.abelian_variety import reduce_symcouple
-        sage: reduce_symcouple(el1, el2)
-        ((1, 6, 4, 1), (4, 0, 5, 1))
-        
-    """
-    xred = reduce_sym(x)
-    yred = reduce_sym(y)
-    if xred < yred:
-        return xred, yred
-    return yred, xred
-
-def reduce_twotorsion_couple(x,y):
-    r"""
-    Given two elements x, y in Zmod(2n)\ :sup:`g`, returns elements r, s in
-    Zmod(2n)\ :sup:`g`, t in Zmod(2)\ :sup:`g`, such that r is the lexicographic
-    minimum among the elements in the classes of x and y in 
-    Zmod(2n)\ :sup:`g` / Zmod(2)\ :sup:`g` with the usual  inclusion of Zmod(2)
-    into Zmod(2n), s satisfies r + s = x + y and t is such that r + t is
-    either x or y.
-    
-    EXAMPLES::
-    
-        sage: D = Zmod(10)^4
-        sage: el1 = D([8, 1, 8, 0]); el2 = D([5, 8, 4, 5])
-        sage: from avisogenies_sage.abelian_variety import reduce_twotorsion_couple
-        sage: reduce_twotorsion_couple(el1, el2)
-        ((0, 3, 4, 0), (3, 6, 8, 5), (1, 1, 0, 1))
-        
-    """
-    xred, tx = reduce_twotorsion(x)
-    yred, ty = reduce_twotorsion(y)
-    #check that the inclusion of Zmod(2)^g in Zmod(2n)^g is taken into account already.
-    D = xred.parent()
-    T = tx.parent()
-    if not D.has_coerce_map_from(T):
-        from sage.structure.coerce_maps import CallableConvertMap
-        n = D.gens()[0].order()
-        s = n//2
-        def c(P, el):
-            return P(s*el.change_ring(ZZ))
-        c = CallableConvertMap(T, D, c)
-        D.register_coercion(c)
-    if xred < yred:
-        return xred, y+tx, tx
-    return yred, x+ty, ty
-
-def reduce_symtwotorsion_couple(x,y):
-    r"""
-    Given two elements x, y in Zmod(2n)\ :sup:`g`, returns elements r, s in
-    Zmod(2n)\ :sup:`g`, t in Zmod(2)\ :sup:`g`, such that r is the lexicographic
-    minimum among the elements in the classes of x, -x, y and -y in 
-    Zmod(2n)\ :sup:`g` / Zmod(2)\ :sup:`g` with the usual  inclusion of Zmod(2)
-    into Zmod(2n), s satisfies r + s = ± x ± y and t is such that r + t is
-    either x, -x, y or -y.
-    
-    .. todo:: Is s minimal in any sense among all the ones that satisfy 
-              that condition?
-    
-    EXAMPLES::
-    
-        sage: D = Zmod(10)^4
-        sage: el1 = D([0, 7, 9, 1]); el2 = D([3, 5, 8, 8])
-        sage: from avisogenies_sage.abelian_variety import reduce_symtwotorsion_couple
-        sage: reduce_symtwotorsion_couple(el1, el2)
-        ((0, 2, 4, 1), (3, 0, 3, 8), (0, 1, 1, 0))
-        
-    """
-    xred, tx = reduce_symtwotorsion(x)
-    yred, ty = reduce_symtwotorsion(y)
-    #check that the inclusion of Zmod(2)^g in Zmod(2n)^g is taken into account already.
-    D = xred.parent()
-    T = tx.parent()
-    if not D.has_coerce_map_from(T):
-        from sage.structure.coerce_maps import CallableConvertMap
-        n = D.gens()[0].order()
-        s = n//2
-        def c(P, el):
-            return P(s*el.change_ring(ZZ))
-        c = CallableConvertMap(T, D, c)
-        D.register_coercion(c)
-    if xred < yred:
-        return xred, reduce_sym(y+tx), tx
-    return yred, reduce_sym(x+ty), ty
-
-def get_dual_quadruplet(x, y, u, v):
-    r"""
-    .. todo:: add minimal docstring. Twotorsion elements should be returned as elements in the twotorsion.
-    """
-    r = x + y + u + v
-    z = r.parent()([ZZ(e)//2 for e in list(r)])
-    xbis = z - x
-    ybis = z - y
-    ubis = z - u
-    vbis = z - v
-    return xbis, ybis, ubis, vbis
-
-def eval_car(chi,t):
-    r"""
-    .. todo:: add minimal docstring.
-    """
-    if chi.parent() != t.parent():
-        r = list(t)
-        D = t.parent()
-        twotorsion = chi.parent()
-        halflevels =[i.order()//2 for i in D.gens()]
-        n = D.rank()
-        for i in range(n):
-            r[i] = ZZ(r[i])/halflevels[i]
-        t = twotorsion(r)
-    return ZZ(-1)**(chi*t);
-
-def evaluate_formal_points(w):
-    r"""
-    .. todo:: add minimal docstring.
-    """
-    B = w.parent()
-    q = B.modulus()
-    S = q.parent()
-    u = S.gen()
-    f = u*S(w.list())*q.derivative()
-    return f//q

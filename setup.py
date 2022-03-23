@@ -20,11 +20,11 @@ class SageTest(TestCommand):
 
 setup(
     name = "avisogenies_sage",
-    version = 0.01, #readfile("VERSION").strip(), # the VERSION file is shared with the documentation
-    description='Description here',
+    version = 0.1, #readfile("VERSION").strip(), # the VERSION file is shared with the documentation
+    description = 'Description here',
     long_description = readfile("README.md"),
     long_description_content_type="text/markdown",
-    url='not yet',
+    url='https://avisogenies.readthedocs.io/',
     author='Anna Somoza',
     author_email='anna.somoza.henares@gmail.com', # choose a main contact email
     license='GPLv2+', # This should be consistent with the LICENCE file
@@ -37,7 +37,7 @@ setup(
       'Intended Audience :: Science/Research',
       'Topic :: Scientific/Engineering :: Mathematics',
       'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
-      'Programming Language :: Python :: 3.7',
+      'Programming Language :: Python :: 3.10',
     ], # classifiers list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
     keywords = "SageMath packaging",
     packages = ['avisogenies_sage'],

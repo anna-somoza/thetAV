@@ -4,7 +4,7 @@ This module defines the base class of Theta points as elements of :class:`~aviso
 
 AUTHORS:
 
-- Anna Somoza (2020-21): initial implementation
+- Anna Somoza (2020-22): initial implementation
 
 .. todo::
 
@@ -15,7 +15,7 @@ AUTHORS:
 """
 
 # ****************************************************************************
-#       Copyright (C) 2020 Anna Somoza <anna.somoza.henares@gmail.com>
+#       Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -101,7 +101,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         else:
             raise ValueError('The given list does not define a valid thetapoint because all entries are zero')
         if check:
-            from .abelian_variety import reduce_twotorsion_couple, eval_car
+            from .tools import reduce_twotorsion_couple, eval_car
             O = X._thetanullpoint
             idx = X._char_to_idx
             dual = X._dual
@@ -356,7 +356,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
         lvl2 = (n == 2)
         i0 = PmQ._get_nonzero_coord()
         if lvl2:
-            from .abelian_variety import eval_car
+            from .tools import eval_car
             char = point0._idx_to_char
             chari0 = char(i0)
         L = []
@@ -471,7 +471,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             
             - Find tests where P and Q are not rational in the av but rational in the kummer variety, so P+Q won't be rational
         """
-        from .abelian_variety import eval_car
+        from .tools import eval_car
         point0 = self.abelian_variety()
         n = point0._level
         g = point0._dimension
@@ -847,7 +847,7 @@ class AbelianVarietyPoint(AdditiveGroupElement, SchemeMorphism_point):
             True
                         
         """
-        from .abelian_variety import eval_car, reduce_twotorsion_couple
+        from .tools import eval_car, reduce_twotorsion_couple
         point0 = P.abelian_variety()
         O = point0._thetanullpoint
         n = point0._level

@@ -1,5 +1,16 @@
+"""
+Morphism functionalities.
+
+
+AUTHORS:
+
+- Anna Somoza (2021-22): initial implementation
+
+"""
+
+
 # ****************************************************************************
-#             Copyright (C) 2020 Anna Somoza <anna.somoza.henares@gmail.com>
+#             Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #    Distributed under the terms of the GNU General Public License (GPL)
 #    as published by the Free Software Foundation; either version 2 of

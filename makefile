@@ -18,7 +18,7 @@ develop:
 	$(SAGE) -pip install --upgrade -e .
 
 test:
-	$(SAGE) setup.py test
+	$(SAGE) -t $(PACKAGE)/.
 
 coverage:
 	$(SAGE) -coverage $(PACKAGE)/*
