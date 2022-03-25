@@ -3,8 +3,7 @@
 ```{eval-rst} 
 .. automodule:: avisogenies_sage.theta_point
    :members:
-   :private-members: _add_, _mult, 
+   :private-members:
    :undoc-members:
    :show-inheritance:
-
 ```

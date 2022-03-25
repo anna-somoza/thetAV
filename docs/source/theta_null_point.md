@@ -5,6 +5,7 @@
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:
 ```
 
 ## Abelian variety constructor
@@ -14,5 +15,6 @@
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:
 ```
 

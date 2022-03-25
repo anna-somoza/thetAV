@@ -18,7 +18,7 @@ AUTHORS:
 
 
 from sage.modular.abvar.constructor import AbelianVariety as ModularAbelianVariety
-from .theta_null_point import AbelianVariety_ThetaStructure
+from .theta_null_point import AbelianVariety_ThetaStructure, KummerVariety
 
 def AbelianVariety(*data, **kwargs):
     """
@@ -38,6 +38,10 @@ def AbelianVariety(*data, **kwargs):
         sage: from avisogenies_sage import AbelianVariety
         sage: AbelianVariety(GF(331), 4, 1, [328,213,75,1])
         Abelian variety of dimension 1 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
+        
+        sage: from avisogenies_sage import AbelianVariety
+        sage: AbelianVariety(GF(331), 2, 2, [328,213,75,1])
+        Kummer variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
     
     But the function is also compatible with the functionality currently available in Sagemath::
     
@@ -69,6 +73,9 @@ def AbelianVariety(*data, **kwargs):
 
     """
     if len(data) > 1:
+        if data[1] == 2:
+            data = data[:1]+data[2:]
+            return KummerVariety(*data, **kwargs)
         return AbelianVariety_ThetaStructure(*data, **kwargs)
     
     return ModularAbelianVariety(data[0])
