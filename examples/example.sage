@@ -8,7 +8,7 @@ n = 2
 g = 2
 
 pt = [328 , 213 , 75 , 1]
-A = AbelianVariety(FF, n, g, pt)
+A = AbelianVariety(FF, n, g, pt, check=True)
 
 P_list = [255 , 89 , 30 , 1]
 P = A(P_list, check=True)
