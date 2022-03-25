@@ -27,7 +27,7 @@ doc:
 	cd docs && $(SAGE) -sh -c "make html"
 
 doc-pdf:
-	cd docs && $(SAGE) -sh -c "make latexpdf"
+	cd docs && $(SAGE) -sh -c "make latexpdf" && $(SAGE) -sh -c "make latexpdf"
 
 clean: clean-doc
 

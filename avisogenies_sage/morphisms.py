@@ -62,7 +62,7 @@ REFERENCES:
     
 """
 
-from .abelian_variety import AbelianVariety_ThetaStructure
+from .theta_null_point import AbelianVariety_ThetaStructure, KummerVariety
 from collections import Counter, namedtuple
 from itertools import product, combinations, chain
 from .tools import TowerOfField, rangeS
@@ -748,7 +748,6 @@ def sign_s_A(g, A, C):
 
 ##***** (1) Structures and change of theta structures*****//
 
-
 class ThetaPoint_Analytic:
     """
     Components:
@@ -809,7 +808,7 @@ class ThetaPoint_Analytic:
 
         OUTPUT:
 
-        The corresponding theta point in algebraic coordinates (see :class:`AbelianVarietyPoint`)
+        The corresponding theta point in algebraic coordinates (see :class:`AbelianVarietyPoint`, :class:`KummerVarietyPoint`)
         """
         thc = self.abelian_variety()
         n = thc._level
@@ -913,7 +912,7 @@ class ThetaNullPoint_Analytic:
 
         OUTPUT:
 
-        The corresponding theta null point in algebraic coordinates (see :class:`AbelianVariety_ThetaStructure`)
+        The corresponding theta null point in algebraic coordinates (see :class:`AbelianVariety_ThetaStructure`, :class:`KummerVariety`)
         
         .. todo:: Address FIXME.
         """
@@ -933,7 +932,7 @@ class ThetaNullPoint_Analytic:
             for b in range(ng): #char(b) in Zmod(2)^g
                 point[b] = sum(self._coord[a + 2**g*b] for a in range(ng))
             assert point[0] != 0 #See Equation (3.12) in [Coss]
-            return AbelianVariety_ThetaStructure(R, n, g, point)
+            return KummerVariety(R, g, point)
 
         #if n == 4:            
         D = Zmod(n)**g
@@ -961,7 +960,7 @@ class ThetaNullPoint_Analytic:
 
 def AlgebraicToAnalyticThetaNullPoint(thc):
     """
-    Let thc be a theta null point given by algebraic coordinates (i.e. :class:`AbelianVariety_ThetaStructure`). Compute the
+    Let thc be a theta null point given by algebraic coordinates (i.e. :class:`AbelianVariety_ThetaStructure`, :class:`KummerVariety`). Compute the
     corresponding theta null point (i.e. :class:`ThetaNullPoint_Analytic`) in analytic coordinates.
     
     .. todo:: Add as method in AbelianVariety_ThetaStructure.
@@ -992,12 +991,12 @@ def AlgebraicToAnalyticThetaNullPoint(thc):
 
 def AlgebraicToAnalyticThetaPoint(th, thc=None):
     """
-    Let th be a theta point given by algebraic coordinates (i.e. :class:`AbelianVarietyPoint`). Compute the
+    Let th be a theta point given by algebraic coordinates (i.e. :class:`AbelianVarietyPoint`, :class:`KummerVarietyPoint`). Compute the
     corresponding theta null point in analytic coordinates (i.e. :class:`ThetaNull_Analytic`).
     
     .. todo:: Add as method in AbelianVarietyPoint.
     """
-    tnp = th.abelian_variety()
+    tnp = th.scheme()
     O = tnp.theta_null_point()
     n = tnp._level
     g = tnp._dimension
@@ -1039,7 +1038,7 @@ def IgusaTheorem(A, TH):
     EXAMPLES ::
 
         sage: from avisogenies_sage import *
-        sage: g = 2; A = AbelianVariety_ThetaStructure(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
         sage: thp = AlgebraicToAnalyticThetaPoint(P)
         sage: thc = thp._codomain; thO = thc(0)
@@ -1085,7 +1084,7 @@ def constant_f2_level2(a, thc, A, C):
     EXAMPLES ::
 
         sage: from avisogenies_sage import *
-        sage: g = 2; A = AbelianVariety_ThetaStructure(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
         sage: a = [0,1,4,6,7]
         sage: A = {3,4}; constant_f2_level2(a, thc, A, choice_of_C_Cosset(g, A))
@@ -1122,7 +1121,7 @@ def eltEp_to_eltE(a, thc, f, rac=None):
     EXAMPLES ::
 
         sage: from avisogenies_sage import *
-        sage: g = 2; A = AbelianVariety_ThetaStructure(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
         sage: a = [0,1,4,6,7]
         sage: f = bp_sqrt(g, 4, 2)
@@ -1171,7 +1170,7 @@ def AddTwoTorsion(th, eta):
     EXAMPLES ::
 
         sage: from avisogenies_sage import *
-        sage: g = 2; A = AbelianVariety_ThetaStructure(GF(331), 2, 2, [328 , 213 , 75 , 1])
+        sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
         sage: thp = AlgebraicToAnalyticThetaPoint(P)
         sage: AddTwoTorsion(thp, eta(g, 2))._coord #FIXME change when _repr_ is done.
@@ -1559,7 +1558,7 @@ def MumfordToTheta_2_Generic(a, thc2, points):
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62)), (F(8), F(10))]
-        sage: A = AbelianVariety_ThetaStructure(F, n, g, [328 , 213 , 75 , 1], check=True)
+        sage: A = KummerVariety(F, g, [328 , 213 , 75 , 1], check=True)
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
         sage: MumfordToTheta_2_Generic(a, thc, points)._coord #FIXME change when _repr_ is done
         [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
@@ -1745,7 +1744,7 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62)), (F(8), F(10))]
-        sage: A = AbelianVariety_ThetaStructure(F, n, g, [328 , 213 , 75 , 1], check=True)
+        sage: A = KummerVariety(F, g, [328 , 213 , 75 , 1], check=True)
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
         sage: MumfordToLevel2ThetaPoint(a, thc, points)._coord #FIXME change when _repr_ is done
         [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
@@ -1755,7 +1754,7 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62))]
-        sage: A = AbelianVariety_ThetaStructure(F, n, g, [328 , 213 , 75 , 1], check=True)
+        sage: A = KummerVariety(F, g, [328 , 213 , 75 , 1], check=True)
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
         sage: MumfordToLevel2ThetaPoint(a, thc, points)._coord #FIXME change when _repr_ is done, Magma output
         [288, 101, 184, 91, 289, 74, 111, 10, 106, 54, 12, 0, 292, 48, 113, 243]
@@ -2143,7 +2142,7 @@ def ThetaToMumford_2_Generic(a, th2):
     EXAMPLES ::
 
         sage: from avisogenies_sage import *
-        sage: F = GF(331); A = AbelianVariety_ThetaStructure(F, 2, 2, [328 , 213 , 75 , 1])
+        sage: F = GF(331); A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
         sage: thp = AlgebraicToAnalyticThetaPoint(P)
         sage: a = list(map(F, [0, 1, 2, 3, 4]))

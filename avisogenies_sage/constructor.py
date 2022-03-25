@@ -18,7 +18,7 @@ AUTHORS:
 
 
 from sage.modular.abvar.constructor import AbelianVariety as ModularAbelianVariety
-from .abelian_variety import AbelianVariety_ThetaStructure
+from .theta_null_point import AbelianVariety_ThetaStructure
 
 def AbelianVariety(*data, **kwargs):
     """
@@ -36,8 +36,8 @@ def AbelianVariety(*data, **kwargs):
     Giving the data of the theta structure associated to an Abelian Variety we can create an instance of :class:`~avisogenies_sage.abelian_variety.AbelianVariety_ThetaStructure`::
     
         sage: from avisogenies_sage import AbelianVariety
-        sage: AbelianVariety(GF(331), 2, 2, [328,213,75,1])
-        Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
+        sage: AbelianVariety(GF(331), 4, 1, [328,213,75,1])
+        Abelian variety of dimension 1 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
     
     But the function is also compatible with the functionality currently available in Sagemath::
     
@@ -62,9 +62,10 @@ def AbelianVariety(*data, **kwargs):
     
     The constructor should also pass the named parameters::
     
-        sage: from avisogenies_sage import AbelianVariety
-        sage: AbelianVariety(GF(331), 2, 2, [328,213,75,1], check=True)
-        Abelian variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
+        sage: from avisogenies_sage import *
+        sage: F.<z> = GF(83^2)
+        sage: T = [68, z + 33, 46, z + 33, 2*z + 29, 77*z + 58, 81*z + 31, 38*z + 16, 8, 67*z + 53, 48, 67*z + 53, 2*z + 29, 38*z + 16, 81*z + 31, 77*z + 58]
+        sage: A = AbelianVariety(F, 4, 2, T, check=True)
 
     """
     if len(data) > 1:

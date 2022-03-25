@@ -7,9 +7,8 @@
 :maxdepth: 2
 :caption: Documentation
 
-constructor
-abelian_variety
-av_point
+theta_null_point
+theta_point
 morphisms
 ```
 
