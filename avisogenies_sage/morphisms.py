@@ -935,9 +935,17 @@ class ThetaNullPoint_Analytic:
             assert point[0] != 0 #See Equation (3.12) in [Coss]
             return AbelianVariety_ThetaStructure(R, n, g, point)
 
-        #if n == 4:
+        #if n == 4:            
         D = Zmod(n)**g
         twotorsion = Zmod(2)**g
+        if not D.has_coerce_map_from(twotorsion):
+            from sage.structure.coerce_maps import CallableConvertMap
+            s = n//2
+            def c(P, el):
+                return P(s*el.change_ring(ZZ))
+            c = CallableConvertMap(twotorsion, D, c)
+            D.register_coercion(c)
+
         V = ZZ**g
         idx = self._char_to_idx
 

@@ -39,6 +39,9 @@ from sage.rings.all import IntegerRing, Zmod, PolynomialRing, FractionField
 ZZ = IntegerRing()
 from sage.structure.element import is_Vector
 from sage.arith.misc import two_squares, four_squares
+from sage.matrix.constructor import matrix, column_matrix
+from sage.matrix.special import identity_matrix, zero_matrix
+from sage.misc.misc_c import prod
 
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
@@ -46,7 +49,7 @@ from sage.schemes.generic.morphism import SchemeMorphism_point
 from sage.schemes.generic.homset import SchemeHomset_points
 from sage.structure.richcmp import richcmp_method, richcmp
 from .av_point import AbelianVarietyPoint
-from .tools import reduce_twotorsion_couple, reduce_symtwotorsion_couple, eval_car, get_dual_quadruplet
+from .tools import reduce_twotorsion_couple, reduce_symtwotorsion_couple, eval_car, get_dual_quadruplet, evaluate_formal_points
 
 @richcmp_method
 class AbelianVariety_ThetaStructure(AlgebraicScheme):
@@ -94,6 +97,8 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
             raise TypeError(f"Argument (g={g}) must be an integer.")
         if len(T) != n**g:
             raise ValueError(f"T={T} must have length n^g={n**g}.")
+            
+        T = tuple(R(a) for a in T)
 
         D = Zmod(n)**g
         twotorsion = Zmod(2)**g
@@ -143,7 +148,7 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
 
         AlgebraicScheme.__init__(self, PP)
 
-        self._thetanullpoint = self(tuple(R(a) for a in T))
+        self._thetanullpoint = self(T)
         self._D = D
         self._twotorsion = twotorsion
         self._riemann = {}
@@ -577,8 +582,6 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
 
             - Add more info to docstring & references. Add examples.
 
-            - Fix all use of scale & general points.
-
         """
         if self.level() == 2:
             if P != None:
@@ -594,11 +597,16 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
             S = Q.parent()
             B = S.quotient(Q)
             y, = B.gens()
+            AB = self.change_ring(B)
+            Q = AB.point([1,y])
+            deltaQ = Q.compatible_lift(l)
+            
             T = PolynomialRing(B, names='mu')
-            mu, = T.gens()
-            Q = self.point([1,y], B)
-            compQ = Q.scale(mu, T)
-
+            T.inject_variables()
+            T2 = T.quotient(mu**l - deltaQ)
+            AT = self.change_ring(T2)
+            compQ = AT(Q).scale(mu)
+            
             #TODO generalize to include the other two cases.
             sqfree = l.squarefree_part()
             l1 = ZZ((l/sqfree).sqrt())
@@ -606,8 +614,8 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
 
             t1 = (l1*a)*compQ #Revise if these are the right equations to use
             t2 = (l1*b)*compQ
-            idx = self._char_to_idx
-            W = B((t1[idx(k)]*t2[0]).mod(mu**l - Q.compatible_lift(l))) # lth power of lambda
+            idx = AT._char_to_idx
+            W = B((t1[idx(k)]*t2[0]).lift()) # lth power of lambda
             P0 = self.theta_null_point()
             return P0[idx(k)]*P0[0] + 2*evaluate_formal_points(W)(0)
 
@@ -687,3 +695,112 @@ class AbelianVariety_ThetaStructure(AlgebraicScheme):
         for eq in delta:
             R = R.mod(eq)
         return evaluate_formal_points(B(R)) ##How does Evaluate work in this case?
+
+
+    def isogeny_pt(self, l, L, P=None ):
+        """
+        Old isogeny algorithm
+
+        INPUT:
+
+        - ``self`` -- An abelian variety given as a theta null point of level n and dimension g
+        - ``l`` -- an integer
+        - ``L`` -- A list with a basis of the kernel of l-torsion of A
+        - ``P`` -- A point of the abelian variety given as a projective theta point
+        
+        .. todo::
+
+            - Add more info to docstring & references. Add examples.
+
+        """
+        g = self.dimension()
+        n = self.level()
+        FF = self.base_ring()
+        D = self._D
+        idx = self._char_to_idx
+        if n == 2:
+            if P != None:
+                raise ValueError('Cannot compute the image of a point via the isogeny')
+            #here do stuff taking into account the shape of q? depending on de degree of Q we gotta do different thinks, because it can be of the shape (x - a)*f^2
+            deltas = [P.compatible_lift(l) for P in L]
+            
+            P0 = self.theta_null_point()
+            P0B = [0]*self._ng
+            S = PolynomialRing(FF, 'mu', len(L))
+            mu = S.gens()
+            T = S.quotient([mu[i]**l - deltas[i] for i in range(len(L))])
+            AT = self.change_ring(T)
+            comps = [AT(L[i]).scale(mu[i]) for i in range(len(L))]
+
+            V = Zmod(l)**g
+            idxl = lambda i : ZZ(list(i), l)
+            vs = V.basis()
+            K = [None]*V.cardinality()
+            #Kplain = [None]*V.cardinality()
+            K[0] = AT.theta_null_point()
+            #Kplain[0] = self.theta_null_point()
+            for i, v in enumerate(vs):
+                K[idxl(v)] = comps[i]
+                #Kplain[idxl(v)] = L[i]
+                if i != 0:
+                    K[idxl(v + vs[0])] = comps[i + g - 1]
+                    #Kplain[idxl(v + vs[0])] = L[i + g - 1]
+            if g == 1:
+                compQ = comps[0]
+                for el in range(l):
+                    K[el] = ZZ(el)*compQ
+
+            elif g == 2:
+                compP, compQ, compPQ = comps
+                P, Q, PQ = L
+                for v in V:
+                    if K[idxl(v)] != None:
+                        continue
+                    i, j = v
+                    compjQ = K[idxl([0,j])]
+                    compPjQ = K[idxl([1,j])]
+                    #jQ = Kplain[idxl([0,j])]
+                    #PjQ = Kplain[idxl([1,j])]                                        
+                    if compjQ == None or compPjQ == None:
+                        K[idxl([1, j])], K[idxl([0, j])] = compQ.diff_multadd(ZZ(j), compPQ, compP)
+                        compjQ = K[idxl([0,j])]
+                        compPjQ = K[idxl([1,j])]
+                        #Kplain[idxl([1, j])], Kplain[idxl([0, j])] = Q.diff_multadd(ZZ(j), PQ, P)
+                        #jQ = Kplain[idxl([0,j])]
+                        #PjQ = Kplain[idxl([1,j])]
+                    if i != 1:
+                        K[idxl([i, j])], K[idxl([i, 0])] = compP.diff_multadd(ZZ(i), compPjQ, compjQ)
+                        #Kplain[idxl([i, j])], Kplain[idxl([i, 0])] = P.diff_multadd(ZZ(i), PjQ, jQ)
+            else:
+                raise NotImplementedError
+            
+            sqfree = l.squarefree_part()
+            l1 = ZZ((l/sqfree).sqrt())
+            if sqfree == 1:
+                r = 1
+                M = matrix(ZZ, 1, 1, [l1])
+            try:
+                r=2
+                a, b = two_squares(sqfree)
+                M = l1*matrix(ZZ, 2, 2, [a, b, -b, a])
+            except ValueError:
+                r = 4
+                a, b, c, d = four_squares(sqfree)
+                M = matrix(ZZ, 4, 4, [a, -b, -c, -d, b, a, -d, c, c, d, a, -b, d, -c, b, a])
+
+            assert M.transpose()*M == l*identity_matrix(ZZ, r), f"Wrong matrix, Mt*M = {M.transpose()*M}"
+            Zn = D.base_ring()
+            ker = M.change_ring(Zmod(l)).kernel()
+            for idxk, k in enumerate(D):
+                J = (column_matrix(Zn, [k]+[D(0)]*(r-1))*M.change_ring(Zn).inverse()).columns()  
+                for t in product(ker, repeat=g):
+                    ti = matrix(ZZ, t).columns()
+                    val = 1
+                    for i in range(r):
+                        val *= K[idxl(ti[i])][idx(J[i])]
+                    P0B[idxk] += val
+                P0B[idxk] = P0B[idxk].lift()
+            B = AbelianVariety_ThetaStructure(FF, n, g, P0B, check=True)
+            return B
+
+        raise NotImplementedError('TBD')
