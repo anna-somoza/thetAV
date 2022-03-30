@@ -66,11 +66,17 @@ from .theta_null_point import AbelianVariety_ThetaStructure, KummerVariety
 from collections import Counter, namedtuple
 from itertools import product, combinations, chain
 from .tools import TowerOfField, rangeS
+from sage.structure.element import is_Vector
+from six import integer_types
+from sage.rings.integer import Integer
 
 from sage.misc.all import prod, flatten, is_odd
 from sage.structure.element import parent
 from sage.functions.other import ceil, floor, sqrt
 from sage.modules.free_module_element import zero_vector
+from sage.schemes.hyperelliptic_curves.hyperelliptic_g2 import HyperellipticCurve_g2
+from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
+from sage.schemes.generic.morphism import SchemeMorphism_point
 
 from sage.rings.all import PolynomialRing, ZZ, Zmod, Integer
 integer_types = (int, Integer)
@@ -768,8 +774,8 @@ class ThetaPoint_Analytic:
             raise NotImplementedError
 
         if v == 0 or v == (0,):
-            v = thc._coord
-        self._coord = v
+            v = thc._coords
+        self._coords = v
         self._codomain = thc
 
     def abelian_variety(self):
@@ -782,19 +788,19 @@ class ThetaPoint_Analytic:
         """
         Return the n-th coordinate of this point.
         """
-        return self._coord[n]
+        return self._coords[n]
 
     def __iter__(self):
         """
         Return the coordinates of this point as a list.
         """
-        return iter(self._coord)
+        return iter(self._coords)
 
     def __repr__(self):
         """
         Return a string representation of this point.
         """
-        return f'({" : ".join(repr(f) for f in self._coord)})'
+        return f'({" : ".join(repr(f) for f in self._coords)})'
 
     def to_algebraic(self, A = None): # Corresponds to `AnalyticToAlgebraicThetaPoint` in magma
         """
@@ -849,15 +855,95 @@ class ThetaNullPoint_Analytic:
     See Section 3.1.2 in [Coss]_ for the definition of the notation.
     """
 
-    def __init__(self, l, v, g): #Equivalent to "AnalyticThetaNullPoint" intrinsic method in magma
+    def __init__(self, R, l, g, v, data = None): #Equivalent to "AnalyticThetaNullPoint" intrinsic method in magma
         if l != 2 and l != 4:
             raise NotImplementedError
+        if is_Vector(v):
+            v = list(v)
+        if not isinstance(v, (list, tuple, SchemeMorphism_point)):
+            raise TypeError(f"Argument (v={v}) must be a list, a tuple, a vector or a point.")
+        if not isinstance(l, integer_types + (Integer,)):
+            raise TypeError(f"Argument (l={l}) must be an integer.")
+        if not isinstance(g, integer_types + (Integer,)):
+            raise TypeError(f"Argument (g={g}) must be an integer.")
         self._level = l
         if len(v) != 2**(2*g):
-            raise ValueError('v(={v}) does not define a valid analytic thetanullpoint')
-        self._coord = v
+            raise ValueError(f'v(={v}) does not define a valid analytic thetanullpoint')
+        self._R = R
+        self._coords = tuple(R(el) for el in v)
         self._dimension = g
         self._numbering = Zmod(2)**(2*g)
+        if data!=None:
+            self._data = data
+        
+    @classmethod
+    def from_curve(cls, C):
+        """
+        Given a hyperelliptic curve of genus 2, returns the analytic
+        theta null point of level 4.
+        
+        EXAMPLES ::
+        
+            sage: from avisogenies_sage import ThetaNullPoint_Analytic
+            sage: F = GF(83^2); Fx.<X> = PolynomialRing(F)
+            sage: a = [0, 1, 3, 15, 20]
+            sage: C = HyperellipticCurve(prod(X - al for al in a)); C
+            Hyperelliptic Curve over Finite Field in z2 of size 83^2 defined by y^2 = x^5 + 44*x^4 + 28*x^3 + 23*x^2 + 70*x
+            sage: th = ThetaNullPoint_Analytic.from_curve(C); th
+            (1 : 37 : 56 : 57 : 34*z + 43 : 0 : 50*z + 73 : 0 : 30 : 2*z + 82 : 0 : 0 : 16*z + 37 : 0 : 0 : 61*z + 21)
+            
+        """
+        if isinstance(C, HyperellipticCurve_g2):
+            f, h = C.hyperelliptic_polynomials()
+            if h != 0:
+                f = f + h**2/4
+            if f.degree() % 2 == 0:
+                C2 = HyperellipticCurve(f)
+                f, _ = C2.odd_degree_model().hyperelliptic_polynomials()
+            F = f.splitting_field('z')
+            z, = F.gens()
+            a = f.roots(F, multiplicities=False)
+            a.sort()
+            if a[:2] == [0,1]:
+                l, m, n = a[2:]
+            else:
+                l, m, n = [(el - a[0])/(a[0] - a[1]) for el in a[2:]]
+            D = Zmod(2)**4
+            ng = 2**4
+            idx = lambda i : ZZ(list(i), 2)
+            th4 = [m/(l*n),m*(l-m)*(n-1)/(n*(m-1)*(l-n)),m*(l-1)*(n-1)/(l*n*(m-1)),m*(l-1)*(n-m)/(l*(n-l)*(m-1))]
+            th2 = [F(1)] + [F(0)]*(ng-1)
+            if not all([el.is_square() for el in th4]):
+                F, to_F = F.extension(2, map=True)
+                z = F.gens()
+                th4 = [to_F(el) for el in th4]
+            for i, ei in enumerate(D.gens()):
+                th2[idx(ei)] = sqrt(th4[i])
+            th2[idx(D([1,0,0,1]))] = 1/n*th2[idx(D([0,0,0,1]))]/th2[idx(D([1,0,0,0]))]
+            th2[idx(D([1,1,0,0]))] = 1/l*th2[idx(D([0,1,0,0]))]/th2[idx(D([1,0,0,0]))]
+            th2[idx(D([0,0,1,1]))] = (n-1)*th2[idx(D([1,0,0,0]))]*th2[idx(D([1,0,0,1]))]/th2[idx(D([0,0,1,0]))]
+            th2[idx(D([0,1,1,0]))] = (l-1)*th2[idx(D([1,0,0,0]))]*th2[idx(D([1,1,0,0]))]/th2[idx(D([0,0,1,0]))]
+            th2[idx(D([1,1,1,1]))] = (n-m)/(n-1)*th2[idx(D([0,0,1,0]))]*th2[idx(D([1,1,0,0]))]/th2[idx(D([0,0,0,1]))]
+            if not all([el.is_square() for el in th2]):
+                F, to_F = F.extension(2, map=True)
+                z, = F.gens()
+                th2 = [to_F(el) for el in th2]
+            th = [sqrt(el) for el in th2]
+            return cls(F, 4, 2, th, data=[C, 1, [0,1,l,m,n]])
+        raise NotImplementedError('Thomae formulas are only implemented for curves of genus 2')
+        
+    def __eq__(self, X):
+        """
+        Compare the analytic theta null point self to X.  If X is an
+        analytic theta null point, then self and X are equal if and only
+        if their fields of definition are equal and their theta null 
+        points are equal as projective points.
+        """
+        if not isinstance(X, type(self)):
+            return NotImplemented
+        if self._R != X._R:
+            return False
+        return self._coords == X._coords
 
     def _idx_to_char(self, x):
         """
@@ -900,7 +986,7 @@ class ThetaNullPoint_Analytic:
         """
         Return a string representation of this point.
         """
-        return f'({" : ".join(repr(f) for f in self._coord)})'
+        return f'({" : ".join(repr(f) for f in self._coords)})'
 
     def to_algebraic(self): #Equivalent to `AnalyticToAlgebraicThetaNullPoint` in magma
         """
@@ -926,11 +1012,11 @@ class ThetaNullPoint_Analytic:
         g = self._dimension
         ng = n**g
         point = [0]*ng
-        R = parent(self._coord[0]) #FIXME
+        R = parent(self._coords[0]) #FIXME
 
         if n == 2:
             for b in range(ng): #char(b) in Zmod(2)^g
-                point[b] = sum(self._coord[a + 2**g*b] for a in range(ng))
+                point[b] = sum(self._coords[a + 2**g*b] for a in range(ng))
             assert point[0] != 0 #See Equation (3.12) in [Coss]
             return KummerVariety(R, g, point)
 
@@ -953,7 +1039,7 @@ class ThetaNullPoint_Analytic:
                 ttb = twotorsion(b)
                 ib = D((V(b) - V(ttb))/2) #Probably very inefficient, look for an alternative
                 sign = (-1)**ZZ(a*ib)
-                point[idxb] += self._coord[idx(a, ttb)]*sign
+                point[idxb] += self._coords[idx(a, ttb)]*sign
 
         self._algebraic = AbelianVariety_ThetaStructure(R, n, g, point)
         return self._algebraic
@@ -972,12 +1058,13 @@ def AlgebraicToAnalyticThetaNullPoint(thc):
     D = thc._D
     idx = thc._char_to_idx
     point = [0]*(4**g)
-
+    R = thc.base_ring()
+    
     if n == 2:
         for (idxa, a), (idxb, b) in product(enumerate(D), repeat=2):
             point[idxa + 2**g*idxb] = sum((-1)**ZZ(a*beta)*O[idx(b + beta)]*O[idxbeta] for idxbeta, beta in enumerate(D))/2**g
 
-        return ThetaNullPoint_Analytic(n, point, g)
+        return ThetaNullPoint_Analytic(R, n, g, point)
 
     if n == 4:
         twotorsion = thc._twotorsion #Zmod(2)^g
@@ -985,7 +1072,7 @@ def AlgebraicToAnalyticThetaNullPoint(thc):
             Db = D(list(b))
             point[idxa + 2**g*idxb] = sum((-1)**(a*beta)*O[idx(Db + beta)] for beta in twotorsion)/2**g
 
-        return ThetaNullPoint_Analytic(n, point, g)
+        return ThetaNullPoint_Analytic(R, n, g, point)
 
     raise NotImplementedError
 
@@ -1173,7 +1260,7 @@ def AddTwoTorsion(th, eta):
         sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
         sage: thp = AlgebraicToAnalyticThetaPoint(P)
-        sage: AddTwoTorsion(thp, eta(g, 2))._coord #FIXME change when _repr_ is done.
+        sage: AddTwoTorsion(thp, eta(g, 2))._coords #FIXME change when _repr_ is done.
         [163, 328, 50, 185, 96, 217, 63, 183, 53, 307, 229, 76, 56, 118, 48, 199]
         
     .. todo:: Address FIXME.
@@ -1189,7 +1276,7 @@ def AddTwoTorsion(th, eta):
         return thc(t)
 
     if level == 4:
-        t = th._coord
+        t = th._coords
         for idxe, e in enumerate(Ab):
             t[idxe] *= (-1)**ZZ(e[:g]*eta[g:] + eta[:g]*e[g:])
         return thc(t)
@@ -1560,7 +1647,7 @@ def MumfordToTheta_2_Generic(a, thc2, points):
         sage: points = [(F(7), F(62)), (F(8), F(10))]
         sage: A = KummerVariety(F, g, [328 , 213 , 75 , 1], check=True)
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
-        sage: MumfordToTheta_2_Generic(a, thc, points)._coord #FIXME change when _repr_ is done
+        sage: MumfordToTheta_2_Generic(a, thc, points)._coords #FIXME change when _repr_ is done
         [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
 
     .. todo:: 
@@ -1746,7 +1833,7 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
         sage: points = [(F(7), F(62)), (F(8), F(10))]
         sage: A = KummerVariety(F, g, [328 , 213 , 75 , 1], check=True)
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
-        sage: MumfordToLevel2ThetaPoint(a, thc, points)._coord #FIXME change when _repr_ is done
+        sage: MumfordToLevel2ThetaPoint(a, thc, points)._coords #FIXME change when _repr_ is done
         [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
 
 
@@ -1756,7 +1843,7 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
         sage: points = [(F(7), F(62))]
         sage: A = KummerVariety(F, g, [328 , 213 , 75 , 1], check=True)
         sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
-        sage: MumfordToLevel2ThetaPoint(a, thc, points)._coord #FIXME change when _repr_ is done, Magma output
+        sage: MumfordToLevel2ThetaPoint(a, thc, points)._coords #FIXME change when _repr_ is done, Magma output
         [288, 101, 184, 91, 289, 74, 111, 10, 106, 54, 12, 0, 292, 48, 113, 243]
 
 
@@ -1765,6 +1852,8 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
         - Add tests that cover the missing cases.
         
         - Address FIXME.
+        
+        - We might want to change the input to take an actual mumford representation, we can compute the point list later!
     
     """
     if thc2._level != 2:
@@ -1864,7 +1953,7 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
         sage: F = GF(83^2); z, = F.gens(); Fx.<X> = PolynomialRing(F)
         sage: g = 2; a = [F(0), 1, 3, 15, 20]; rac = sqrt(a[1] - a[0])
         sage: thc = [1,  37,  56, 57, 34*z + 43, 0, 50*z + 73, 0, 30, 2*z + 82, 0, 0, 16*z + 37, 0, 0, 61*z + 21]
-        sage: thc = ThetaNullPoint_Analytic(4, [F(elem) for elem in thc], g)
+        sage: thc = ThetaNullPoint_Analytic(F, 4, g, thc)
         sage: u = (X-43)*(X-10); v = z^954*X + z^2518
         sage: points = sum(([(x, v(x))]*mult for x, mult in u.roots(u.splitting_field('t'))), [])
         sage: th = MumfordToLevel4ThetaPoint(a, rac, thc, points); th
