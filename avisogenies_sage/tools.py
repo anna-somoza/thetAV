@@ -16,7 +16,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from collections import UserList
 from sage.rings.all import ZZ, Integer, Zmod
 from sage.arith.functions import lcm
 integer_types = (int, Integer)
@@ -24,6 +23,8 @@ integer_types = (int, Integer)
 def TowerOfField(L):
     F = L[0]
     for elem in L[1:]:
+        if elem in integer_types:
+            elem = ZZ
         deg1 = F.degree()
         deg2 = elem.degree()
         deg = lcm(deg1, deg2) // deg1
@@ -99,9 +100,7 @@ def reduce_symtwotorsion(x):
     """
     x1, tx1 = reduce_twotorsion(x)
     x2, tx2 = reduce_twotorsion(-x)
-    if x1 <= x2:
-        return x1, tx1
-    return x2, tx2
+    return (x1, tx1) if x1 <= x2 else (x2, tx2)
 
 def reduce_symcouple(x,y):
     r"""
@@ -120,9 +119,7 @@ def reduce_symcouple(x,y):
     """
     xred = reduce_sym(x)
     yred = reduce_sym(y)
-    if xred < yred:
-        return xred, yred
-    return yred, xred
+    return (xred, yred) if xred < yred else (yred, xred)
 
 def reduce_twotorsion_couple(x,y):
     r"""
@@ -155,9 +152,7 @@ def reduce_twotorsion_couple(x,y):
             return P(s*el.change_ring(ZZ))
         c = CallableConvertMap(T, D, c)
         D.register_coercion(c)
-    if xred < yred:
-        return xred, y+tx, tx
-    return yred, x+ty, ty
+    return (xred, y+tx, tx) if xred < yred else (yred, x+ty, ty)
 
 def reduce_symtwotorsion_couple(x,y):
     r"""
@@ -193,9 +188,7 @@ def reduce_symtwotorsion_couple(x,y):
             return P(s*el.change_ring(ZZ))
         c = CallableConvertMap(T, D, c)
         D.register_coercion(c)
-    if xred < yred:
-        return xred, reduce_sym(y+tx), tx
-    return yred, reduce_sym(x+ty), ty
+    return (xred, reduce_sym(y+tx), tx) if xred < yred else (yred, reduce_sym(x+ty), ty)
 
 def get_dual_quadruplet(x, y, u, v):
     r"""

@@ -26,21 +26,14 @@ The first half is from [VanW]_ and the last sections are algorithms from [Coss]_
 Based on the Magma implementation by Romain Cosset.
 
 LAYOUT:
-
-    1 - Half-integer characteristics and computations of sign with half-integer characteristics
-    
+   
     3 - Manipulations of elements of Ep
     
     4 - twisted theta
-
-
-    1 - Analytic structures and change of theta structures
     
     3 - Auxiliary functions
     
     4 - Expression of Ep
-    
-    5 - Add two torsion
     
     6 - Mumford to Theta
     
@@ -62,279 +55,20 @@ REFERENCES:
     
 """
 
-from .theta_null_point import AbelianVariety_ThetaStructure, KummerVariety
+
 from collections import Counter, namedtuple
 from itertools import product, combinations, chain
-from .tools import TowerOfField, rangeS
-from sage.structure.element import is_Vector
-from six import integer_types
-from sage.rings.integer import Integer
 
 from sage.misc.all import prod, flatten, is_odd
 from sage.structure.element import parent
 from sage.functions.other import ceil, floor, sqrt
-from sage.modules.free_module_element import zero_vector
-from sage.schemes.hyperelliptic_curves.hyperelliptic_g2 import HyperellipticCurve_g2
-from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
-from sage.schemes.generic.morphism import SchemeMorphism_point
 
-from sage.rings.all import PolynomialRing, ZZ, Zmod, Integer
+from sage.rings.all import PolynomialRing, ZZ, Integer
 integer_types = (int, Integer)
-
 from sage.arith.misc import XGCD
 
-##***** (1) Half-integer characteristics and computations of sign with half-integer characteristics *****//
-
-def eta_prime(g, L, normalized=False):
-    """
-    Following a definition analogous to that in [VanW, page 3089]_, returns eta_prime as
-    a vector in ZZ^g.
-
-    INPUT:
-
-    - ``g`` -- an Integer; the length of eta_prime.
-    - ``L`` -- an Integer or a list of integers; if it is a list, it returns the sum of eta_prime
-      for all elements in the list.
-    - ``normalized`` (default: False) - a boolean; it returns the vector reduced mod 2ZZ^g,
-      that is, with entries 0 or 1.
-
-    .. NOTE::
-
-        The indexes are shifted to start at 0 with respect to the reference
-
-    EXAMPLES ::
-
-        sage: from avisogenies_sage import eta_prime
-        sage: eta_prime(4, 6)
-        (0, 0, 0, 1)
-        sage: x = eta_prime(4,6) + eta_prime(4, 7)
-        sage: y = eta_prime(4, [6, 7]); y
-        (0, 0, 0, 2)
-        sage: x == y
-        True
-        sage: eta_prime(4, [6, 7], normalized=True)
-        (0, 0, 0, 0)
-
-    """
-    try:
-        i = L
-        if i < 0 or i > 2*g + 1:
-            raise ValueError(f'Expected i={i} to be between 0 and {2*g + 1}')
-    except TypeError:
-        if len(L) == 0:
-            return zero_vector(ZZ,g)
-        v = sum(eta_prime(g, i) for i in L)
-        if normalized:
-            return normalize_eta(v)
-        return v
-    else:
-        v = zero_vector(ZZ,g)
-        if i >= 2*g:
-            return v
-        ih = floor(i / 2)
-        v[ih] = 1
-        return v
-
-
-def eta_second(g, L, normalized=False):
-    """
-    Following a definition analogous to that in [VanW, page 3089]_, returns eta_second as
-    a vector in ZZ^g.
-
-    INPUT:
-
-    - ``g`` - an Integer. The length of eta_second.
-    - ``L`` - an Integer or a list of integers. If it is a list, it returns the sum of eta_second
-      for all elements in the list.
-    - ``normalized`` (default: False) - a boolean. It returns the vector reduced mod 2ZZ^g,
-      that is, with entries 0 or 1.
-
-    .. NOTE::
-
-        The indexes are shifted to start at 0 with respect to the reference
-
-    EXAMPLES ::
-
-        sage: from avisogenies_sage import eta_second
-        sage: eta_second(4, 6)
-        (1, 1, 1, 0)
-        sage: x = eta_second(4,6) + eta_second(4, 7)
-        sage: y = eta_second(4, [6, 7]); y
-        (2, 2, 2, 1)
-        sage: x == y
-        True
-        sage: eta_second(4, [6, 7], normalized=True)
-        (0, 0, 0, 1)
-
-    """
-    try:
-        i = L
-        if i < 0 or i > 2*g + 1:
-            raise ValueError(f'Expected i={i} to be between 0 and {2*g + 1}')
-    except TypeError:
-        if len(L) == 0:
-            return zero_vector(ZZ,g)
-        v = sum(eta_second(g, i) for i in L)
-        if normalized:
-            return normalize_eta(v)
-        return v
-    else:
-        V = ZZ**g
-        if i == 2*g+1:
-            return V(0)
-        ih = ceil(i / 2)
-        v = V([1]*ih + [0]*(g-ih))
-        return v
-
-
-def eta(g, L, normalized=False, idx=False):
-    """
-    Following a definition analogous to that in [VanW, page 3089]_, returns eta as
-    a vector in ZZ^(2*g).
-
-    INPUT:
-
-    - ``g`` -- an Integer. The half-length of eta.
-    - ``L`` -- an Integer or a list of integers. If it is a list, it returns the sum of eta_second
-            for all elements in the list.
-    - ``normalized`` (default: False) -- a boolean. It returns the vector reduced mod 2ZZ^g,
-      that is, with entries 0 or 1.
-    - ``idx`` (default: False) -- a boolean. If both normalize and idx are True, then ``eta``
-      computes the integer with base-2 representation given by eta.
-
-    .. NOTE::
-
-        The indexes are shifted to start at 0 with respect to the reference
-
-    EXAMPLES ::
-
-        sage: from avisogenies_sage import eta
-        sage: eta(4, 6)
-        (0, 0, 0, 1, 1, 1, 1, 0)
-        sage: x = eta(4,6) + eta(4, 7)
-        sage: y = eta(4, [6, 7]); y
-        (0, 0, 0, 2, 2, 2, 2, 1)
-        sage: x == y
-        True
-        sage: eta(4, [6, 7], normalized=True)
-        (0, 0, 0, 0, 0, 0, 0, 1)
-
-    If normalized=True and idx=True, returns the integer with base-2 representation given
-    by the eta vector ::
-
-        sage: eta(4, [6,7], normalized=True, idx=True)
-        128
-
-    """
-    V = ZZ**(2*g)
-    try:
-        if L == 2*g + 1 or len(L) == 0:
-            if idx:
-                return 0
-            return V(0)
-    except TypeError:
-        ep = eta_prime(g, L)
-        es = eta_second(g, L)
-        v = V(list(chain(ep, es)))
-        if idx:
-            return ZZ(list(v), 2)
-        return v
-    else:
-        ep = sum((eta_prime(g, i) for i in L))
-        es = sum((eta_second(g, i) for i in L))
-        v = V(list(chain(ep, es)))
-        if normalized:
-            if idx:
-                return ZZ([x%2 for x in v], 2)
-            return normalize_eta(v)
-        return v
-
-
-def normalize_eta(v):
-    """
-    It returns the vector `v` reduced mod 2ZZ^g, that is, with entries 0 or 1.
-
-    EXAMPLES ::
-
-        sage: from avisogenies_sage import eta, eta_second, normalize_eta
-        sage: x = eta(4, [0,1,2,3]); x
-        (2, 2, 0, 0, 3, 1, 0, 0)
-        sage: normalize_eta(x)
-        (0, 0, 0, 0, 1, 1, 0, 0)
-        sage: x = eta_second(3, [0,1,2,3]); x
-        (3, 1, 0)
-        sage: normalize_eta(x)
-        (1, 1, 0)
-
-    """
-    V = v.parent()
-    return V([x % 2 for x in v])
-
-def sign_theta_normalized(*data):
-    """
-    Computes the sign difference between theta constant with characteristic `e` and the
-    theta constant with characteristic `normalized_eta(e)`.
-
-    See [VanW, Equation (8)]_ for more information on the quasiperiodicity of theta constants.
-
-    It accepts both eta vectors and a tuple (g, L) that defines an acceptable input for `eta`.
-
-    EXAMPLES ::
-
-        sage: from avisogenies_sage import eta, sign_theta_normalized
-        sage: x = eta(4, [0,1,3,4]); x
-        (2, 1, 1, 0, 3, 2, 0, 0)
-        sage: sign_theta_normalized(x)
-        -1
-        sage: sign_theta_normalized(4, [0,1,3,4])
-        -1
-
-    """
-    if len(data) > 1:
-        e = eta(*data)
-        g = data[0]
-    else:
-        e = data[0]
-        try:
-            g = ZZ(len(e)/2)
-        except TypeError:
-            raise ValueError(f'Expected eta(={eta}) of even length')
-    en = normalize_eta(e)
-    return ZZ((-1)**(en[:g]*(e[g:] - en[g:])/2))
-
-def e_star(e):
-    """
-    Computes e_star as defined in [VanW, page 3090].
-
-    EXAMPLES ::
-
-        sage: from avisogenies_sage import eta, e_star
-        sage: x = eta(4, [0,1,3,4]); x
-        (2, 1, 1, 0, 3, 2, 0, 0)
-        sage: e_star(x)
-        1
-
-    """
-    try:
-        g = ZZ(len(e)/2)
-    except TypeError:
-        raise ValueError(f'Expected eta(={eta}) of even length')
-    return ZZ(-1)**(e[:g]*e[g:])
-
-def e_2(g, A1, A2):
-    """
-    Compute e_2(eta(A1),eta(A2)) as defined in [VanW, page 3090].
-
-    EXAMPLES ::
-
-        sage: from avisogenies_sage import e_2
-        sage: e_2(5, [0,1], [5,6])
-        1
-
-    """
-    eta1 = eta(g, A1)
-    eta2 = eta(g, A2)
-    return ZZ((-1)**ZZ(eta2[:g]*eta1[g:] - eta1[:g]*eta2[g:]))
+from .tools import TowerOfField, rangeS
+from .eta_maps import eta, eta_prime, eta_second, normalize_eta, sign_theta_normalized, e_2
 
 
 ##***** (3) Manipulations of elements of Ep *****//
@@ -562,38 +296,7 @@ def constant_f(g, A, C):
             [0, 0, 1, 0, 1, 0, 1, 1, 0, 1]: 1,
             [0, 1, 0, 0, 1, 0, 1, 0, 1, 1]: 2,
             [0, 1, 0, 0, 1, 0, 1, 1, 1, 1]: 1,
-            [0, 1, 0, 0, 1, 1, 1, 0, 0, 1]: 1,
-            [0, 1, 0, 1, 0, 0, 1, 0, 1]: 1,
-            [0, 1, 1, 0, 1, 1, 0, 1, 0, 1]: 2,
-            [0, 1, 1, 0, 1, 1, 0, 1, 1, 1]: 1,
-            [0, 1, 1, 1, 1, 1, 1, 0, 0, 1]: 1,
-            [1, 0, 0, 0, 1, 1, 0, 0, 0, 1]: 1,
-            [1, 0, 1, 1, 1, 1, 0, 0, 0, 1]: 1,
-            [1, 0, 1, 1, 1, 1, 1, 0, 0, 1]: 1,
-            [1, 1, 0, 0, 1, 0, 1, 0, 0, 1]: 1,
-            [1, 1, 0, 0, 1, 0, 1, 1, 0, 1]: 2,
-            [1, 1, 0, 1, 0, 0, 1, 0, 1, 1]: 2,
-            [1, 1, 0, 1, 1, 0, 1, 0, 1]: 2,
-            [1, 1, 1, 1, 0, 0, 0, 1, 1, 1]: 2,
-            [1, 1, 1, 1, 1, 0, 0, 1, 1]: 2,
-            [1, 1, 1, 1, 1, 0, 1, 0, 0, 1]: 4
-        },
-        denom={
-            [0, 0, 1, 0, 1, 0, 1, 1, 1, 1]: 1,
-            [0, 1, 0, 0, 0, 1, 0, 1, 0, 1]: 1,
-            [0, 1, 0, 0, 0, 1, 0, 1, 1]: 1,
-            [0, 1, 0, 0, 1, 0, 1, 0, 0, 1]: 1,
-            [0, 1, 0, 0, 1, 0, 1, 1, 0, 1]: 1,
-            [0, 1, 0, 0, 1, 1, 0, 1]: 1,
-            [0, 1, 0, 1, 1, 1, 0, 0, 1, 1]: 1,
-            [0, 1, 1, 0, 1, 0, 0, 1, 0, 1]: 1,
-            [0, 1, 1, 0, 1, 0, 0, 1, 1, 1]: 1,
-            [0, 1, 1, 1, 0, 0, 0, 1, 1, 1]: 2,
-            [0, 1, 1, 1, 0, 1, 0, 1, 1, 1]: 1,
-            [0, 1, 1, 1, 1, 0, 0, 1, 1]: 2,
-            [0, 1, 1, 1, 1, 0, 1, 0, 0, 1]: 4,
-            [0, 1, 1, 1, 1, 1, 0, 1, 1]: 1,
-            [1, 0, 1, 0, 1, 0, 0, 1, 0, 1]: 1,
+        ...
             [1, 0, 1, 0, 1, 0, 1, 1, 0, 1]: 2,
             [1, 1, 0, 1, 1, 1, 0, 0, 0, 1]: 1,
             [1, 1, 0, 1, 1, 1, 0, 1, 0, 1]: 5,
@@ -626,7 +329,6 @@ def constant_f(g, A, C):
     div_list = Counter([(i,k) for i, k in product((A ^ C) & (U ^ C), (U ^ C) - (A ^ C))] + [(i,k) for i, k in product((B - (A ^ C)) & (B - (U ^ C)), (A ^ C) - (U ^ C))])
     ff *= prod((bp_sqrt(g, k, i)**m for (i,k), m in (prod_list - div_list).items()), EpElement())
     ff /= prod((bp_sqrt(g, k, i)**m for (i,k), m in (div_list - prod_list).items()), EpElement())
-
 
     return ff.clean_common()
 
@@ -750,366 +452,6 @@ def sign_s_A(g, A, C):
 
     return sA
 
-#**************************************************************************/
-
-##***** (1) Structures and change of theta structures*****//
-
-class ThetaPoint_Analytic:
-    """
-    Components:
-    - level, // an integer
-    - coord, // a ThetaStructure of level 2 and g = 2*g
-    
-    .. todo::
-    
-        - Add examples to all class functions
-        
-        - Add _repr_ to the classes and modify the examples accordingly
-        
-        - Field of definition
-    """
-    def __init__(self, thc, v):  #Equivalent to "AnalyticThetaPoint" intrinsic method in magma
-        l = thc._level
-        if l != 2 and l != 4:
-            raise NotImplementedError
-
-        if v == 0 or v == (0,):
-            v = thc._coords
-        self._coords = v
-        self._codomain = thc
-
-    def abelian_variety(self):
-        """
-        Return the thetanullpoint associated to this theta point.
-        """
-        return self._codomain
-
-    def __getitem__(self, n):
-        """
-        Return the n-th coordinate of this point.
-        """
-        return self._coords[n]
-
-    def __iter__(self):
-        """
-        Return the coordinates of this point as a list.
-        """
-        return iter(self._coords)
-
-    def __repr__(self):
-        """
-        Return a string representation of this point.
-        """
-        return f'({" : ".join(repr(f) for f in self._coords)})'
-
-    def to_algebraic(self, A = None): # Corresponds to `AnalyticToAlgebraicThetaPoint` in magma
-        """
-        Compute the algebraic theta point corresponding to an analytic theta point.
-
-        INPUT:
-
-        - ``self``- a theta null point given by analytic coordinates (see :class:`ThetaPoint_Analytic`).
-
-        - ``g``- the dimension of the ab. variety? #Maybe it should be a variable in self?
-
-        OUTPUT:
-
-        The corresponding theta point in algebraic coordinates (see :class:`AbelianVarietyPoint`, :class:`KummerVarietyPoint`)
-        """
-        thc = self.abelian_variety()
-        n = thc._level
-        g = thc._dimension
-        ng = n**g
-        point = [0]*ng
-        idx = thc._char_to_idx
-
-        if A == None:
-            A = thc.to_algebraic()
-
-        if n == 2:
-            for b in range(ng):
-                point[b] = sum(self[a + 2**g*b] for a in range(ng))
-            return A(point)
-
-        #if n == 4:
-        D = Zmod(n)**g
-        twotorsion = Zmod(2)**g
-        V = ZZ**g
-
-        for idxb, b in enumerate(D): #char(b) in Zmod(4)^g
-            for a in twotorsion:
-                ttb = twotorsion(list(b))
-                ib = D((V(b) - V(ttb))/2)
-                sign = (-1)**ZZ(a*ib)
-                point[idxb] += self[idx(a, ttb)]*sign
-
-        return A(point)
-
-class ThetaNullPoint_Analytic:
-    """
-    Class for analytic theta null points.
-
-    For level 2, the basis used is F(2,2)^2.
-    For level 4, the basis used is F(2,2).
-
-    See Section 3.1.2 in [Coss]_ for the definition of the notation.
-    """
-
-    def __init__(self, R, l, g, v, data = None): #Equivalent to "AnalyticThetaNullPoint" intrinsic method in magma
-        if l != 2 and l != 4:
-            raise NotImplementedError
-        if is_Vector(v):
-            v = list(v)
-        if not isinstance(v, (list, tuple, SchemeMorphism_point)):
-            raise TypeError(f"Argument (v={v}) must be a list, a tuple, a vector or a point.")
-        if not isinstance(l, integer_types + (Integer,)):
-            raise TypeError(f"Argument (l={l}) must be an integer.")
-        if not isinstance(g, integer_types + (Integer,)):
-            raise TypeError(f"Argument (g={g}) must be an integer.")
-        self._level = l
-        if len(v) != 2**(2*g):
-            raise ValueError(f'v(={v}) does not define a valid analytic thetanullpoint')
-        self._R = R
-        self._coords = tuple(R(el) for el in v)
-        self._dimension = g
-        self._numbering = Zmod(2)**(2*g)
-        if data!=None:
-            self._data = data
-        
-    @classmethod
-    def from_curve(cls, C):
-        """
-        Given a hyperelliptic curve of genus 2, returns the analytic
-        theta null point of level 4.
-        
-        EXAMPLES ::
-        
-            sage: from avisogenies_sage import ThetaNullPoint_Analytic
-            sage: F = GF(83^2); Fx.<X> = PolynomialRing(F)
-            sage: a = [0, 1, 3, 15, 20]
-            sage: C = HyperellipticCurve(prod(X - al for al in a)); C
-            Hyperelliptic Curve over Finite Field in z2 of size 83^2 defined by y^2 = x^5 + 44*x^4 + 28*x^3 + 23*x^2 + 70*x
-            sage: th = ThetaNullPoint_Analytic.from_curve(C); th
-            (1 : 37 : 56 : 57 : 34*z + 43 : 0 : 50*z + 73 : 0 : 30 : 2*z + 82 : 0 : 0 : 16*z + 37 : 0 : 0 : 61*z + 21)
-            
-        """
-        if isinstance(C, HyperellipticCurve_g2):
-            f, h = C.hyperelliptic_polynomials()
-            if h != 0:
-                f = f + h**2/4
-            if f.degree() % 2 == 0:
-                C2 = HyperellipticCurve(f)
-                f, _ = C2.odd_degree_model().hyperelliptic_polynomials()
-            F = f.splitting_field('z')
-            z, = F.gens()
-            a = f.roots(F, multiplicities=False)
-            a.sort()
-            if a[:2] == [0,1]:
-                l, m, n = a[2:]
-            else:
-                l, m, n = [(el - a[0])/(a[0] - a[1]) for el in a[2:]]
-            D = Zmod(2)**4
-            ng = 2**4
-            idx = lambda i : ZZ(list(i), 2)
-            th4 = [m/(l*n),m*(l-m)*(n-1)/(n*(m-1)*(l-n)),m*(l-1)*(n-1)/(l*n*(m-1)),m*(l-1)*(n-m)/(l*(n-l)*(m-1))]
-            th2 = [F(1)] + [F(0)]*(ng-1)
-            if not all([el.is_square() for el in th4]):
-                F, to_F = F.extension(2, map=True)
-                z = F.gens()
-                th4 = [to_F(el) for el in th4]
-            for i, ei in enumerate(D.gens()):
-                th2[idx(ei)] = sqrt(th4[i])
-            th2[idx(D([1,0,0,1]))] = 1/n*th2[idx(D([0,0,0,1]))]/th2[idx(D([1,0,0,0]))]
-            th2[idx(D([1,1,0,0]))] = 1/l*th2[idx(D([0,1,0,0]))]/th2[idx(D([1,0,0,0]))]
-            th2[idx(D([0,0,1,1]))] = (n-1)*th2[idx(D([1,0,0,0]))]*th2[idx(D([1,0,0,1]))]/th2[idx(D([0,0,1,0]))]
-            th2[idx(D([0,1,1,0]))] = (l-1)*th2[idx(D([1,0,0,0]))]*th2[idx(D([1,1,0,0]))]/th2[idx(D([0,0,1,0]))]
-            th2[idx(D([1,1,1,1]))] = (n-m)/(n-1)*th2[idx(D([0,0,1,0]))]*th2[idx(D([1,1,0,0]))]/th2[idx(D([0,0,0,1]))]
-            if not all([el.is_square() for el in th2]):
-                F, to_F = F.extension(2, map=True)
-                z, = F.gens()
-                th2 = [to_F(el) for el in th2]
-            th = [sqrt(el) for el in th2]
-            return cls(F, 4, 2, th, data=[C, 1, [0,1,l,m,n]])
-        raise NotImplementedError('Thomae formulas are only implemented for curves of genus 2')
-        
-    def __eq__(self, X):
-        """
-        Compare the analytic theta null point self to X.  If X is an
-        analytic theta null point, then self and X are equal if and only
-        if their fields of definition are equal and their theta null 
-        points are equal as projective points.
-        """
-        if not isinstance(X, type(self)):
-            return NotImplemented
-        if self._R != X._R:
-            return False
-        return self._coords == X._coords
-
-    def _idx_to_char(self, x):
-        """
-        Return the caracteristic in D that corresponds to a given integer index.
-        """
-        g = self._dimension
-        n = 2
-        D = self._numbering
-        return D(ZZ(x).digits(n, padto=2*g))
-
-    def _char_to_idx(self, *x):
-        """
-        Return the integer index that corresponds to a given caracteristic in D.
-        """
-        return ZZ(sum((list(elem) for elem in x), []), 2)
-
-    def point(*args, **kwds):
-        """
-        Create a point.
-
-        INPUT:
-
-        - ``v`` -- anything that defines a point
-
-        - ``check`` -- boolean (optional, default: ``False``); whether
-          to check the defining data for consistency
-
-        OUTPUT:
-
-        A point of the scheme.
-        """
-        self = args[0]
-        return self._point(*args, **kwds)
-
-    __call__ = point
-
-    _point = ThetaPoint_Analytic
-
-    def __repr__(self):
-        """
-        Return a string representation of this point.
-        """
-        return f'({" : ".join(repr(f) for f in self._coords)})'
-
-    def to_algebraic(self): #Equivalent to `AnalyticToAlgebraicThetaNullPoint` in magma
-        """
-        Compute the algebraic theta null point corresponding to an analytic theta null point.
-
-        INPUT:
-
-        - ``self``- a theta null point given by analytic coordinates (see :class:`ThetaNullPoint_Analytic`).
-
-        OUTPUT:
-
-        The corresponding theta null point in algebraic coordinates (see :class:`AbelianVariety_ThetaStructure`, :class:`KummerVariety`)
-        
-        .. todo:: Address FIXME.
-        """
-
-        try:
-            return self._algebraic
-        except AttributeError:
-            pass
-
-        n = self._level
-        g = self._dimension
-        ng = n**g
-        point = [0]*ng
-        R = parent(self._coords[0]) #FIXME
-
-        if n == 2:
-            for b in range(ng): #char(b) in Zmod(2)^g
-                point[b] = sum(self._coords[a + 2**g*b] for a in range(ng))
-            assert point[0] != 0 #See Equation (3.12) in [Coss]
-            return KummerVariety(R, g, point)
-
-        #if n == 4:            
-        D = Zmod(n)**g
-        twotorsion = Zmod(2)**g
-        if not D.has_coerce_map_from(twotorsion):
-            from sage.structure.coerce_maps import CallableConvertMap
-            s = n//2
-            def c(P, el):
-                return P(s*el.change_ring(ZZ))
-            c = CallableConvertMap(twotorsion, D, c)
-            D.register_coercion(c)
-
-        V = ZZ**g
-        idx = self._char_to_idx
-
-        for idxb, b in enumerate(D): #char(b) in Zmod(4)^g
-            for a in twotorsion:
-                ttb = twotorsion(b)
-                ib = D((V(b) - V(ttb))/2) #Probably very inefficient, look for an alternative
-                sign = (-1)**ZZ(a*ib)
-                point[idxb] += self._coords[idx(a, ttb)]*sign
-
-        self._algebraic = AbelianVariety_ThetaStructure(R, n, g, point)
-        return self._algebraic
-
-def AlgebraicToAnalyticThetaNullPoint(thc):
-    """
-    Let thc be a theta null point given by algebraic coordinates (i.e. :class:`AbelianVariety_ThetaStructure`, :class:`KummerVariety`). Compute the
-    corresponding theta null point (i.e. :class:`ThetaNullPoint_Analytic`) in analytic coordinates.
-    
-    .. todo:: Add as method in AbelianVariety_ThetaStructure.
-    """
-    n = thc._level
-    g = thc._dimension
-
-    O = thc.theta_null_point()
-    D = thc._D
-    idx = thc._char_to_idx
-    point = [0]*(4**g)
-    R = thc.base_ring()
-    
-    if n == 2:
-        for (idxa, a), (idxb, b) in product(enumerate(D), repeat=2):
-            point[idxa + 2**g*idxb] = sum((-1)**ZZ(a*beta)*O[idx(b + beta)]*O[idxbeta] for idxbeta, beta in enumerate(D))/2**g
-
-        return ThetaNullPoint_Analytic(R, n, g, point)
-
-    if n == 4:
-        twotorsion = thc._twotorsion #Zmod(2)^g
-        for (idxa, a), (idxb, b) in product(enumerate(twotorsion), repeat=2):
-            Db = D(list(b))
-            point[idxa + 2**g*idxb] = sum((-1)**(a*beta)*O[idx(Db + beta)] for beta in twotorsion)/2**g
-
-        return ThetaNullPoint_Analytic(R, n, g, point)
-
-    raise NotImplementedError
-
-def AlgebraicToAnalyticThetaPoint(th, thc=None):
-    """
-    Let th be a theta point given by algebraic coordinates (i.e. :class:`AbelianVarietyPoint`, :class:`KummerVarietyPoint`). Compute the
-    corresponding theta null point in analytic coordinates (i.e. :class:`ThetaNull_Analytic`).
-    
-    .. todo:: Add as method in AbelianVarietyPoint.
-    """
-    tnp = th.scheme()
-    O = tnp.theta_null_point()
-    n = tnp._level
-    g = tnp._dimension
-    D = tnp._D
-    point = [0]*(4**g)
-    idx = tnp._char_to_idx
-
-    if thc == None:
-        thc = AlgebraicToAnalyticThetaNullPoint(tnp)
-
-    if n == 2:
-        for (idxa, a), (idxb, b) in product(enumerate(D), repeat=2):
-            point[idxa + 2**g*idxb] = sum((-1)**ZZ(a*beta)*th[idx(b + beta)]*O[idxbeta] for idxbeta, beta in enumerate(D))/2**g
-
-        return thc(point)
-
-    if n == 4:
-        twotorsion = tnp._twotorsion #Zmod(2)^g
-        for (idxa, a), (idxb, b) in product(enumerate(twotorsion), repeat=2):
-            Db = D(list(b))
-            point[idxa + 2**g*idxb] = sum((-1)**(a*beta)*th[idx(Db + beta)] for beta in twotorsion)/2**g
-
-        return thc(point)
-
-    raise NotImplementedError
-
 ##***** (3) Auxiliary functions *****//
 
 def IgusaTheorem(A, TH):
@@ -1124,10 +466,11 @@ def IgusaTheorem(A, TH):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import *
+        sage: from avisogenies_sage import KummerVariety, AnalyticThetaPoint, IgusaTheorem
+        sage: from avisogenies_sage.eta_maps import eta
         sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
-        sage: thp = AlgebraicToAnalyticThetaPoint(P)
+        sage: thp = AnalyticThetaPoint.from_algebraic(P)
         sage: thc = thp._codomain; thO = thc(0)
         sage: IgusaTheorem([eta(g,{2*x for x in range(g+1)})]*4, [thp,thO,thO,thO])
         56
@@ -1170,9 +513,10 @@ def constant_f2_level2(a, thc, A, C):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import *
+        sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint
+        sage: from avisogenies_sage.morphisms import constant_f2_level2, choice_of_C_Cosset
         sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
-        sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
+        sage: thc = AnalyticThetaNullPoint.from_algebraic(A)
         sage: a = [0,1,4,6,7]
         sage: A = {3,4}; constant_f2_level2(a, thc, A, choice_of_C_Cosset(g, A))
         170
@@ -1207,9 +551,9 @@ def eltEp_to_eltE(a, thc, f, rac=None):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import *
+        sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint, bp_sqrt, eltEp_to_eltE
         sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
-        sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
+        sage: thc = AnalyticThetaNullPoint.from_algebraic(A)
         sage: a = [0,1,4,6,7]
         sage: f = bp_sqrt(g, 4, 2)
         sage: eltEp_to_eltE(a, thc, f*f)
@@ -1244,42 +588,6 @@ def eltEp_to_eltE(a, thc, f, rac=None):
         ff *= prod(thO[elem]**multi for elem, multi in f.numer.items())
         ff /= prod(thO[elem]**multi for elem, multi in f.denom.items())
         return ff
-
-    raise NotImplementedError('Only implemented for level 2 and 4.')
-
-
-##***** (5) Add two torsion *****//
-
-def AddTwoTorsion(th, eta):
-    """
-    Add the two torsion points corresponding to the caracteristic eta to the theta.
-
-    EXAMPLES ::
-
-        sage: from avisogenies_sage import *
-        sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
-        sage: P = A([255 , 89 , 30 , 1])
-        sage: thp = AlgebraicToAnalyticThetaPoint(P)
-        sage: AddTwoTorsion(thp, eta(g, 2))._coords #FIXME change when _repr_ is done.
-        [163, 328, 50, 185, 96, 217, 63, 183, 53, 307, 229, 76, 56, 118, 48, 199]
-        
-    .. todo:: Address FIXME.
-    """
-    thc = th.abelian_variety()
-    level = thc._level
-    Ab = thc._numbering
-    g = thc._dimension
-    idx = thc._char_to_idx
-
-    if level == 2:
-        t = [(-1)**ZZ(eta[:g]*e[g:])*th[idx(e + eta)] for e in Ab]
-        return thc(t)
-
-    if level == 4:
-        t = th._coords
-        for idxe, e in enumerate(Ab):
-            t[idxe] *= (-1)**ZZ(e[:g]*eta[g:] + eta[:g]*e[g:])
-        return thc(t)
 
     raise NotImplementedError('Only implemented for level 2 and 4.')
 
@@ -1641,14 +949,14 @@ def MumfordToTheta_2_Generic(a, thc2, points):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import *
+        sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint, MumfordToTheta_2_Generic
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62)), (F(8), F(10))]
         sage: A = KummerVariety(F, g, [328 , 213 , 75 , 1], check=True)
-        sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
+        sage: thc = AnalyticThetaNullPoint.from_algebraic(A)
         sage: MumfordToTheta_2_Generic(a, thc, points)._coords #FIXME change when _repr_ is done
-        [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
+        (92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70)
 
     .. todo:: 
     
@@ -1827,24 +1135,24 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import *
+        sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint, MumfordToLevel2ThetaPoint
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62)), (F(8), F(10))]
         sage: A = KummerVariety(F, g, [328 , 213 , 75 , 1], check=True)
-        sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
+        sage: thc = AnalyticThetaNullPoint.from_algebraic(A)
         sage: MumfordToLevel2ThetaPoint(a, thc, points)._coords #FIXME change when _repr_ is done
-        [92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70]
+        (92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70)
 
 
-        sage: from avisogenies_sage import *
+        sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint, MumfordToLevel2ThetaPoint
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62))]
         sage: A = KummerVariety(F, g, [328 , 213 , 75 , 1], check=True)
-        sage: thc = AlgebraicToAnalyticThetaNullPoint(A)
+        sage: thc = AnalyticThetaNullPoint.from_algebraic(A)
         sage: MumfordToLevel2ThetaPoint(a, thc, points)._coords #FIXME change when _repr_ is done, Magma output
-        [288, 101, 184, 91, 289, 74, 111, 10, 106, 54, 12, 0, 292, 48, 113, 243]
+        (288, 101, 184, 91, 289, 74, 111, 10, 106, 54, 12, 0, 292, 48, 113, 243)
 
 
     .. todo:: 
@@ -1857,7 +1165,7 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
     
     """
     if thc2._level != 2:
-        raise ValueError(F'Expected level-2 theta structure.')
+        raise ValueError(f'Expected level-2 theta structure.')
 
     g = thc2._dimension
 
@@ -1929,8 +1237,8 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
             th2p[ii] /= constant_f2_level2(a, thc2, S, C[S])
 
     th2 = thc2(th2p)
-    for l in V2:
-        th2 = AddTwoTorsion(th2, eta(g,l))
+    for l in V2: ##TODO: Can we compute eta(V2) and add only once?
+        th2 = th2.add_twotorsion_point(eta(g,l))
 
     return th2
 
@@ -1949,11 +1257,11 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import *
+        sage: from avisogenies_sage import AnalyticThetaNullPoint, MumfordToLevel4ThetaPoint
         sage: F = GF(83^2); z, = F.gens(); Fx.<X> = PolynomialRing(F)
         sage: g = 2; a = [F(0), 1, 3, 15, 20]; rac = sqrt(a[1] - a[0])
         sage: thc = [1,  37,  56, 57, 34*z + 43, 0, 50*z + 73, 0, 30, 2*z + 82, 0, 0, 16*z + 37, 0, 0, 61*z + 21]
-        sage: thc = ThetaNullPoint_Analytic(F, 4, g, thc)
+        sage: thc = AnalyticThetaNullPoint(F, 4, g, thc)
         sage: u = (X-43)*(X-10); v = z^954*X + z^2518
         sage: points = sum(([(x, v(x))]*mult for x, mult in u.roots(u.splitting_field('t'))), [])
         sage: th = MumfordToLevel4ThetaPoint(a, rac, thc, points); th
@@ -2104,7 +1412,7 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
 
     th = thc(thp)
     for l in V2:
-        th = AddTwoTorsion(th,eta(g,{l}))
+        th = th.add_twotorsion_point(eta(g,{l}))
 
     return th
 
@@ -2230,10 +1538,10 @@ def ThetaToMumford_2_Generic(a, th2):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import *
+        sage: from avisogenies_sage import KummerVariety, AnalyticThetaPoint, ThetaToMumford_2_Generic
         sage: F = GF(331); A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
-        sage: thp = AlgebraicToAnalyticThetaPoint(P)
+        sage: thp = AnalyticThetaPoint.from_algebraic(P)
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: ThetaToMumford_2_Generic(a, thp)
         (139*x^2 + 117*x + 157, 57*x^2 + 70*x + 210)
@@ -2389,7 +1697,7 @@ def ThetaToMumford_2_algclose(a,th2):
         if th2p[idx_etaU] != 0:
             break
         V.add(l)
-        th2p = AddTwoTorsion(th2p, eta(g, l))
+        th2p = th2p.add_twotorsion_point(eta(g, l))
 
     u, v2 = ThetaToMumford_2_Generic(a,th2p)
 
@@ -2439,7 +1747,7 @@ def Level2ThetaPointToMumford(a, th2):
         if th2p[idx_etaU] != 0:
             break
         V.add(l)
-        th2p = AddTwoTorsion(th2p, eta(g, l))
+        th2p = th2p.add_twotorsion_point(eta(g, l))
 
     u, v2 = ThetaToMumford_2_Generic(a, th2p)
 
@@ -2495,7 +1803,7 @@ def Level4ThetaPointToMumford(a, rac, th):
         if t_empty_p != 0:
             break
         V.add(l)
-        thp = AddTwoTorsion(thp,eta(g,l))
+        thp = thp.add_twotorsion_point(eta(g,l))
         t_empty_p = IgusaTheorem(etas, [thp,thO,thO,thO])
 
     u, v = ThetaToMumford_4_Generic(a, rac, thp)

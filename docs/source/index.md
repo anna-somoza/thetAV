@@ -9,7 +9,10 @@
 
 theta_null_point
 theta_point
+analytic_theta_point
+eta_maps
 morphisms
+tools
 ```
 
 ```{toctree}

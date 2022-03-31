@@ -32,8 +32,8 @@ from sage.structure.richcmp import richcmp, op_EQ, op_NE
 integer_types = (int, Integer)
 
 from sage.matrix.all import Matrix
-from sage.schemes.generic.morphism import is_SchemeMorphism, SchemeMorphism_point
-from sage.structure.element import AdditiveGroupElement, is_Vector
+from sage.schemes.generic.morphism import SchemeMorphism_point
+from sage.structure.element import AdditiveGroupElement
 from sage.structure.all import Sequence
 from sage.misc.constant_function import ConstantFunction
 from sage.modules.free_module_element import vector as Vector
@@ -52,8 +52,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         Initialize.
         """
         point_homset = X.point_homset()
-        if is_SchemeMorphism(v) or isinstance(v, X._point) or is_Vector(v):
-            v = list(v)
+        R = point_homset.value_ring()
         if isinstance(v,dict):
             try:
                 ig = X._itemgetter
@@ -61,16 +60,13 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
                 _ = X.general_point()
                 ig = X._itemgetter
             v = ig(v)
-        if v == 0 or v == (0,):
+        elif v == 0 or v == (0,):
             v = X._thetanullpoint
+        else:
+            v = Sequence(v, R)
         if len(v) != X._ng:
             raise ValueError("v (=%s) must have length n^g (=%s)."%(v, X._ng))
-        R = point_homset.value_ring()
-        v = Sequence(v, R)
-        for el in v:
-            if el != 0:
-                break
-        else:
+        if not any(v):
             raise ValueError('The given list does not define a valid thetapoint because all entries are zero')
             
         self._coords = v
@@ -181,7 +177,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         Comparison function for points to allow sorting and equality
         testing (as projective points).
         """
-        if not isinstance(right, type(self)):
+        if not isinstance(right, VarietyThetaStructurePoint):
             try:
                 right = self.codomain()(right)
             except TypeError:
@@ -212,9 +208,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
     def _get_nonzero_coord(self, idx=True):
         for i, val in enumerate(self):
             if val != 0:
-                if idx:
-                    return i
-                return self.scheme()._idx_to_char(i)
+                return i if idx else self.scheme()._idx_to_char(i)
         raise ValueError('All entries are zero.')
         
     def diff_add(self, Q, PmQ):
@@ -381,7 +375,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
                     n1P = nn1P
             return n1P
         if algorithm == 'SquareAndMultiply':
-            if isinstance(self, KummerVariety):
+            if self.scheme().level() == 2:
                 raise NotImplementedError("Square and Multiply algorithm is only for level > 2.")
             for i in range(2, len(kb)+1):
                 nP = nP.diff_add(nP,point0)
@@ -433,21 +427,21 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         kb = (k-1).digits(2)
         for i in range(2, len(kb)+1):
             if kb[-i] == 1:
-             nn11PQ = n1PQ.diff_add(n1P,Q)
-             nPQ = n1PQ.diff_add(nP,PQ)
-             n1PQ = nn11PQ
+                nn11PQ = n1PQ.diff_add(n1P,Q)
+                nPQ = n1PQ.diff_add(nP,PQ)
+                n1PQ = nn11PQ
 
-             nn11P = n1P.diff_add(n1P,point0)
-             nP = n1P.diff_add(nP,self)
-             n1P = nn11P
+                nn11P = n1P.diff_add(n1P,point0)
+                nP = n1P.diff_add(nP,self)
+                n1P = nn11P
             else:
-             nn1PQ = n1PQ.diff_add(nP,PQ)
-             nPQ = nPQ.diff_add(nP,Q)
-             n1PQ = nn1PQ
+                nn1PQ = n1PQ.diff_add(nP,PQ)
+                nPQ = nPQ.diff_add(nP,Q)
+                n1PQ = nn1PQ
 
-             nn1P = n1P.diff_add(nP,self)
-             nP = nP.diff_add(nP,point0)
-             n1P = nn1P
+                nn1P = n1P.diff_add(nP,self)
+                nP = nP.diff_add(nP,point0)
+                n1P = nn1P
         return n1PQ, n1P
 
     def _weil_pairing_from_points(P,Q,lP,lQ,lPQ,PlQ):
@@ -510,7 +504,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             17*t^3 + 153*t^2 + 305*t + 187
         """
         if PQ == None:
-            if type(P.scheme()) == KummerVariety:
+            if P.scheme().level() == 2:
                 raise NotImplementedError
             PQ = P + Q
         point0 = P.scheme()._thetanullpoint
@@ -564,7 +558,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             130*t^3 + 124*t^2 + 49*t + 153
         """
         if PQ == None:
-            if type(P.scheme()) == KummerVariety:
+            if P.scheme().level() == 2:
                 raise NotImplementedError
             PQ = P + Q
         A = P.scheme()
@@ -607,7 +601,6 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         D = point0._D
         twotorsion = point0._twotorsion
         ng = n**g
-        twog = 2**g
         PQR = [0]*ng
         idx = point0._char_to_idx
         idxi0 = P._get_nonzero_coord()
@@ -640,12 +633,32 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         """
         Given an affine lift point 'P' and a factor 'k' in the field of definition, returns the
         affine lift given by kx.
+        
+        EXAMPLE ::
+        
+            sage: from avisogenies_sage import KummerVariety
+            sage: F = GF(331)
+            sage: A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1])
+            sage: P.scale(5)
+            (282 : 114 : 150 : 5)
+
+        TEST :
+            
+        If the factor to scale by is not in the field of definition, it should raise an error ::
+            
+            sage: FF.<z> = GF(331^2)
+            sage: P.scale(z)
+            Traceback (most recent call last):
+            ...
+            ValueError: The scalar factor k=z should be in the base ring R=Finite Field of size 331
+
         """
+        if k not in self._R:
+            raise ValueError(f'The scalar factor k={k} should be in the base ring R={self._R}')
         v = self._coords
         A = self.scheme()
-        R = self._R
-        assert k in R, f'k={k} not in R={R}'
-        return A.point(list(map(lambda i : k*i, v)))
+        return A.point(map(lambda i : k*i, v))
 
     def compatible_lift(self, l, other=None, add=None):
         """
@@ -813,45 +826,22 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
         
         EXAMPLES ::
         
-            sage: from avisogenies_sage import KummerVariety
-            sage: R.<X> = PolynomialRing(GF(331))
-            sage: poly = X^4 + 3*X^2 + 290*X + 3
-            sage: F.<t> = poly.splitting_field()
-            sage: A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
-            sage: P = A([255 , 89 , 30 , 1])
-            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
-                155*t^3 + 84*t^2 + 15*t + 170, 1])
-            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 , \
-                258*t^3 + 39*t^2 + 313*t + 150 , 1])
-            sage: PQ = P.diff_add(Q, PmQ); PQ
-            (261*t^3 + 107*t^2 + 37*t + 135 : 205*t^3 + 88*t^2 + 195*t + 125 : 88*t^3 + 99*t^2 + 164*t + 98 : 159*t^3 + 279*t^2 + 254*t + 276)
-        
         """
         point0 = self.abelian_variety()
         n = point0._level
         g = point0._dimension
         D = point0._D
-        twotorsion = point0._twotorsion
         ng = n**g
         twog = 2**g
         PQ = [0]*ng
-        lvl2 = (n == 2)
         i0 = PmQ._get_nonzero_coord()
         L = []
-        for i, chari in enumerate(D):
-            if PmQ[i] == 0:
-                j = i0
-                charj = chari0
-            else:
-                j = i
+        for i in range(ng):
+            j = i0 if PmQ[i] == 0 else i
             L += [(chi, i, j) for chi in range(twog)]
         r = point0._addition_formula(self, Q, L)
         for i, chari in enumerate(D):
-            if PmQ[i] == 0:
-                j = i0
-                charj = chari0
-            else:
-                j = i
+            j = i0 if PmQ[i] == 0 else j
             PQ[i] = sum(r[(chi,i,j)] for chi in range(twog))/(twog * PmQ[j]);
         return point0.point(PQ, check=check)
 
@@ -870,18 +860,15 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
             
             - Find tests where P and Q are not rational in the av but rational in the kummer variety, so P+Q won't be rational
         """
-        from .tools import eval_car
         point0 = self.abelian_variety()
         n = point0._level
         g = point0._dimension
         ng = n**g
         twog = 2**g
-        PQ = [0]*ng
         L = [(chi, i, i0) for chi in range(twog) for i in range(ng)]
         r = point0._addition_formula(self, other, L)
-        for i in range(ng):
-            PQ[i] = sum(r[(chi, i, i0)] for chi in range(twog))
-        if all(coor == 0 for coor in PQ):
+        PQ = [sum(r[(chi, i, i0)] for chi in range(twog)) for i in range(ng)]
+        if not any(PQ):
             return self._add(other, i0 + 1)
         return point0.point(PQ)
         
@@ -1004,16 +991,15 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
             else:
                 PQ[i] = sum(r[(chi,i,j)] for chi in range(ng))/(ng * PmQ[j]);
         #I think that this section is unnecessary
-        # if lvl2:
-            # for i in range(ng):
-                # # in level 2, in this case we only computed
-                # # (PQ[i]PmQ[j]+PQ[j]PmQ[i])/PmQ[j] so we correct to get PQ[i]
-                # # we have to do it here to be sure we have computed PQ[j]
-                # # FIXME We are substracting 0 all the time? Doesn't make too much sense...
-                # # In the case with PmQ[i] == 0 (j = i0) we have computed (PQ[i]PmQ[i0] + PQ[i0]PmQ[i])/PmQ[i0] = PQ[i]
-                # # In the case with PmQ[i] != 0 (j = i) we have computed (PQ[i]PmQ[i] + PQ[i]PmQ[i])/PmQ[i] = 2*PQ[i]
-                # if PmQ[i] == 0:
-                    # PQ[i] -= PQ[j]*PmQ[i]/PmQ[j]
+        # for i in range(ng):
+            # # in level 2, in this case we only computed
+            # # (PQ[i]PmQ[j]+PQ[j]PmQ[i])/PmQ[j] so we correct to get PQ[i]
+            # # we have to do it here to be sure we have computed PQ[j]
+            # # FIXME We are substracting 0 all the time? Doesn't make too much sense...
+            # # In the case with PmQ[i] == 0 (j = i0) we have computed (PQ[i]PmQ[i0] + PQ[i0]PmQ[i])/PmQ[i0] = PQ[i]
+            # # In the case with PmQ[i] != 0 (j = i) we have computed (PQ[i]PmQ[i] + PQ[i]PmQ[i])/PmQ[i] = 2*PQ[i]
+            # if PmQ[i] == 0:
+                # PQ[i] -= PQ[j]*PmQ[i]/PmQ[j]
         return point0.point(PQ)
 
     def _add(self, other, i0 = 0):

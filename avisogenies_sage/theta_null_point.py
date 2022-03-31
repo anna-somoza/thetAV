@@ -35,19 +35,17 @@ _Fields = Fields()
 from six import integer_types
 from sage.rings.integer import Integer
 from itertools import product, combinations_with_replacement
-from sage.rings.all import IntegerRing, Zmod, PolynomialRing, FractionField
-ZZ = IntegerRing()
+from sage.rings.all import Zmod, PolynomialRing, FractionField, mod, ZZ
 from sage.structure.element import is_Vector
 from sage.arith.misc import two_squares, four_squares
 from sage.matrix.constructor import matrix, column_matrix
-from sage.matrix.special import identity_matrix, zero_matrix
-from sage.misc.misc_c import prod
+from sage.matrix.special import identity_matrix
 
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
 from sage.schemes.generic.morphism import SchemeMorphism_point
 from sage.schemes.generic.homset import SchemeHomset_points
-from sage.structure.richcmp import richcmp_method, richcmp
+from sage.structure.richcmp import richcmp_method, richcmp, op_EQ, op_NE
 from .theta_point import VarietyThetaStructurePoint, AbelianVarietyPoint, KummerVarietyPoint
 from .tools import reduce_twotorsion_couple, reduce_symtwotorsion_couple, eval_car, get_dual_quadruplet, evaluate_formal_points
 
@@ -95,12 +93,37 @@ class Variety_ThetaStructure(AlgebraicScheme):
         variety, then self and X are equal if and only if their fields
         of definition are equal and their theta null points are equal
         as projective points.
+        
+        EXAMPLES ::
+        
+            sage: from avisogenies_sage import AbelianVariety, KummerVariety
+            sage: F1 = GF(331); F2 = GF(331^2)
+            sage: pt = [328 , 213 , 75 , 1]
+            sage: K1 = KummerVariety(F1, 2, pt)
+            sage: K2 = KummerVariety(F2, 2, pt)
+            sage: K3 = KummerVariety(F1, 2, [2*F1(el) for el in pt])
+            sage: K1 == K2
+            False
+            sage: K1 == K3
+            True
+            sage: pt2 = [68, 33, 46, 33, 29, 77, 81, 16, 8, 67, 48, 67, 29, 16, 81, 77]
+            sage: A = AbelianVariety(F1, 4, 2, pt2)
+            sage: A == K1
+            False
+            
         """
-        if not isinstance(X, type(self)):
+        if not isinstance(X, Variety_ThetaStructure):
             return NotImplemented
         if self.base_ring() != X.base_ring():
             return False
-        return richcmp(self._thetanullpoint._coords, X._thetanullpoint._coords, op)
+        a, b = self._thetanullpoint._coords, X._thetanullpoint._coords
+        if op in [op_EQ, op_NE]:
+            for i in range(len(a)):
+                for j in range(i+1, len(a)):
+                    if a[i] * b[j] != a[j] * b[i]:
+                        return not (op == op_EQ)
+            return (op == op_EQ)
+        return richcmp(a, b, op)
 
     def dimension(self):
         """
@@ -111,6 +134,21 @@ class Variety_ThetaStructure(AlgebraicScheme):
     def level(self):
         """
         Return the level of the theta structure.
+        
+        TEST ::
+            
+            sage: from avisogenies_sage import KummerVariety
+            sage: F = GF(331)
+            sage: K = KummerVariety(F, 2, [328 , 213 , 75 , 1])
+            sage: K.level()
+            2
+            sage: from avisogenies_sage import AbelianVariety
+            sage: n = 2*randint(2,5); g = randint(2,5)
+            sage: T = [randint(1, 331) for _ in range(n^g)]
+            sage: A = AbelianVariety(F, n, g, T)
+            sage: A.level() == n
+            True
+
         """
         return self._level
 
@@ -202,10 +240,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
         Return the integer index that corresponds to a given caracteristic in ``D``.
 
         """
-        if twotorsion:
-            n = 2
-        else:
-            n = self._level
+        n = 2 if twotorsion else self._level
         return ZZ(list(c), n)
 
     def riemann_relation(self, *data):
@@ -542,13 +577,13 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
         R = etamu[idx(D(J[0]))]*eta1[idx(D(J[1]))] #This should have factors of mu^l, that we replace by delta
         return evaluate_formal_points(B(R.mod(mu**l - delta)))
 
-    def _isogeny_fourSq(self, l1, a, b, c, d, Q, P, k):
+    def _isogeny_fourSq(self, l, l1, a, b, c, d, Q, P, k):
         """
         .. todo:: add minimal docstring (private function) and test.
         """
         #"Naive" implementation: Change to use three-way addition
         S = Q.parent().extend_variables('y0')
-        B = S.quotient([q(v) for v in S.gens()])
+        B = S.quotient([q(v) for v in S.gens()])  #what is q here??
         IK = [self.point([1,v], B) for v in B.gens()] ##TODO: generalize this line to general g
         l1IK = [l1*IKi for IKi in IK]
         l1aP = (l1*a)*P
@@ -594,11 +629,6 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
             - Add more info to docstring & references. Add examples.
 
         """
-        g = self.dimension()
-        n = self.level()
-        FF = self.base_ring()
-        D = self._D
-        idx = self._char_to_idx
         raise NotImplementedError('TBD')
         
         
@@ -679,22 +709,21 @@ class KummerVariety(Variety_ThetaStructure):
         try:
             return self._eqns
         except AttributeError:
-            if self._dimension == 2:
-                #TODO: add genericity condition checks.
-                a,c,d,b = list(self._thetanullpoint)
-                A2 = (a^2 + b^2 + c^2 + d^2)/4
-                B2 = (a^2 + b^2 - c^2 - d^2)/4
-                C2 = (a^2 - b^2 + c^2 - d^2)/4
-                D2 = (a^2 - b^2 - c^2 + d^2)/4
-                E = a*b*c*d*A2*B2*C2*D2 /((a^2*d^2 - b^2*c^2)*(a^2*c^2 - b^2*d^2)*(a^2*b^2 - c^2*d^2))
-                F = (a^4 - b^4 - c^4 + d^4)/(a^2*d^2 - b^2*c^2)
-                G = (a^4 - b^4 + c^4 - d^4)/(a^2*c^2 - b^2*d^2)
-                H = (a^4 + b^4 - c^4 - d^4)/(a^2*b^2 - c^2*d^2)
-                x,z,t,y = list(P)
-                self._eqns = [x^4 + y^4 + z^4 + t^4 + 2*E*x*y*z*t - F*(x^2*t^2 + y^2*z^2) - G*(x^2*z^2 + y^2*t^2) - H*(x^2*y^2 + z^2*t^2)]
-                return self._eqns
-            else:
+            if self._dimension != 2:
                 raise NotImplementedError
+            #TODO: add genericity condition checks.
+            a,c,d,b = list(self._thetanullpoint)
+            A2 = (a^2 + b^2 + c^2 + d^2)/4
+            B2 = (a^2 + b^2 - c^2 - d^2)/4
+            C2 = (a^2 - b^2 + c^2 - d^2)/4
+            D2 = (a^2 - b^2 - c^2 + d^2)/4
+            E = a*b*c*d*A2*B2*C2*D2 /((a^2*d^2 - b^2*c^2)*(a^2*c^2 - b^2*d^2)*(a^2*b^2 - c^2*d^2))
+            F = (a^4 - b^4 - c^4 + d^4)/(a^2*d^2 - b^2*c^2)
+            G = (a^4 - b^4 + c^4 - d^4)/(a^2*c^2 - b^2*d^2)
+            H = (a^4 + b^4 - c^4 - d^4)/(a^2*b^2 - c^2*d^2)
+            x,z,t,y = list(self)
+            self._eqns = [x^4 + y^4 + z^4 + t^4 + 2*E*x*y*z*t - F*(x^2*t^2 + y^2*z^2) - G*(x^2*z^2 + y^2*t^2) - H*(x^2*y^2 + z^2*t^2)]
+            return self._eqns
 
     def isogeny(self, l, Q, k, P=None ):
         """
@@ -732,7 +761,7 @@ class KummerVariety(Variety_ThetaStructure):
         deltaQ = Q.compatible_lift(l)
         
         T = PolynomialRing(B, names='mu')
-        T.inject_variables()
+        mu, = T.gens()
         T2 = T.quotient(mu**l - deltaQ)
         AT = self.change_ring(T2)
         compQ = AT(Q).scale(mu)
@@ -775,7 +804,6 @@ class KummerVariety(Variety_ThetaStructure):
         #here do stuff taking into account the shape of q? depending on de degree of Q we gotta do different thinks, because it can be of the shape (x - a)*f^2
         deltas = [P.compatible_lift(l) for P in L]
         
-        P0 = self.theta_null_point()
         P0B = [0]*self._ng
         S = PolynomialRing(FF, 'mu', len(L))
         mu = S.gens()
@@ -853,3 +881,4 @@ class KummerVariety(Variety_ThetaStructure):
             P0B[idxk] = P0B[idxk].lift()
         B = AbelianVariety_ThetaStructure(FF, n, g, P0B, check=True)
         return B
+

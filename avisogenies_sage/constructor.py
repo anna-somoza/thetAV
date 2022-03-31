@@ -39,6 +39,8 @@ def AbelianVariety(*data, **kwargs):
         sage: AbelianVariety(GF(331), 4, 1, [328,213,75,1])
         Abelian variety of dimension 1 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
         
+    If the level of the abelian variety is 2, it correctly returns an instance of :class:`~avisogenies_sage.abelian_variety.KummerVariety_ThetaStructure`::
+    
         sage: from avisogenies_sage import AbelianVariety
         sage: AbelianVariety(GF(331), 2, 2, [328,213,75,1])
         Kummer variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
