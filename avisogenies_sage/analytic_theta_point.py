@@ -32,6 +32,7 @@ integer_types = (int, Integer)
 from .theta_null_point import AbelianVariety_ThetaStructure, KummerVariety
 from .morphisms import MumfordToLevel4ThetaPoint
 from .eta_maps import eta
+from .theta_point import VarietyThetaStructurePoint
 
 
 class AnalyticThetaPoint:
@@ -56,29 +57,27 @@ class AnalyticThetaPoint:
         if v == 0 or v == (0,):
             v = thc._coords
         R = thc._R
+        self._level = l
         self._coords = tuple(R(el) for el in v)
         self._codomain = thc
-        
+
     @classmethod
-    def from_divisor(cls, D, data=None):
+    def from_divisor(cls, th, D):
         """
         Given a divisor in Mumford coordinates (u, v), compute the corresponding
         theta point.
         """
         if not isinstance(D, JacobianMorphism_divisor_class_field):
             raise NotImplementedError
-        if data == None:
-            C = D.scheme().curve()
-            th = AnalyticThetaNullPoint.from_curve(C)
-            wp, rt = th._data[1:]
-        elif isinstance(data, AnalyticThetaNullPoint):
-            th = data
-            _, wp, rt = th._data
-        else:
-            th, wp, rt = data
+        wp = th._weiestrass_points()
+        rt = th._rac()
         u, v = D
         points = sum(([(x, v(x))]*mult for x, mult in u.roots(u.splitting_field('z'))), [])
-        return MumfordToLevel4ThetaPoint(wp, rt, th, points)
+        if th.level() == 2:
+            return MumfordToLevel4ThetaPoint(wp, rt, th, points)
+        if th.level() == 4:
+            return MumfordToLevel2ThetaPoint(wp, rt, th, points)
+        raise NotImplementedError
         
     @classmethod
     def from_algebraic(cls, th, thc=None):
@@ -119,6 +118,12 @@ class AnalyticThetaPoint:
         Return the thetanullpoint associated to this theta point.
         """
         return self._codomain
+        
+    def level(self):
+        """
+        Return the level of the thetanullpoint, 2 or 4.
+        """
+        return self._level
 
     def __getitem__(self, n):
         """
@@ -187,11 +192,12 @@ class AnalyticThetaPoint:
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage import KummerVariety, AnalyticThetaPoint
+            sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint
             sage: from avisogenies_sage.eta_maps import eta
             sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1])
-            sage: thp = AnalyticThetaPoint.from_algebraic(P)
+            sage: th = AnalyticThetaNullPoint.from_algebraic(A)
+            sage: thp = th(P)
             sage: thp.add_twotorsion_point(eta(g, 2))._coords #FIXME change when _repr_ is done.
             (163, 328, 50, 185, 96, 217, 63, 183, 53, 307, 229, 76, 56, 118, 48, 199)
             
@@ -225,7 +231,7 @@ class AnalyticThetaNullPoint:
     See Section 3.1.2 in [Coss]_ for the definition of the notation.
     """
 
-    def __init__(self, R, l, g, v, data = None): #Equivalent to "AnalyticThetaNullPoint" intrinsic method in magma
+    def __init__(self, R, l, g, v, curve=None, wp = None, rac = None): #Equivalent to "AnalyticThetaNullPoint" intrinsic method in magma
         if l != 2 and l != 4:
             raise NotImplementedError
         if is_Vector(v):
@@ -243,8 +249,12 @@ class AnalyticThetaNullPoint:
         self._coords = tuple(R(el) for el in v)
         self._dimension = g
         self._numbering = Zmod(2)**(2*g)
-        if data!=None:
-            self._data = data
+        if curve!=None:
+            self._curve = curve
+        if wp!=None:
+            self._wp = wp
+        if rac!=None:
+            self._rac = rac
         
     @classmethod
     def from_curve(cls, C):
@@ -301,7 +311,7 @@ class AnalyticThetaNullPoint:
             th2 = [to_F(el) for el in th2]
         th = [sqrt(el) for el in th2]
         wp = [F(el) for el in [0,1,l,m,n]]
-        return cls(F, 4, 2, th, data=[C, wp, F(1)])
+        return cls(F, 4, 2, th, curve=C, wp=wp, rac=F(1))
         
     @classmethod
     def from_algebraic(cls, thc):
@@ -378,6 +388,11 @@ class AnalyticThetaNullPoint:
         A point of the scheme.
         """
         self = args[0]
+        P = args[1]
+        if isinstance(P, JacobianMorphism_divisor_class_field):
+            return self._point.from_divisor(self, D)
+        elif isinstance(P, VarietyThetaStructurePoint):
+            return self._point.from_algebraic(P, thc=self)
         return self._point(*args, **kwds)
 
     __call__ = point
@@ -445,3 +460,47 @@ class AnalyticThetaNullPoint:
 
         self._algebraic = AbelianVariety_ThetaStructure(R, n, g, point)
         return self._algebraic
+    
+    def curve(self):
+        """
+        Hyperelliptic curve corresponding to this analytic theta null point.
+        """
+        try:
+            return self._curve
+        except AttributeError:
+            raise NotImplementedError('Curve not indicated upon creation.')
+            
+    def _weierstrass_points(self):
+        """
+        x-coordinates of the Weierstrass points of the corresponding curve
+        """
+        try:
+            return self._wp
+        except AttributeError:
+            C = self.curve()
+            f, h = C.hyperelliptic_polynomials()
+            if h != 0:
+                f = f + h**2/4
+            if f.degree() % 2 == 0:
+                C2 = HyperellipticCurve(f)
+                f, _ = C2.odd_degree_model().hyperelliptic_polynomials()
+            F = f.splitting_field('z')
+            z, = F.gens()
+            a = f.roots(F, multiplicities=False)
+            a.sort()
+            self._wp = a if a[:2] == [0,1] else [0, 1] + [(el - a[0])/(a[0] - a[1]) for el in a[2:]]
+            return self._wp
+
+    def _rac(self):
+        """
+        Chosen square root of the difference between the x-coordinates 
+        of the first two Weierstrass points (a[0] - a[1]).
+        """
+        try:
+            return self._rac
+        except AttributeError:
+            wp = self._weierstrass_points()
+            if a[:2] == [0,1]:
+                self._rac = 1
+                return 1
+            raise NotImplementedError('Square root of (a_1 - a_0) not indicated upon creation.')

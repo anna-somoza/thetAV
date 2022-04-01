@@ -1,11 +1,11 @@
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/sage) [![Documentation Status](https://readthedocs.org/projects/avisogenies/badge/?version=latest)](https://avisogenies.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/avisogenies/badge/?version=latest)](https://avisogenies.readthedocs.io/en/latest/?badge=latest)
 
 # Goal
 
 The aim of this project is to have a complete set of tools to represent and compute with
 Abelian varieties and their moduli space available in Sagemath.  Our aim is to be as
 general and as efficient as possible. For this, we rely on the general theory of theta
-functions. This librairy borrows some of its code and has been much inspired by [avisogenies](https://gitlab.inria.fr/roberdam/avisogenies/).
+functions. This library borrows some of its code and has been much inspired by [avisogenies](https://gitlab.inria.fr/roberdam/avisogenies/).
 
 # Introduction
 
@@ -70,5 +70,4 @@ $ make install
 ```
 
 # Usage
-For examples on how to use the package, see the live [binder demo](https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.inria.fr%2Froberdam%2Favisogenies/sage?filepath=.%2Fdocs/source/tutorials/example.ipynb
-), the tutorials in the documentation or the file `/examples/example.sage`.
+For examples on how to use the package, see the tutorials in the documentation or the folder `/examples/`.
