@@ -30,10 +30,10 @@ from sage.rings.all import ZZ, Zmod, Integer
 integer_types = (int, Integer)
 
 from .theta_null_point import AbelianVariety_ThetaStructure, KummerVariety
-from .morphisms import MumfordToLevel4ThetaPoint
-from .eta_maps import eta
+from .morphisms_level4 import MumfordToLevel4ThetaPoint
+from .morphisms_level2 import MumfordToLevel2ThetaPoint
 from .theta_point import VarietyThetaStructurePoint
-
+from .aux_hyper import remove_h, odd_degree_model, rosenhain_model
 
 class AnalyticThetaPoint:
     """
@@ -69,14 +69,22 @@ class AnalyticThetaPoint:
         """
         if not isinstance(D, JacobianMorphism_divisor_class_field):
             raise NotImplementedError
-        wp = th._weiestrass_points()
-        rt = th._rac()
+        C, phi = th.curve(phi=True)
+        if D.scheme().curve() != C:
+            raise ValueError
+        wp = th._weierstrass_points()
+        rt = th._root()
         u, v = D
-        points = sum(([(x, v(x))]*mult for x, mult in u.roots(u.splitting_field('z'))), [])
+        if phi.codomain() == C:
+            points = sum(([(x, v(x))]*mult for x, mult in u.roots()), [])
+        else:
+            points = sum(([phi([x, v(x), 1])]*mult for x, mult in u.roots()), [])
+        if len(points) != u.degree():
+            raise ValueError('Support not defined over field of definition')
         if th.level() == 2:
-            return MumfordToLevel4ThetaPoint(wp, rt, th, points)
+            return MumfordToLevel2ThetaPoint(wp, th, points)
         if th.level() == 4:
-            return MumfordToLevel2ThetaPoint(wp, rt, th, points)
+            return MumfordToLevel4ThetaPoint(wp, rt, th, points)
         raise NotImplementedError
         
     @classmethod
@@ -231,7 +239,7 @@ class AnalyticThetaNullPoint:
     See Section 3.1.2 in [Coss]_ for the definition of the notation.
     """
 
-    def __init__(self, R, l, g, v, curve=None, wp = None, rac = None): #Equivalent to "AnalyticThetaNullPoint" intrinsic method in magma
+    def __init__(self, R, l, g, v, curve=None, phi=None, wp=None, rac=None): #Equivalent to "AnalyticThetaNullPoint" intrinsic method in magma
         if l != 2 and l != 4:
             raise NotImplementedError
         if is_Vector(v):
@@ -255,6 +263,8 @@ class AnalyticThetaNullPoint:
             self._wp = wp
         if rac!=None:
             self._rac = rac
+        if phi!=None:
+            self._phi = phi
         
     @classmethod
     def from_curve(cls, C):
@@ -270,25 +280,30 @@ class AnalyticThetaNullPoint:
             sage: C = HyperellipticCurve(prod(X - al for al in a)); C
             Hyperelliptic Curve over Finite Field in z2 of size 83^2 defined by y^2 = x^5 + 44*x^4 + 28*x^3 + 23*x^2 + 70*x
             sage: th = AnalyticThetaNullPoint.from_curve(C); th
-            (1 : 37 : 56 : 57 : 34*z + 43 : 0 : 50*z + 73 : 0 : 30 : 2*z + 82 : 0 : 0 : 16*z + 37 : 0 : 0 : 61*z + 21)
+            (1 : 37 : 56 : 57 : 34*z2 + 43 : 0 : 50*z2 + 73 : 0 : 30 : 2*z2 + 82 : 0 : 0 : 16*z2 + 37 : 0 : 0 : 61*z2 + 21)
             
         """
         if not isinstance(C, HyperellipticCurve_g2):
-            raise NotImplementedError('Thomae formulas are only implemented for curves of genus 2')
+            raise NotImplementedError('Thomae formulas are only implemented for curves of genus 2.')
+        F = C.base_ring()
         f, h = C.hyperelliptic_polynomials()
+        phi = C.identity_morphism()
         if h != 0:
-            f = f + h**2/4
+            phi = remove_h_(phi)
+            f, h = phi.codomain().hyperelliptic_polynomials()
         if f.degree() % 2 == 0:
-            C2 = HyperellipticCurve(f)
-            f, _ = C2.odd_degree_model().hyperelliptic_polynomials()
-        F = f.splitting_field('z')
-        z, = F.gens()
-        a = f.roots(F, multiplicities=False)
+            phi = odd_degree_model(phi)
+            f, h = phi.codomain().hyperelliptic_polynomials()
+        a = sum(([el]*m for el,m in f.roots()), [])
+        if len(a) != 5:
+            raise ValueError('No Rosenhain model exists over field of definition')
         a.sort()
-        if a[:2] == [0,1]:
-            l, m, n = a[2:]
-        else:
-            l, m, n = [(el - a[0])/(a[0] - a[1]) for el in a[2:]]
+        if a[:2] != [0,1]:
+            phi = rosenhain_model(phi)
+            f, h = phi.codomain().hyperelliptic_polynomials()
+            a = sum(([el]*m for el,m in f.roots()), [])
+            a.sort()
+        l, m, n = a[2:]
         D = Zmod(2)**4
         ng = 2**4
         idx = lambda i : ZZ(list(i), 2)
@@ -296,7 +311,6 @@ class AnalyticThetaNullPoint:
         th2 = [F(1)] + [F(0)]*(ng-1)
         if not all([el.is_square() for el in th4]):
             F, to_F = F.extension(2, map=True)
-            z = F.gens()
             th4 = [to_F(el) for el in th4]
         for i, ei in enumerate(D.gens()):
             th2[idx(ei)] = sqrt(th4[i])
@@ -307,11 +321,10 @@ class AnalyticThetaNullPoint:
         th2[idx([1,1,1,1])] = (n-m)/(n-1)*th2[idx([0,0,1,0])]*th2[idx([1,1,0,0])]/th2[idx([0,0,0,1])]
         if not all([el.is_square() for el in th2]):
             F, to_F = F.extension(2, map=True)
-            z, = F.gens()
             th2 = [to_F(el) for el in th2]
         th = [sqrt(el) for el in th2]
         wp = [F(el) for el in [0,1,l,m,n]]
-        return cls(F, 4, 2, th, curve=C, wp=wp, rac=F(1))
+        return cls(F, 4, 2, th, curve=C, phi=phi, wp=wp, rac=F(1))
         
     @classmethod
     def from_algebraic(cls, thc):
@@ -357,6 +370,12 @@ class AnalyticThetaNullPoint:
             return False
         return self._coords == X._coords
 
+    def level(self):
+        """
+        Return the level of the thetanullpoint, 2 or 4.
+        """
+        return self._level
+
     def _idx_to_char(self, x):
         """
         Return the caracteristic in D that corresponds to a given integer index.
@@ -390,7 +409,7 @@ class AnalyticThetaNullPoint:
         self = args[0]
         P = args[1]
         if isinstance(P, JacobianMorphism_divisor_class_field):
-            return self._point.from_divisor(self, D)
+            return self._point.from_divisor(self, P)
         elif isinstance(P, VarietyThetaStructurePoint):
             return self._point.from_algebraic(P, thc=self)
         return self._point(*args, **kwds)
@@ -461,14 +480,17 @@ class AnalyticThetaNullPoint:
         self._algebraic = AbelianVariety_ThetaStructure(R, n, g, point)
         return self._algebraic
     
-    def curve(self):
+    def curve(self, phi=False):
         """
         Hyperelliptic curve corresponding to this analytic theta null point.
         """
         try:
-            return self._curve
+            C = self._curve
         except AttributeError:
             raise NotImplementedError('Curve not indicated upon creation.')
+        if not phi:
+            return C
+        return [self._curve, self._phi]
             
     def _weierstrass_points(self):
         """
@@ -491,7 +513,7 @@ class AnalyticThetaNullPoint:
             self._wp = a if a[:2] == [0,1] else [0, 1] + [(el - a[0])/(a[0] - a[1]) for el in a[2:]]
             return self._wp
 
-    def _rac(self):
+    def _root(self):
         """
         Chosen square root of the difference between the x-coordinates 
         of the first two Weierstrass points (a[0] - a[1]).
@@ -500,7 +522,7 @@ class AnalyticThetaNullPoint:
             return self._rac
         except AttributeError:
             wp = self._weierstrass_points()
-            if a[:2] == [0,1]:
+            if wp[:2] == [0,1]:
                 self._rac = 1
                 return 1
             raise NotImplementedError('Square root of (a_1 - a_0) not indicated upon creation.')

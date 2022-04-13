@@ -185,7 +185,7 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
         sage: thc = [1,  37,  56, 57, 34*z + 43, 0, 50*z + 73, 0, 30, 2*z + 82, 0, 0, 16*z + 37, 0, 0, 61*z + 21]
         sage: thc = AnalyticThetaNullPoint(F, 4, g, thc)
         sage: u = (X-43)*(X-10); v = z^954*X + z^2518
-        sage: points = sum(([(x, v(x))]*mult for x, mult in u.roots(u.splitting_field('t'))), [])
+        sage: points = sum(([(x, v(x))]*mult for x, mult in u.roots()), [])
         sage: th = MumfordToLevel4ThetaPoint(a, rac, thc, points); th
         (78*z2 + 13 : 77*z2 + 26 : 43*z2 + 3 : 54*z2 + 67 : 77*z2 + 61 : 35*z2 + 2 : 31*z2 + 8 :
         19*z2 + 38 : 25*z2 + 9 : z2 + 65 : 17*z2 + 75 : 18*z2 + 38 : 50*z2 + 17 : 41*z2 + 6 : 18*z2 + 48 : 39*z2 + 73)
@@ -195,23 +195,20 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
         - Check question in code.
         
         - Address FIXME.
-    """
+    """    
     if thc._level != 4:
         raise ValueError(F'Expected level-4 theta structure.')
 
     g = thc._dimension
     thO = thc(0)
+    F = thc._R
 
     if len(points) == 0:
         return thO
 
-    F = TowerOfField([parent(elem) for elem in flatten(points) + a])
-    points = [(F(x), F(y)) for (x,y) in points]
-    a = [F(elem) for elem in a]
-
     K = PolynomialRing(F, 'x')
     x = K.gen()
-    u = prod(x - point[0] for point in points)
+    u = prod(x - point[0] for point in points) #TODO: Maybe we want to store u?
 
     up = u
     points_p = list(points)
