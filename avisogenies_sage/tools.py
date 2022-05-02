@@ -16,20 +16,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, Integer, Zmod
 from sage.arith.functions import lcm
-integer_types = (int, Integer)
+from sage.rings.all import ZZ, Integer, Zmod
 
-def TowerOfField(L):
-    F = L[0]
-    for elem in L[1:]:
-        if elem in integer_types:
-            elem = ZZ
-        deg1 = F.degree()
-        deg2 = elem.degree()
-        deg = lcm(deg1, deg2) // deg1
-        F = F.extension(ZZ(deg))
-    return F;
+integer_types = (int, Integer)
 
 def rangeS(n, S):
     for x in range(n):
@@ -77,7 +67,7 @@ def reduce_twotorsion(x):
     halflevels =[i.order()//2 for i in D.gens()]
     for i in range(n):
         if r[i] >= halflevels[i]:
-            r[i] = r[i] - halflevels[i];
+            r[i] = r[i] - halflevels[i]
             t[i] = 1
     return  D(r), T(t)
 
@@ -215,7 +205,8 @@ def eval_car(chi,t):
         for i in range(n):
             r[i] = ZZ(r[i])/halflevels[i]
         t = twotorsion(r)
-    return ZZ(-1)**(chi*t);
+    return ZZ(-1)**(chi*t)
+
 
 def evaluate_formal_points(w):
     r"""

@@ -58,11 +58,11 @@ REFERENCES:
 
 from itertools import product, combinations, chain
 
-from sage.misc.all import prod
-from sage.structure.element import parent
 from sage.functions.other import sqrt
-
+from sage.misc.all import prod
 from sage.rings.all import PolynomialRing, ZZ, Integer
+from sage.structure.element import parent
+
 integer_types = (int, Integer)
 from sage.arith.misc import XGCD
 
@@ -97,14 +97,15 @@ def MumfordToTheta_2_Generic(a, thc2, points):
         
         - Address FIXME.
     """
-    if thc2._level != 2:
+    if thc2.level() != 2:
         raise ValueError(F'Expected level-2 theta structure.')
 
-    g = thc2._dimension
+    g = thc2.dimension()
     if len(points) != g:
         raise ValueError(F'Expected degree-{g} divisor')
 
-    K = PolynomialRing(parent(points[0][0]), 'x')
+    F = thc2._R
+    K = PolynomialRing(F, 'x')
     x = K.gen()
     u = prod(x - point[0] for point in points)
 
@@ -130,7 +131,7 @@ def MumfordToTheta_2_Generic(a, thc2, points):
         if lpoints == g:
             YS = YS_fromMumford_Generic(g, a, S, points)
         elif lpoints == g - 1:
-            YS = YS_fromMumford_Delta(g, a, S, points)
+            YS = YS_fromMumford_Delta(g, a, S, points, F)
         else:
             raise NotImplementedError('The case of non generic delta divisor is not implemented')
         ee = normalize_eta(e + eta(g, S))
@@ -187,10 +188,10 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
         - We might want to change the input to take an actual mumford representation, we can compute the point list later!
     
     """
-    if thc2._level != 2:
+    if thc2.level() != 2:
         raise ValueError(f'Expected level-2 theta structure.')
 
-    g = thc2._dimension
+    g = thc2.dimension()
 
     if len(points) == 0:
         return thc2(0)
@@ -289,9 +290,9 @@ def ThetaToMumford_2_Generic(a, th2):
     .. todo:: Address FIXME.
     """
     thc2 = th2.abelian_variety()
-    g = thc2._dimension
+    g = thc2.dimension()
 
-    if thc2._level != 2:
+    if thc2.level() != 2:
         raise ValueError(f'Expected a level-2 theta structure')
 
     Ab = thc2._numbering
@@ -372,7 +373,7 @@ def ThetaToMumford_2_Generic(a, th2):
                     q *= th2[idxb]
                     r += q/2**g
 
-                # On multiplie r par la bonne constante dans la somme
+                # We multiply r by the right constant in the sum
                 c = set()
                 for st in [{l,m}, {l,n}, {m}, {n}]:
                     c.symmetric_difference_update(C[frozenset(st)])
@@ -422,9 +423,9 @@ def ThetaToMumford_2_algclose(a,th2):
         - Test against Magma, add examples
     """
     thc2 = th2.abelian_variety()
-    g = thc2._dimension
+    g = thc2.dimension()
 
-    if thc2._level != 2:
+    if thc2.level() != 2:
         raise ValueError(f'Expected a level-2 theta structure')
 
     # Ab = thc2._numbering
@@ -474,9 +475,9 @@ def Level2ThetaPointToMumford(a, th2):
     .. todo:: Test against Magma, add examples
     """
     thc2 = th2.abelian_variety()
-    g = thc2._dimension
+    g = thc2.dimension()
 
-    if thc2._level != 2:
+    if thc2.level() != 2:
         raise ValueError(f'Expected a level-2 theta structure')
 
     U = {2*x for x in range(g+1)}

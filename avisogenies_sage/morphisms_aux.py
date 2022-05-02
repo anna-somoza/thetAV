@@ -59,21 +59,21 @@ REFERENCES:
 from collections import Counter
 from itertools import product, combinations, chain
 
-from sage.misc.all import prod, flatten, is_odd
-from sage.structure.element import parent
 from sage.functions.other import ceil, floor
-
+from sage.misc.all import prod, flatten, is_odd
 from sage.rings.all import PolynomialRing, ZZ, Integer
+from sage.structure.element import parent
+
 integer_types = (int, Integer)
 
-from .tools import TowerOfField, rangeS
+from .tools import rangeS
 from .eta_maps import eta, eta_prime, eta_second, normalize_eta, sign_theta_normalized
 from .ep_elements import EpElement
 
 
 
 def compatible_sqrt(g, i, j):
-    """
+    r"""
     Return the numerator and the denominator of sqrt(a_i - a_j) given by Definition 2
     in [VanW, page 3093] as an element of Ep.
     
@@ -111,7 +111,7 @@ def compatible_sqrt(g, i, j):
         U = {2*x for x in range(g+1)}
         W = U.symmetric_difference(V)
 
-        idx = lambda x : ZZ([s%2 for s in x], 2)
+        idx = lambda x : ZZ([c%2 for c in x], 2)
         ej = eta(g, W ^ {2*g + 1, j})
         e01 = eta(g, W ^ {0,1})
         e1 = eta(g, W ^ {2*g + 1, 1})
@@ -135,7 +135,7 @@ def compatible_sqrt(g, i, j):
     W = U.symmetric_difference(L)
 
     a = compatible_sqrt(g, 0, i)
-    idx = lambda x : ZZ([s%2 for s in x], 2)
+    idx = lambda x : ZZ([c%2 for c in x], 2)
     e0i = eta(g, W ^ {0,i})
     ej = eta(g, W ^ {2*g + 1, j})
     e0 = eta(g, W ^ {2*g + 1, 0})
@@ -335,7 +335,7 @@ def sign_s_A(g, A, C):
 
 def IgusaTheorem(A, TH):
     """
-    Apply Igusa theorems to the theta with caracteristic given in the list A
+    Apply Igusa theorems to the theta with characteristic given in the list A
     The theta in the summation are taken from TH #FIXME: Add reference
 
     INPUT:
@@ -457,7 +457,7 @@ def YS_fromMumford_Generic(g, a, S, points):
         YS += t
     return YS
 
-def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
+def YS_fromMumford_Delta(g, a, S, points, F): #DIFF: Not tested against Magma
     """
     Let D be a point in Jac(C)\\Theta. D can be writen as
     D = sum_1^g P_i - g P_infty
@@ -474,7 +474,7 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
         sage: from avisogenies_sage.morphisms_aux import YS_fromMumford_Delta
         sage: F = GF(331); g = 2; a = [0, 1, 2, 3, 4]; S = [0,2,3]
         sage: points = [(F(5), F(38))]*2
-        sage: YS_fromMumford_Delta(g, [F(el) for el in a], S, points)
+        sage: YS_fromMumford_Delta(g, [F(el) for el in a], S, points, F)
         64
 
     .. todo:: Test against Magma (minus the possible mistake)!
@@ -485,7 +485,6 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
         raise ValueError(F'Expected points={points} to be a list of {g} elements of which exactly two are equal')
 
     n = floor(len(S)/2)
-    F = TowerOfField([parent(elem) for elem in flatten(points) + a])
     points = [(F(x), F(y)) for (x,y) in points]
     a = [F(elem) for elem in a]
 
@@ -506,7 +505,7 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
         break
 
     Y = 0
-    #Cases where I doesn't contain the indices of the repeated cases or it contains both (if possible): normal.
+    #Cases where I doesn't contain the indices of the repeated cases, or it contains both (if possible): normal.
     for I in chain.from_iterable(combinations(range(g-2), r) for r in [n, n-2] if r >=0):
         if len(I) == n-2:
             I = I + (g-2, g-1)  #DIFF: In Magma implementation, in this case, missing y_{-1}^2 ? See Definition 5.1.26 on pg 116
@@ -600,7 +599,7 @@ def YS_fromMumford_Delta(g, a, S, points): #DIFF: Not tested against Magma
 
     return Y
 
-def prodYp_fromMumford_with2torsion(g, a, S, points, V, C):
+def prodYp_fromMumford_with2torsion(g, a, S, points, V, C, F):
     """
     Let D be a point in Jac(C)\\Theta. D can be writen as
     D = sum_1^g P_i - g P_infty
@@ -613,7 +612,7 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C):
 
     Compute the function
     prod Y_Si' / prod a_l
-    where the second product is over l in V compted twice iff it appears in all Si
+    where the second product is over l in V counted twice iff it appears in all Si
 
     EXAMPLES ::
 
@@ -622,7 +621,7 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C):
         sage: S = [{0,2,3},{0},{2,4}, {3,4}]; V = {1}
         sage: points = [(F(1), F(0)), (F(8), F(10))]
         sage: C = choice_of_all_C_Cosset(g)
-        sage: prodYp_fromMumford_with2torsion(g, a, S, points, V, C)
+        sage: prodYp_fromMumford_with2torsion(g, a, S, points, V, C, F)
         187
 
     .. todo:: Address FIXME.
@@ -640,7 +639,6 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C):
     if S[0] ^ S[1] ^ S[2] ^ S[3] != set():
         raise ValueError(F'Error??? FIXME')
 
-    F = TowerOfField([parent(elem) for elem in flatten(points) + a])
     points = [(F(x), F(y)) for (x,y) in points]
     a = [F(elem) for elem in a]
     K = PolynomialRing(F, 'x')
@@ -649,7 +647,7 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C):
     if any(u(a[l]) != 0 for l in V):
         raise ValueError('Indices in V should vanish u??') #FIXME
 
-    # Let R be a subset {1..g} which correspond to the index i such that P_i is the
+    # Let R be a subset {1, ..., g} which correspond to the index i such that P_i is the
     # ramification point a_l with l in V
     R = [points.index((a[l],0)) for l in V]
     ind_VmS = [{idx for idx, l in zip(R, V) if l in s} for s in S]
@@ -660,7 +658,6 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C):
 
     Y = 0
     for Ip in product(*[combinations(rangeS(g, R), ni - len(V & si)) for ni, si in zip(n, S)]):
-        Ip1, Ip2, Ip3, Ip4 = Ip
         I = [ s | set(ip) for s, ip in zip(ind_VmS, Ip)]
         t = prod(points[i][1]  for Ij in I for i in Ij.difference(R))
 
@@ -682,7 +679,7 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C):
     for s in S:
         if len(s) == 1:
             Y *= (-1)**g*u(next(iter(s)))
-        elif len(s) >= 2 and len(s) <= 2*g - 1:
+        elif 2 <= len(s) <= 2*g - 1:
             Y *= sign_s_A(g, s, C)
         elif len(s) == 2*g:
             Y *= sign_s_A(g, range(2*g+1), C)

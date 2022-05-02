@@ -19,10 +19,11 @@ package_name = 'avisogenies_sage'
 package_folder = "../../avisogenies_sage"
 authors = u"Anna Somoza"
 
-import six
-import sys
 import os
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
+import sys
+
+import six
+from sage.env import SAGE_DOC_SRC
 
 try:
     import sage.all

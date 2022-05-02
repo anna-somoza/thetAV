@@ -8,7 +8,6 @@ AUTHORS:
 
 """
 
-
 # ****************************************************************************
 #             Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
@@ -55,13 +54,13 @@ REFERENCES:
     
 """
 
-
 from collections import Counter, namedtuple
 
 from sage.misc.all import prod
-
 from sage.rings.all import ZZ, Integer
+
 integer_types = (int, Integer)
+
 
 class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], defaults=[1, 0, Counter(), Counter()])):
     """
@@ -109,9 +108,7 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
             EpElement(sign=1, power=0, numer=Counter({3: 1}), denom=Counter({1: 1, 4: 1}))
 
         """
-        self = self._replace(numer = self.numer - self.denom, denom = self.denom - self.numer)
-
-        return self
+        return self._replace(numer=self.numer - self.denom, denom=self.denom - self.numer)
 
     def __mul__(self, other):
         """
@@ -128,26 +125,25 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
             EpElement(sign=1, power=5, numer=Counter({3: 2}), denom=Counter({4: 2, 5: 1}))
 
         """
-        elem = EpElement(self.sign * other.sign, self.power + other.power, self.numer + other.numer, self.denom + other.denom)
+        elem = EpElement(self.sign * other.sign, self.power + other.power, self.numer + other.numer,
+                         self.denom + other.denom)
         return elem.clean_common()
 
     def __str__(self):
-        s = []
-        s.append(f'sign={self.sign}')
-        s.append(f'power={self.power}')
+        s = [f'sign={self.sign}', f'power={self.power}']
         n = 'numer={\n    '
-        n += ',\n    '.join(sorted(f'{key.digits(2)}: {value}' for key,value in self.numer.items()))
+        n += ',\n    '.join(sorted(f'{key.digits(2)}: {value}' for key, value in self.numer.items()))
         n += '\n}'
         s.append(n)
         d = 'denom={\n    '
-        d += ',\n    '.join(sorted(f'{key.digits(2)}: {value}' for key,value in self.denom.items()))
+        d += ',\n    '.join(sorted(f'{key.digits(2)}: {value}' for key, value in self.denom.items()))
         d += '\n}'
         s.append(d)
         return ',\n'.join(s)
 
     def __truediv__(self, other):
         """
-        Divide two elements of Ep, that is, divide their signs, substract their powers and
+        Divide two elements of Ep, that is, divide their signs, subtract their powers and
         cross-multiply the numerators and denominators.
 
         EXAMPLES ::
@@ -160,13 +156,14 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
             EpElement(sign=1, power=-1, numer=Counter({5: 1}), denom=Counter())
 
         """
-        elem = EpElement(self.sign * other.sign, self.power - other.power, self.numer + other.denom, self.denom + other.numer)
+        elem = EpElement(self.sign * other.sign, self.power - other.power, self.numer + other.denom,
+                         self.denom + other.numer)
         return elem.clean_common()
 
     def __pow__(self, b):
         """
         Compute the power of an element of Ep, that is, compute the power of the sign,
-        the multiple of the power, and multiply the multiplicites of the elements in the numerator
+        the multiple of the power, and multiply the multiplicities of the elements in the numerator
         and denominator.
 
         EXAMPLES ::
@@ -182,22 +179,22 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
         if b == 0:
             return EpElement()
         elif b < 0:
-            denom = Counter({k : -b*v for k,v in self.numer.items() if b*v != 0})
-            numer = Counter({k : -b*v for k,v in self.denom.items() if b*v != 0})
+            denom = Counter({k: -b * v for k, v in self.numer.items() if b * v != 0})
+            numer = Counter({k: -b * v for k, v in self.denom.items() if b * v != 0})
         else:
-            numer = Counter({k : b*v for k,v in self.numer.items() if b*v != 0})
-            denom = Counter({k : b*v for k,v in self.denom.items() if b*v != 0})
-        elem = EpElement(self.sign**b, self.power*b, numer, denom)
+            numer = Counter({k: b * v for k, v in self.numer.items() if b * v != 0})
+            denom = Counter({k: b * v for k, v in self.denom.items() if b * v != 0})
+        elem = EpElement(self.sign ** b, self.power * b, numer, denom)
 
         return elem
-        
-    def evaluate(f, a, thc, rac=None):
+
+    def evaluate(self, a, thc, rac=None):
         """
-        Let f be an element of Ep. Evaluate f.
+        Let self be an element of Ep. Evaluate self.
 
         INPUT:
 
-        - ``f`` - an EpElement.
+        - ``self`` - an EpElement.
         - ``a`` - list of x-coordinates of the Weierstrass points.
         - ``thc`` - the theta null point associated to the jacobian of the curve.
         - ``rac`` - a root of <a_1 - a_0>
@@ -214,33 +211,33 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
             249
 
         """
-        level = thc._level
+        level = thc.level()
         thO = thc(0)
 
         if level == 2:
             try:
-                ff = f.sign*(a[1] - a[0])**ZZ(f.power/2)
+                ff = self.sign * (a[1] - a[0]) ** ZZ(self.power / 2)
             except TypeError:
-                raise ValueError('The power of sqrt(a_1 - a_0) in f is expected to be even.')
+                raise ValueError('The power of sqrt(a_1 - a_0) in self is expected to be even.')
 
             try:
-                ff *= prod(thO[elem]**ZZ(multi/2) for elem, multi in f.numer.items())
-            except TypeError: #If one of the exponents is not integer
-                raise ValueError('All multiplicities in the numerator of f are expected to be even.')
+                ff *= prod(thO[elem] ** ZZ(multi / 2) for elem, multi in self.numer.items())
+            except TypeError:  # If one of the exponents is not integer
+                raise ValueError('All multiplicities in the numerator of self are expected to be even.')
 
             try:
-                ff /= prod(thO[elem]**ZZ(multi/2) for elem, multi in f.denom.items())
-            except TypeError: #If one of the exponents is not integer
-                raise ValueError('All multiplicities in the denominator of f are expected to be even.')
+                ff /= prod(thO[elem] ** ZZ(multi / 2) for elem, multi in self.denom.items())
+            except TypeError:  # If one of the exponents is not integer
+                raise ValueError('All multiplicities in the denominator of self are expected to be even.')
 
             return ff
 
         if level == 4:
-            if rac == None:
+            if rac is None:
                 raise TypeError('Missing root of <a_2-a_1>.')
-            ff = f.sign*rac**f.power
-            ff *= prod(thO[elem]**multi for elem, multi in f.numer.items())
-            ff /= prod(thO[elem]**multi for elem, multi in f.denom.items())
+            ff = self.sign * rac ** self.power
+            ff *= prod(thO[elem] ** multi for elem, multi in self.numer.items())
+            ff /= prod(thO[elem] ** multi for elem, multi in self.denom.items())
             return ff
-            
+
         raise NotImplementedError('Only implemented for level 2 and 4.')

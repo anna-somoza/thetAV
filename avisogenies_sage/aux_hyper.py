@@ -1,5 +1,26 @@
+"""
+Auxiliary functions to obtain different isomorphic models of hyperelliptic curves.
+
+
+AUTHORS:
+
+- Anna Somoza (2021-22): initial implementation
+
+"""
+
+
+# ****************************************************************************
+#             Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
+#
+#    Distributed under the terms of the GNU General Public License (GPL)
+#    as published by the Free Software Foundation; either version 2 of
+#    the License, or (at your option) any later version.
+#                                    https://www.gnu.org/licenses/
+# ****************************************************************************
+
+from sage.categories.homset import hom
 from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
-from sage.categories.homset import hom 
+
 
 def remove_h(phi):
     C = phi.codomain()

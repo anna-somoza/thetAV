@@ -38,9 +38,10 @@ REFERENCES:
 """
 
 from itertools import chain
-from sage.rings.all import ZZ
+
 from sage.functions.other import ceil, floor
 from sage.modules.free_module_element import zero_vector
+from sage.rings.all import ZZ
 
 
 def eta_prime(g, L, normalized=False):
@@ -223,7 +224,7 @@ def sign_theta_normalized(*data):
     Computes the sign difference between theta constant with characteristic `e` and the
     theta constant with characteristic `normalized_eta(e)`.
 
-    See [VanW, Equation (8)]_ for more information on the quasiperiodicity of theta constants.
+    See [VanW, Equation (8)]_ for more information on the quasi-periodicity of theta constants.
 
     It accepts both eta vectors and a tuple (g, L) that defines an acceptable input for `eta`.
 

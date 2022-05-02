@@ -1,14 +1,12 @@
+import re
+
 from pygments.lexers.python import *
 
-import re
 line_re = re.compile('.*?\n')
 
-from pygments.lexer import Lexer, RegexLexer, include, bygroups, using, \
-    default, words, combined, do_insertions
-from pygments.util import get_bool_opt, shebang_matches
-from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Generic, Other, Error
-from pygments import unistring as uni
+from pygments.lexer import do_insertions
+from pygments.token import Name, Generic
+
 
 def setup(app):
     app.add_lexer('sagecon', SageConsoleLexer)
@@ -59,7 +57,7 @@ class SageConsoleLexer(PythonConsoleLexer):
                     curcode = ''
                     insertions = []
                 if (line.startswith(u'Traceback (most recent call last):') or
-                        re.match(u'  File "[^"]+", line \\d+\\n$', line)):
+                        re.match(u' {2}File "[^"]+", line \d+\n$', line)):
                     tb = 1
                     curtb = line
                     tbindex = match.start()

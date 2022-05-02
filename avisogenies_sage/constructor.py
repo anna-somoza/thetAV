@@ -18,7 +18,9 @@ AUTHORS:
 
 
 from sage.modular.abvar.constructor import AbelianVariety as ModularAbelianVariety
+
 from .theta_null_point import AbelianVariety_ThetaStructure, KummerVariety
+
 
 def AbelianVariety(*data, **kwargs):
     """
