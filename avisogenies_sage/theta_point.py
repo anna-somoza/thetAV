@@ -34,11 +34,11 @@ from sage.rings.all import PolynomialRing, Integer, ZZ
 from sage.schemes.generic.morphism import SchemeMorphism_point
 from sage.structure.all import Sequence
 from sage.structure.element import AdditiveGroupElement
-from sage.structure.richcmp import richcmp, op_EQ, op_NE
+from sage.structure.richcmp import richcmp_method, richcmp, op_EQ, op_NE
 
 integer_types = (int, Integer)
 
-
+@richcmp_method
 class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
     """
     Constructor for a point on a variety with theta structure.
@@ -174,7 +174,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
                     return False
         return True
 
-    def _richcmp_(self, right, op):
+    def __richcmp__(self, right, op):
         """
         Comparison function for points to allow sorting and equality
         testing (as projective points).
@@ -711,7 +711,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         assert len(set(M)) == 1  # lift found
         return M[0] / lam ** (l - 1)
 
-
+@richcmp_method
 class AbelianVarietyPoint(VarietyThetaStructurePoint):
     """
     Constructor for a point on an abelian variety with theta structure.
@@ -875,7 +875,7 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
             return self._add(other, i0 + 1)
         return point0.point(PQ)
 
-
+@richcmp_method
 class KummerVarietyPoint(VarietyThetaStructurePoint):
     """
     Constructor for a point on an kummer variety with theta structure.

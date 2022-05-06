@@ -20,14 +20,15 @@ AUTHORS:
 from itertools import product
 
 from sage.functions.other import sqrt
-from sage.rings.all import ZZ, Zmod, Integer
+from sage.misc.misc_c import prod
+from sage.rings.all import ZZ, Zmod, Integer, PolynomialRing
 from sage.schemes.generic.morphism import SchemeMorphism_point
 from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
 from sage.schemes.hyperelliptic_curves.hyperelliptic_g2 import HyperellipticCurve_g2
 from sage.schemes.hyperelliptic_curves.jacobian_morphism import JacobianMorphism_divisor_class_field
 from sage.structure.element import is_Vector, parent
 
-from .aux_hyper import remove_h, odd_degree_model, rosenhain_model
+from .aux_hyper import remove_h, rosenhain_model
 from .morphisms_level2 import MumfordToLevel2ThetaPoint
 from .morphisms_level4 import MumfordToLevel4ThetaPoint
 from .theta_null_point import AbelianVariety_ThetaStructure, KummerVariety
@@ -294,19 +295,14 @@ class AnalyticThetaNullPoint:
         phi = C.identity_morphism()
         if h != 0:
             phi = remove_h(phi)
-            f, h = phi.codomain().hyperelliptic_polynomials()
-        if f.degree() % 2 == 0:
-            phi = odd_degree_model(phi)
-            f, h = phi.codomain().hyperelliptic_polynomials()
+            f, _ = phi.codomain().hyperelliptic_polynomials()
         a = sum(([el] * m for el, m in f.roots()), [])
-        if len(a) != 5:
+        if len(a) not in [5, 6]:
             raise ValueError('No Rosenhain model exists over field of definition')
+        phi = rosenhain_model(phi)
+        f, _ = phi.codomain().hyperelliptic_polynomials()
+        a = sum(([el] * m for el, m in f.roots()), [])
         a.sort()
-        if a[:2] != [0, 1]:
-            phi = rosenhain_model(phi)
-            f, h = phi.codomain().hyperelliptic_polynomials()
-            a = sum(([el] * m for el, m in f.roots()), [])
-            a.sort()
         l, m, n = a[2:]
         D = Zmod(2) ** 4
         ng = 2 ** 4
@@ -323,8 +319,7 @@ class AnalyticThetaNullPoint:
         th2[idx([1, 1, 0, 0])] = 1 / l * th2[idx([0, 1, 0, 0])] / th2[idx([1, 0, 0, 0])]
         th2[idx([0, 0, 1, 1])] = (n - 1) * th2[idx([1, 0, 0, 0])] * th2[idx([1, 0, 0, 1])] / th2[idx([0, 0, 1, 0])]
         th2[idx([0, 1, 1, 0])] = (l - 1) * th2[idx([1, 0, 0, 0])] * th2[idx([1, 1, 0, 0])] / th2[idx([0, 0, 1, 0])]
-        th2[idx([1, 1, 1, 1])] = (n - m) / (n - 1) * th2[idx([0, 0, 1, 0])] * th2[idx([1, 1, 0, 0])] / th2[
-            idx([0, 0, 0, 1])]
+        th2[idx([1, 1, 1, 1])] = (n - m) / (n - 1) * th2[idx([0, 0, 1, 0])] * th2[idx([1, 1, 0, 0])] / th2[idx([0, 0, 0, 1])]
         if level == 2:
             return cls(F, 2, 2, th2, curve=C, phi=phi, wp=[0, 1, l, m, n], rac=F(1))
         if not all([el.is_square() for el in th2]):
@@ -513,6 +508,17 @@ class AnalyticThetaNullPoint:
         Hyperelliptic curve corresponding to this analytic theta null point.
         """
         if self._curve is None:
+            if self.dimension() == 2:
+                idx = lambda c: ZZ(list(c), 2)
+                k = self.level()/2
+                F = self._R
+                l = (self[0]*self[idx([0,1,0,0])]/(self[idx([1,0,0,0])]*self[idx([1,1,0,0])]))**k
+                m = (self[idx([0,0,0,1])]*self[idx([0,1,0,0])]/(self[idx([1,0,0,1])]*self[idx([1,1,0,0])]))**k
+                n = (self[0]*self[idx([0,0,0,1])]/(self[idx([1,0,0,0])]*self[idx([1,0,0,1])]))**k
+                R = PolynomialRing(F, 'x')
+                x = R.gen()
+                f = prod([x - el for el in [F(0),F(1),l,m,n]])
+                return HyperellipticCurve(f)
             raise NotImplementedError('Curve not indicated upon creation.')
         return self._curve if not phi else [self._curve, self._phi]
 

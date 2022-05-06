@@ -31,6 +31,7 @@ thc[idx([1,1,1,1])]=z^1533
 #If we indicate the original curve, then we can create point from points 
 #of the Jacobian directly
 thc = AnalyticThetaNullPoint(F, 4, g, thc, curve=C, wp=a, rac=rac)
+thcC = AnalyticThetaNullPoint.from_curve(C, 4)
 
 # Point from a Mumford divisor
 u=(x-43)*(x-10)
