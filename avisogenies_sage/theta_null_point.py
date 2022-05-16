@@ -2,12 +2,26 @@
 This module defines the classes of Abelian varieties with theta structure
 and Kummer variety with theta structure as an abstract schemes.
 
-Following [Mum66] an abelian variety $A$ dimension $g$ together with a level $n$ theta
+Following [Mum66] an abelian variety $A$ of dimension $g$ together with a level $n$ theta
 structure is provided with a unique embedding $i: A \rightarrow P^{n^g-1}$. The data of
-the theta structure is equalent to the data of the theta null point $i(0)$. Actually,
-one of the main results of [Mum66] states that if $n \eq 4$, 
-one can recover a complete set of equations for $i(A)$ thanks to
-Riemann equations which are parametrized by the theta null point.
+the theta structure is equivalent to the data of the theta null point $i(0)$. Actually, one
+of the main results of [Mum66] states that if $n \eq 4$, one can recover a complete set of
+equations for $i(A)$ thanks to Riemann equations which are parametrized by the theta null
+point.
+
+In the case that $n=2$, as all the level two theta functions are even the map $i A
+\rightarrow P^{n^g-1}$ factor through the Kummer variety $K=A/(-1)$ associated to $A$.
+
+As for computations, one look for the most compact and efficient representation, in most
+instances level $4$ representation is enough. In some cases, one can find useful the
+increased speed up provided by the level $2$ representation, so working with Kummer
+varieties, at the expense of loosing the group law of the abelian variety (but x
+
+The main point of this module is to provide constructors for the creation of an Abelian
+and Kummer variety together with a level $n$ theta structure ($n=2$ in case of Kummer
+variety) and computing Riemann equations to represent its projective embedding and
+arithmetic. 
+
 
 AUTHORS:
 
