@@ -2,6 +2,13 @@
 This module defines the classes of Abelian varieties with theta structure
 and Kummer variety with theta structure as an abstract schemes.
 
+Following [Mum66] an abelian variety $A$ dimension $g$ together with a level $n$ theta
+structure is provided with a unique embedding $i: A \rightarrow P^{n^g-1}$. The data of
+the theta structure is equalent to the data of the theta null point $i(0)$. Actually,
+one of the main results of [Mum66] states that if $n \eq 4$, 
+one can recover a complete set of equations for $i(A)$ thanks to
+Riemann equations which are parametrized by the theta null point.
+
 AUTHORS:
 
 - Anna Somoza (2020-22): initial implementation
@@ -10,6 +17,13 @@ REFERENCES:
 
 .. [Gaud] P. Gaudry. Fast genus 2 arithmetic based on theta functions.
    J. Math. Cryptol. 1 (3) (2007) 243–265.
+
+.. [Mum66] D. Mumford. On the equations defining abelian varieties. I. Invent. Math.,
+237-354, 1966.
+
+.. [Mum67a] D. Mumford. On the equations defining abelian varieties. II. Invent. Math.,
+75-135, 1967.
+
 
 .. todo::
 

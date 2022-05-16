@@ -7,19 +7,18 @@ Abelian varieties and their moduli space available in Sagemath. Our aim is to be
 general, efficient and user friendly as possible. We also want to lay the groundwork and
 appeal to the community to developp extensions on top of our library.
 
-In general, we represent the abelian
-varieties (together with a very ample symmetric line bundle) with the projective
-coordinates provided by a theta structure. In the special case that the abelian variety
-$A$ is the jacobian of a curve $C$ other representations are available such as Mumford's
-representation if $C$ is hyperelliptic: we want to make the switch between the different
-representations as transparent as possible for the user.
+In general, we represent the abelian varieties (together with a very ample symmetric line
+bundle) with the projective coordinates provided by a theta structure. In the special case
+that the abelian variety $A$ is the jacobian of a curve $C$ other representations are
+available such as Mumford's representation if $C$ is hyperelliptic: we want to make the
+switch between the different representations as transparent as possible for the user.
 
 
 This library borrows some of its code and has been much inspired by [avisogenies](https://gitlab.inria.fr/roberdam/avisogenies/).
 
 # Introduction
 
-Let $A$ be a dimension-$g$ abelian variety together with a (symmetric) ample line bundle $L$. We say that $L$ has level
+Let $A$ be a dimension-$g$ abelian variety together with a symmetric ample line bundle $L$. We say that $L$ has level
 $n>0$ if the kernel $K$ of the polarisation $\phi_L : A \rightarrow \hat{A}$ 
 is isomorphic to $(\mathbb{Z}/n\mathbb{Z})^{2g}$. We have $\operatorname{dim} \Gamma(A,
 L)=n^g$ and, if $t=(t_1, \ldots, t_{n^g})$ is a basis of sections of $\Gamma(A, L)$, we have a
