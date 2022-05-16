@@ -2,10 +2,20 @@
 
 # Goal
 
-The aim of this project is to have a complete set of tools to represent and compute with
-Abelian varieties and their moduli space available in Sagemath.  Our aim is to be as
-general and as efficient as possible. For this, we rely on the general theory of theta
-functions. This library borrows some of its code and has been much inspired by [avisogenies](https://gitlab.inria.fr/roberdam/avisogenies/).
+The aim of AVisogeny is to have a set of tools as complete as possible to represent and compute with
+Abelian varieties and their moduli space available in Sagemath. Our aim is to be as
+general, efficient and user friendly as possible. We also want to lay the groundwork and
+appeal to the community to developp extensions on top of our library.
+
+In general, we represent the abelian
+varieties (together with a very ample symmetric line bundle) with the projective
+coordinates provided by a theta structure. In the special case that the abelian variety
+$A$ is the jacobian of a curve $C$ other representations are available such as Mumford's
+representation if $C$ is hyperelliptic: we want to make the switch between the different
+representations as transparent as possible for the user.
+
+
+This library borrows some of its code and has been much inspired by [avisogenies](https://gitlab.inria.fr/roberdam/avisogenies/).
 
 # Introduction
 
