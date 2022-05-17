@@ -7,19 +7,24 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# *****************************************************************************
+#       Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #       Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
+from functools import partial
 
-
+from sage.all import ZZ
+from sage.misc.functional import sqrt
 from sage.modular.abvar.constructor import AbelianVariety as ModularAbelianVariety
+from sage.rings.finite_rings.integer_mod_ring import Zmod
+from sage.schemes.hyperelliptic_curves.hyperelliptic_g2 import HyperellipticCurve_g2
 
-from .theta_null_point import AbelianVariety_ThetaStructure, KummerVariety
+from . import theta_null_point, analytic_theta_point, aux_hyper
 
 
 def AbelianVariety(*data, **kwargs):
@@ -78,8 +83,92 @@ def AbelianVariety(*data, **kwargs):
     """
     if len(data) > 1:
         if data[1] == 2:
-            data = data[:1]+data[2:]
-            return KummerVariety(*data, **kwargs)
-        return AbelianVariety_ThetaStructure(*data, **kwargs)
-    
+            data = data[:1] + data[2:]
+            return theta_null_point.KummerVariety(*data, **kwargs)
+        return theta_null_point.AbelianVariety_ThetaStructure(*data, **kwargs)
+
     return ModularAbelianVariety(data[0])
+
+
+def _with_theta_basis(label: str, *data, **kwargs):
+    if label == 'Fn':
+        return AbelianVariety(*data, **kwargs)
+    if label in ['F(2,2)', 'F(2,2)^2']:
+        #TODO: add checks for level
+        A = analytic_theta_point.AnalyticThetaNullPoint(*data, **kwargs)
+        return A.to_algebraic()
+    raise ValueError(f'The basis {label} is either not implemented or unknown.')
+
+
+setattr(AbelianVariety, 'with_theta_basis', _with_theta_basis)
+
+def _from_curve(C, level=4):
+    """
+    Given a hyperelliptic curve of genus 2, returns the analytic
+    theta null point of level 4 (default) or 2.
+
+    This function is accessible via AbelianVariety.from_curve
+    or KummerVariety.from_curve
+
+    EXAMPLES ::
+
+        sage: from avisogenies_sage import AbelianVariety
+        sage: F = GF(83^2); Fx.<X> = PolynomialRing(F)
+        sage: a = [0, 1, 3, 15, 20]
+        sage: C = HyperellipticCurve(prod(X - al for al in a)); C
+        Hyperelliptic Curve over Finite Field in z2 of size 83^2 defined by y^2 = x^5 + 44*x^4 + 28*x^3 + 23*x^2 + 70*x
+        sage: th = AbelianVariety.from_curve(C); th.with_theta_basis('F(2,2)')
+        (1 : 37 : 56 : 57 : 34*z2 + 43 : 0 : 50*z2 + 73 : 0 : 30 : 2*z2 + 82 : 0 : 0 : 16*z2 + 37 : 0 : 0 : 61*z2 + 21)
+
+    TODO ::
+
+        - Can we generalize to more curves? Genus 1? Genus >2?
+
+    """
+    if not isinstance(C, HyperellipticCurve_g2):
+        raise NotImplementedError('Thomae formulas are only implemented for curves of genus 2.')
+    F = C.base_ring()
+    f, h = C.hyperelliptic_polynomials()
+    phi = C.identity_morphism()
+    if h != 0:
+        phi = aux_hyper.remove_h(phi)
+        f, _ = phi.codomain().hyperelliptic_polynomials()
+    a = sum(([el] * m for el, m in f.roots()), [])
+    if len(a) not in [5, 6]:
+        raise ValueError('No Rosenhain model exists over field of definition')
+    phi = aux_hyper.rosenhain_model(phi)
+    f, _ = phi.codomain().hyperelliptic_polynomials()
+    a = sum(([el] * m for el, m in f.roots()), [])
+    a.sort()
+    l, m, n = a[2:]
+    D = Zmod(2) ** 4
+    ng = 2 ** 4
+    idx = lambda c: ZZ(list(c), 2)
+    th4 = [m / (l * n), m * (l - m) * (n - 1) / (n * (m - 1) * (l - n)), m * (l - 1) * (n - 1) / (l * n * (m - 1)),
+           m * (l - 1) * (n - m) / (l * (n - l) * (m - 1))]
+    th2 = [F(1)] + [F(0)] * (ng - 1)
+    if not all([el.is_square() for el in th4]):
+        F, to_F = F.extension(2, map=True)
+        th4 = [to_F(el) for el in th4]
+    for i, ei in enumerate(D.gens()):
+        th2[idx(ei)] = sqrt(th4[i])
+    th2[idx([1, 0, 0, 1])] = 1 / n * th2[idx([0, 0, 0, 1])] / th2[idx([1, 0, 0, 0])]
+    th2[idx([1, 1, 0, 0])] = 1 / l * th2[idx([0, 1, 0, 0])] / th2[idx([1, 0, 0, 0])]
+    th2[idx([0, 0, 1, 1])] = (n - 1) * th2[idx([1, 0, 0, 0])] * th2[idx([1, 0, 0, 1])] / th2[idx([0, 0, 1, 0])]
+    th2[idx([0, 1, 1, 0])] = (l - 1) * th2[idx([1, 0, 0, 0])] * th2[idx([1, 1, 0, 0])] / th2[idx([0, 0, 1, 0])]
+    th2[idx([1, 1, 1, 1])] = (n - m) / (n - 1) * th2[idx([0, 0, 1, 0])] * th2[idx([1, 1, 0, 0])] / th2[
+        idx([0, 0, 0, 1])]
+    if level == 2:
+        A = analytic_theta_point.AnalyticThetaNullPoint(F, 2, 2, th2, curve=C, phi=phi, wp=[0, 1, l, m, n], rac=F(1))
+    else:
+        if not all([el.is_square() for el in th2]):
+            F, to_F = F.extension(2, map=True)
+            th2 = [to_F(el) for el in th2]
+        th = [sqrt(el) for el in th2]
+        wp = [F(el) for el in [0, 1, l, m, n]]
+        A = analytic_theta_point.AnalyticThetaNullPoint(F, 4, 2, th, curve=C, phi=phi, wp=wp, rac=F(1))
+    return A.to_algebraic()
+
+
+setattr(AbelianVariety, 'from_curve', _from_curve)
+setattr(theta_null_point.KummerVariety, 'from_curve', partial(_from_curve, n=2))

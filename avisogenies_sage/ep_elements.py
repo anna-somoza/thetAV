@@ -201,10 +201,10 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint
+            sage: from avisogenies_sage import KummerVariety
             sage: from avisogenies_sage.morphisms_aux import compatible_sqrt
             sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
-            sage: thc = AnalyticThetaNullPoint.from_algebraic(A)
+            sage: thc = A.with_theta_basis('F(2,2)^2')
             sage: a = [0,1,4,6,7]
             sage: f = compatible_sqrt(g, 4, 2)
             sage: (f*f).evaluate(a, thc)

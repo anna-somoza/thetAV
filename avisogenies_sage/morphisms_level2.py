@@ -81,13 +81,13 @@ def MumfordToTheta_2_Generic(a, thc2, points):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint
+        sage: from avisogenies_sage import KummerVariety
         sage: from avisogenies_sage.morphisms_level2 import MumfordToTheta_2_Generic
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62)), (F(8), F(10))]
         sage: A = KummerVariety(F, g, [328 , 213 , 75 , 1], check=True)
-        sage: thc = AnalyticThetaNullPoint.from_algebraic(A)
+        sage: thc =  A.with_theta_basis('F(2,2)^2')
         sage: MumfordToTheta_2_Generic(a, thc, points)._coords #FIXME change when _repr_ is done
         (92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70)
 
@@ -157,24 +157,24 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint
+        sage: from avisogenies_sage import KummerVariety
         sage: from avisogenies_sage.morphisms_level2 import MumfordToLevel2ThetaPoint
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62)), (F(8), F(10))]
         sage: A = KummerVariety(F, g, [328 , 213 , 75 , 1], check=True)
-        sage: thc = AnalyticThetaNullPoint.from_algebraic(A)
+        sage: thc =  A.with_theta_basis('F(2,2)^2')
         sage: MumfordToLevel2ThetaPoint(a, thc, points)._coords #FIXME change when _repr_ is done
         (92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70)
 
 
-        sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint
+        sage: from avisogenies_sage import KummerVariety
         sage: from avisogenies_sage.morphisms_level2 import MumfordToLevel2ThetaPoint
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62))]
         sage: A = KummerVariety(F, g, [328 , 213 , 75 , 1], check=True)
-        sage: thc = AnalyticThetaNullPoint.from_algebraic(A)
+        sage: thc = A.with_theta_basis('F(2,2)^2')
         sage: MumfordToLevel2ThetaPoint(a, thc, points)._coords #FIXME change when _repr_ is done, Magma output
         (288, 101, 184, 91, 289, 74, 111, 10, 106, 54, 12, 0, 292, 48, 113, 243)
 
@@ -277,11 +277,11 @@ def ThetaToMumford_2_Generic(a, th2):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint
+        sage: from avisogenies_sage import KummerVariety
         sage: from avisogenies_sage.morphisms_level2 import ThetaToMumford_2_Generic
         sage: F = GF(331); A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
-        sage: thc = AnalyticThetaNullPoint.from_algebraic(A)
+        sage: thc = A.with_theta_basis('F(2,2)^2')
         sage: thp = thc(P)
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: ThetaToMumford_2_Generic(a, thp)

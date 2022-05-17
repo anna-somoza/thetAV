@@ -25,16 +25,19 @@ AUTHORS:
 
 from __future__ import print_function, division, absolute_import
 
+from functools import partial
 from itertools import product, combinations_with_replacement
 
 from sage.matrix.all import Matrix
 from sage.misc.all import ConstantFunction
-from sage.modules.free_module_element import vector
+from sage.modules.free_module_element import vector, FreeModuleElement
 from sage.rings.all import PolynomialRing, Integer, ZZ
 from sage.schemes.generic.morphism import SchemeMorphism_point
 from sage.structure.all import Sequence
 from sage.structure.element import AdditiveGroupElement
 from sage.structure.richcmp import richcmp_method, richcmp, op_EQ, op_NE
+
+from . import tools
 
 integer_types = (int, Integer)
 
@@ -77,6 +80,8 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         self.codomain = ConstantFunction(self._codomain)
         AdditiveGroupElement.__init__(self, point_homset)
         self._R = R
+        self._level = X.level()
+        self._with_theta_basis = {}
 
     def _repr_(self):
         """
@@ -93,7 +98,14 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
     def __getitem__(self, n):
         """
         Return the n-th coordinate of this point.
+
+        TODO: maybe test for twotorsion?
         """
+        if isinstance(n, list):
+            return self._coords[ZZ(n, self._level)]
+        elif isinstance(n, FreeModuleElement):
+            level = n.base_ring().order()
+            return self._coords[ZZ(n.list(), level)]
         return self._coords[n]
 
     def __iter__(self):
@@ -210,7 +222,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
     def _get_nonzero_coord(self, idx=True):
         for i, val in enumerate(self):
             if val != 0:
-                return i if idx else self.scheme()._idx_to_char(i)
+                return i if idx else tools.idx(i, self.level())
         raise ValueError('All entries are zero.')
 
     def diff_add(self, Q, PmQ):
@@ -227,12 +239,11 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         point0 = self.scheme()
         D = point0._D
         twotorsion = point0._twotorsion
-        idx = point0._char_to_idx
-        for i in D:
-            lambda2 = sum(self[idx(i + t)] * PmQ[idx(i + t)] for t in twotorsion)
+        for idxi, i in enumerate(D):
+            lambda2 = sum(self[i + t] * PmQ[i + t] for t in twotorsion)
             if lambda2 == 0:
                 continue
-            elt = (0, idx(i), idx(i))
+            elt = (0, idxi, idxi)
             r = point0._addition_formula(P, Q, [elt])
             lambda1 = r[elt]  # lambda1 = \sum PQ[i+t]PmQ[i+t]/2^g
             return lambda1 / lambda2
@@ -301,9 +312,8 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         point0 = self.scheme()
         D = point0._D
         mPcoord = [0] * len(point0)
-        idx = point0._char_to_idx
         for i, val in zip(D, self):
-            mPcoord[idx(-i)] = val
+            mPcoord[-i] = val
         return point0.point(mPcoord)
 
     def _rmul_(self, k):
@@ -603,9 +613,8 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         twotorsion = point0._twotorsion
         ng = n ** g
         PQR = [0] * ng
-        idx = point0._char_to_idx
         idxi0 = self._get_nonzero_coord()
-        i0 = point0._idx_to_char(idxi0)
+        i0 = D(idxi0)
         for idxI, I in enumerate(D):
             if self[idxI] == 0:
                 idxJ, J = idxi0, i0
@@ -613,9 +622,9 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
                 i2, j2, t2 = reduce_twotorsion_couple(I, J)
                 val = 0
                 for chi in twotorsion:
-                    l2 = sum(eval_car(chi, t) * Q[idx(i1 + t)] * R[idx(j1 + t)] for t in twotorsion)
-                    l3 = sum(eval_car(chi, t) * O[idx(i2 + t)] * QR[idx(j2 + t)] for t in twotorsion)
-                    l4 = sum(eval_car(chi, t) * PR[idx(i1 + t)] * PQ[idx(j1 + t)] for t in twotorsion)
+                    l2 = sum(eval_car(chi, t) * Q[i1 + t] * R[j1 + t] for t in twotorsion)
+                    l3 = sum(eval_car(chi, t) * O[i2 + t] * QR[j2 + t] for t in twotorsion)
+                    l4 = sum(eval_car(chi, t) * PR[i1 + t] * PQ[j1 + t] for t in twotorsion)
                     val += eval_car(chi, t2) * l3 * l4 / l2
                 PQR[idxI] = val / (2 ** g * self[idxJ])
             else:
@@ -624,7 +633,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
                 val = 0
                 for chi in twotorsion:
                     l2 = sum(eval_car(chi, t) * Q[idxt] * R[idxt] for idxt, t in enumerate(twotorsion))
-                    l3 = sum(eval_car(chi, t) * O[idx(i2 + t)] * QR[idx(j2 + t)] for t in twotorsion)
+                    l3 = sum(eval_car(chi, t) * O[i2 + t] * QR[j2 + t] for t in twotorsion)
                     l4 = sum(eval_car(chi, t) * PR[idxt] * PQ[idxt] for idxt, t in enumerate(twotorsion))
                     val += eval_car(chi, t2) * l3 * l4 / l2
                 PQR[idxI] = val / (2 ** g * self[idxJ])
@@ -670,10 +679,10 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         
         - ``self`` -- an l-torsion point of the abelian variety
         
-        - ``other`` -- a point of the abelian variety, or None if only the lift of an l-torsion
+        - ``other`` -- a list of points of the abelian variety, or None if only the lift of an l-torsion
           point is needed.
         
-        - ``add`` -- the point self + other, or None if only the lift of an l-torsion
+        - ``add`` -- the list of sums self + P for all the points in P, or None if only the lift of an l-torsion
           point is needed.
         
         - ``l`` -- the torsion
@@ -695,21 +704,43 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             # the lift
             M = []
             for idx, el in enumerate(A._D):
-                M.append(Qm[A._char_to_idx(-el)] / Qm1[idx])
-
+                M.append(Qm[-el] / Qm1[idx])
             assert len(set(M)) == 1  # lift found
             return M[0]
 
         lam = self.compatible_lift(l)
-        PlQ, lQ = self.diff_multadd(l, add, other)
-        # assert lQ == 0
+        deltas = [lam]
+        for P, PQ in zip(other, add):
+            PlQ, lQ = self.diff_multadd(l, PQ, P)
+            # assert lQ == 0
 
-        # the lift
-        M = []
-        for idx in range(len(A)):
-            M.append(other[idx] / PlQ[idx])
-        assert len(set(M)) == 1  # lift found
-        return M[0] / lam ** (l - 1)
+            # the lift
+            M = []
+            for x1, x2 in zip(P, PlQ):
+                M.append(x1 / x2)
+            assert len(set(M)) == 1  # lift found
+            deltas.append(M[0] / lam ** (l - 1))
+        return deltas
+
+    def with_theta_basis(self, label, **kwargs):
+        """
+        Let thc be a theta null point given by algebraic coordinates (i.e. :class:`AbelianVariety_ThetaStructure`, :class:`KummerVariety`). Compute the
+        corresponding theta null point (i.e. :class:`AnalyticThetaNullPoint`) in analytic coordinates.
+
+        TODO: check that label matches level
+        """
+        try:
+            return self._with_theta_basis[label]
+        except KeyError:
+            pass
+        if label == 'Fn':
+            return self
+        if label not in ['F(2,2)', 'F(2,2)^2']:
+            raise ValueError(f'The basis {label} is either not implemented or unknown.')
+        A = self.scheme().with_theta_basis(label)
+        self._with_theta_basis[label] = A._point.from_algebraic(self, thc=A)
+        return self._with_theta_basis[label]
+
 
 @richcmp_method
 class AbelianVarietyPoint(VarietyThetaStructurePoint):
@@ -755,33 +786,32 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
         VarietyThetaStructurePoint.__init__(self, X, v)
 
         if check:
-            from .tools import reduce_twotorsion_couple, eval_car
             O = X.theta_null_point()
-            idx = X._char_to_idx
+            idx = partial(tools.idx, n=O.level())
             dual = X._dual
             D = X._D
             twotorsion = X._twotorsion
             if len(dual) != len(X):
                 for (idxi, i), (idxj, j) in product(enumerate(D), enumerate(D)):
-                    ii, jj, tt = reduce_twotorsion_couple(i, j)
+                    ii, jj, tt = tools.reduce_twotorsion_couple(i, j)
                     for idxchi, chi in enumerate(twotorsion):
                         el = (idxchi, idx(ii), idx(jj))
                         if el not in dual:
-                            dual[el] = sum(eval_car(chi, t) * O[idx(ii + t)] * O[idx(jj + t)] for t in twotorsion)
+                            dual[el] = sum(tools.eval_car(chi, t) * O[ii + t] * O[jj + t] for t in twotorsion)
                         el2 = (idxchi, idxi, idxj)
-                        dual[el2] = eval_car(chi, tt) * dual[el]
+                        dual[el2] = tools.eval_car(chi, tt) * dual[el]
             X._dual = dual
 
             dualself = {}
             DD = [2 * d for d in D]
             for (idxi, i), (idxj, j) in product(enumerate(D), enumerate(D)):
-                ii, jj, tt = reduce_twotorsion_couple(i, j)
+                ii, jj, tt = tools.reduce_twotorsion_couple(i, j)
                 for idxchi, chi in enumerate(twotorsion):
                     el = (idxchi, idx(ii), idx(jj))
                     if el not in dualself:
-                        dualself[el] = sum(eval_car(chi, t) * v[idx(ii + t)] * v[idx(jj + t)] for t in twotorsion)
+                        dualself[el] = sum(tools.eval_car(chi, t) * v[ii + t] * v[jj + t] for t in twotorsion)
                     el2 = (idxchi, idx(i), idx(j))
-                    dualself[el2] = eval_car(chi, tt) * dualself[el]
+                    dualself[el2] = tools.eval_car(chi, tt) * dualself[el]
 
             for elem in combinations_with_replacement(combinations_with_replacement(enumerate(D), 2), 2):
                 ((idxi, i), (idxj, j)), ((idxk, k), (idxl, l)) = elem
@@ -969,20 +999,18 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
         ng = n ** g
         PQ = [0] * ng
         i0 = PmQ._get_nonzero_coord()
-        from .tools import eval_car
-        char = point0._idx_to_char
-        chari0 = char(i0)
+        chari0 = twotorsion(i0)
         L = []
         for i, chari in enumerate(twotorsion):
             if PmQ[i] == 0:
                 L += [(chi, i, i0) for chi, charchi in enumerate(twotorsion) if
-                      eval_car(charchi, chari + chari0) == 1]
+                      tools.eval_car(charchi, chari + chari0) == 1]
             else:
                 L += [(chi, i, i) for chi in range(ng)]
         r = point0._addition_formula(self, Q, L)
         for i, chari in enumerate(twotorsion):
             if PmQ[i] == 0:
-                cartosum = [chi for chi, charchi in enumerate(twotorsion) if eval_car(charchi, chari + chari0) == 1]
+                cartosum = [chi for chi, charchi in enumerate(twotorsion) if tools.eval_car(charchi, chari + chari0) == 1]
                 PQ[i] = sum(r[(chi, i, i0)] for chi in cartosum) / (PmQ[i0] * len(cartosum))
             else:
                 PQ[i] = sum(r[(chi, i, i)] for chi in range(ng)) / (ng * PmQ[i])
@@ -999,7 +1027,7 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
         # PQ[i] -= PQ[j]*PmQ[i]/PmQ[j]
         return point0.point(PQ)
 
-    def _add(self, other, i0=0):
+    def _add(self, other, idxi0=0):
         """
         Normal addition between self and other on the affine plane with respect to i0.
         If (self - other)[i] == 0, then it tries with another affine plane.
@@ -1016,60 +1044,60 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
         """
         from .tools import eval_car
         point0 = self.kummer_variety()
+        twotorsion = point0._twotorsion
         n = 2
-        g = point0.dimension()
+        g = point0._dimension
         ng = n ** g
         PQ = [0] * ng
-        char = point0._idx_to_char
         PmQ = [0] * ng
-        for i0 in range(ng):
-            for i1 in range(ng):
-                if i0 == i1:
-                    continue
-                L = [(chi, i, i0) for chi in range(ng) for i in range(ng) if
-                     eval_car(char(chi), char(i) + char(i0)) == 1] \
-                    + [(chi, i, i1) for chi in range(ng) for i in range(ng) if
-                       eval_car(char(chi), char(i) + char(i1)) == 1]
-                r = point0._addition_formula(self, other, L)
-                kappa0 = [0] * ng
-                kappa1 = [0] * ng
-                for i in range(ng):
-                    cartosum = [chi for chi in range(ng) if eval_car(char(chi), char(i) + char(i0)) == 1]
-                    kappa0[i] = sum(r[(chi, i, i0)] for chi in cartosum) / len(cartosum)
-                    if i == i0 and kappa0[i0] == 0:
-                        continue  # FIXME this continue should be for the i0-loop for efficiency.
-                    cartosum = [chi for chi in range(ng) if eval_car(char(chi), char(i) + char(i1)) == 1]
-                    kappa1[i] = sum(r[(chi, i, i1)] for chi in cartosum) / len(cartosum)
-                F = kappa1[i0].parent()
-                R = PolynomialRing(F, 'X')
-                invkappa0 = 1 / kappa0[i0]
-                PmQ[i0] = F(1)
-                PQ[i0] = kappa0[i0]
-                poly = R([kappa1[i1] * invkappa0, - kappa0[i1] * invkappa0, 1])
-                roots = poly.roots(multiplicities=False)
-                # it can happen that P and Q are not rational in the av but
-                # rational in the kummer variety, so P+Q won't be rational
-                # TODO: Find tests where this happens
-                if len(roots) == 0:
-                    # We need to work on the splitting field.
-                    F = poly.splitting_field('t')
-                    raise ValueError(f'The normal addition is defined over the extension {F}.')
-                if len(roots) == 1:
-                    roots = roots * 2
-                PmQ[i1] = roots[0] * PmQ[i0]
-                PQ[i1] = roots[1] * PQ[i0]
+        i0 = twotorsion(idxi0)
+        for idxi1, i1 in enumerate(twotorsion):
+            if idxi0 == idxi1:
+                continue
+            L = [(idxchi, idxi, idxi0) for idxchi, chi in enumerate(twotorsion) for idxi, i in enumerate(twotorsion) if
+                 eval_car(chi, i + i0) == 1] \
+                + [(idxchi, idxi, idxi1) for idxchi, chi in enumerate(twotorsion) for idxi, i in enumerate(twotorsion) if
+                   eval_car(chi, i + i1) == 1]
+            r = point0._addition_formula(self, other, L)
+            kappa0 = [0] * ng
+            kappa1 = [0] * ng
+            for idxi, i in enumerate(twotorsion):
+                cartosum = [idxchi for idxchi, chi in enumerate(twotorsion) if eval_car(chi, i + i0) == 1]
+                kappa0[idxi] = sum(r[(idxchi, idxi, idxi0)] for idxchi in cartosum) / len(cartosum)
+                if idxi == idxi0 and kappa0[idxi0] == 0:
+                    return self._add(other, idxi0 + 1)
+                cartosum = [idxchi for idxchi, chi in enumerate(twotorsion) if eval_car(chi, i + i1) == 1]
+                kappa1[idxi] = sum(r[(idxchi, idxi, idxi1)] for idxchi in cartosum) / len(cartosum)
+            F = kappa1[idxi0].parent()
+            R = PolynomialRing(F, 'X')
+            invkappa0 = 1 / kappa0[idxi0]
+            PmQ[idxi0] = F(1)
+            PQ[idxi0] = kappa0[idxi0]
+            poly = R([kappa1[idxi1] * invkappa0, - kappa0[idxi1] * invkappa0, 1])
+            roots = poly.roots(multiplicities=False)
+            # it can happen that P and Q are not rational in the av but
+            # rational in the kummer variety, so P+Q won't be rational
+            ## TODO: Find tests where this happens
+            if len(roots) == 0:
+                # We need to work on the splitting field.
+                F = poly.splitting_field('t')
+                raise ValueError(f'The normal addition is defined over the extension {F}.')
+            if len(roots) == 1:
+                roots = roots * 2
+            PmQ[idxi1] = roots[0] * PmQ[idxi0]
+            PQ[idxi1] = roots[1] * PQ[idxi0]
 
-                M = Matrix([[PmQ[i0], PmQ[i1]], [PQ[i0], PQ[i1]]])
-                if not M.is_invertible():
+            M = Matrix([[PmQ[idxi0], PmQ[idxi1]], [PQ[idxi0], PQ[idxi1]]])
+            if not M.is_invertible():
+                continue
+            for i in range(ng):
+                if i == idxi0 or i == idxi1:
                     continue
-                for i in range(ng):
-                    if i == i0 or i == i1:
-                        continue
-                    v = vector([kappa0[i], kappa1[i]])
-                    w = M.solve_left(v)
-                    PmQ[i] = w[1]
-                    PQ[i] = w[0]
-                return point0.point(PQ), point0.point(PmQ)
+                v = vector([kappa0[i], kappa1[i]])
+                w = M.solve_left(v)
+                PmQ[i] = w[1]
+                PQ[i] = w[0]
+            return point0.point(PQ), point0.point(PmQ)
         raise ValueError("Failed to compute normal addition.")
 
     def _neg_(self):

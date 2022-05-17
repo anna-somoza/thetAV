@@ -180,7 +180,7 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import AnalyticThetaNullPoint
+        sage: from avisogenies_sage.analytic_theta_point import AnalyticThetaNullPoint
         sage: from avisogenies_sage.morphisms_level4 import MumfordToLevel4ThetaPoint
         sage: F = GF(83^2); z, = F.gens(); Fx.<X> = PolynomialRing(F)
         sage: g = 2; a = [F(0), 1, 3, 15, 20]; rac = sqrt(a[1] - a[0])

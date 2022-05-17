@@ -57,13 +57,12 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
-
+from functools import partial
 from itertools import product, combinations_with_replacement
 
-from sage.arith.misc import two_squares, four_squares
+
 from sage.categories.fields import Fields
-from sage.matrix.all import matrix, column_matrix, identity_matrix
-from sage.rings.all import Zmod, PolynomialRing, FractionField, mod, ZZ
+from sage.rings.all import PolynomialRing, FractionField, ZZ
 from sage.rings.integer import Integer
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
 from sage.schemes.generic.homset import SchemeHomset_points
@@ -71,10 +70,11 @@ from sage.schemes.generic.morphism import SchemeMorphism_point
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.structure.element import is_Vector
 from sage.structure.richcmp import richcmp_method, richcmp, op_EQ, op_NE
+from sage.schemes.hyperelliptic_curves.jacobian_morphism import JacobianMorphism_divisor_class_field
 
+from . import analytic_theta_point, constructor
+from . import tools
 from .theta_point import VarietyThetaStructurePoint, AbelianVarietyPoint, KummerVarietyPoint
-from .tools import reduce_twotorsion_couple, reduce_symtwotorsion_couple, eval_car, get_dual_quadruplet, \
-    evaluate_formal_points
 
 _Fields = Fields()
 integer_types = (int, Integer)
@@ -94,9 +94,11 @@ class Variety_ThetaStructure(AlgebraicScheme):
     - ``T`` - a list of length n\ :sup:`g` elements of R - the theta
       null point determining the abelian variety.
     - ``check`` (default: *False*) -- A boolean; if *True*, checks that
-      the riemann relations are satisfied by the input.        
+      the riemann relations are satisfied by the input.
     """
     _point = VarietyThetaStructurePoint
+    #from_curve = partial(constructor._from_curve, level=2)
+    #with_theta_basis = constructor._with_theta_basis
 
     def __init__(self, R, n, g, T):
         """
@@ -117,6 +119,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
         self._thetanullpoint = self.point(T)
         self._riemann = {}
         self._dual = {}
+        self._with_theta_basis = {}
 
     def __richcmp__(self, X, op):
         """
@@ -228,7 +231,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
     def _point_homset(self, *args, **kwds):
         return SchemeHomset_points(*args, **kwds)
 
-    def point(*args, **kwds):
+    def point(self, P, **kwds):
         """
         Create a point.
 
@@ -246,51 +249,69 @@ class Variety_ThetaStructure(AlgebraicScheme):
         A point of the scheme.
 
         """
-        self = args[0]
-        return self._point(*args, **kwds)
+        if isinstance(P, JacobianMorphism_divisor_class_field):
+            match self.level():
+                case 2:
+                    kwds['basis'] = 'F(2,2)^2'
+                case 4:
+                    kwds['basis'] = 'F(2,2)'
+                case _:
+                    raise NotImplementedError("Point from divisor only available for level 2 and 4.")
+        if 'basis' in kwds:
+            #Analytic basis
+            A = self.with_theta_basis(kwds['basis'])
+            AP = A(P)
+            return AP.to_algebraic(A=self)
+        return self._point(self, P, **kwds)
 
     __call__ = point
 
-    def _idx_to_char(self, idx, twotorsion=False):
-        r"""
-        Return the characteristic in ``D`` that corresponds to a given
-        integer index.
-
-        INPUT:
-
-        - ``idx`` -- an integer between 0 and n\ :sup:`g` - 1.
-        - ``twotorsion`` -- a boolean (default: *False*). If *True*, return
-          an element of twotorsion `= Zmod(2)^g`, where g is the dimension
-          of self. Otherwise, return an element of D = Zmod(n)^g, where
-          n is the level of self.
-
-        ..todo::
-
-            - Make public?
-
-            - rename?
-
-            - Examples
-
+    def with_theta_basis(self, *data, **kwargs):
         """
-        g = self._dimension
-        if twotorsion:
-            n = 2
-            universe = self._twotorsion
-        else:
-            n = self._level
-            universe = self._D
-        if idx < 0 or idx >= n ** g:
-            raise ValueError(f"The integer idx = {idx} does not represent a valid element of D = {universe}")
-        return universe(ZZ(idx).digits(n, padto=g))
+        Let thc be a theta null point given by algebraic coordinates (i.e. :class:`AbelianVariety_ThetaStructure`, :class:`KummerVariety`). Compute the
+        corresponding theta null point (i.e. :class:`AnalyticThetaNullPoint`) in analytic coordinates.
 
-    def _char_to_idx(self, c, twotorsion=False):
+        TODO: check that label matches level
         """
-        Return the integer index that corresponds to a given characteristic in ``D``.
+        if type(self) == str:
+            from .constructor import _with_theta_basis
+            return _with_theta_basis(self, *data, **kwargs)
+        label = data[0]
+        try:
+            return self._with_theta_basis[label]
+        except KeyError:
+            pass
+        if label == 'Fn':
+            return self
+        if label not in ['F(2,2)', 'F(2,2)^2']:
+            raise ValueError(f'The basis {label} is either not implemented or unknown.')
+        n = self.level()
+        g = self.dimension()
 
-        """
-        n = 2 if twotorsion else self._level
-        return ZZ(list(c), n)
+        O = self.theta_null_point()
+        D = self._D
+        point = [0] * (4 ** g)
+        R = self.base_ring()
+
+        if n == 2:
+            for (idxa, a), (idxb, b) in product(enumerate(D), repeat=2):
+                point[idxa + 2 ** g * idxb] = sum(
+                    (-1) ** ZZ(a * beta) * O[b + beta] * O[idxbeta] for idxbeta, beta in enumerate(D)) / 2 ** g
+            th = analytic_theta_point.AnalyticThetaNullPoint(R, n, g, point)
+            self._with_theta_basis[label] = th
+            return th
+
+        if n == 4:
+            twotorsion = self._twotorsion  # Zmod(2)^g
+            for (idxa, a), (idxb, b) in product(enumerate(twotorsion), repeat=2):
+                Db = D(list(b))
+                point[idxa + 2 ** g * idxb] = sum(
+                    (-1) ** (a * beta) * O[Db + beta] for beta in twotorsion) / 2 ** g
+            th = analytic_theta_point.AnalyticThetaNullPoint(R, n, g, point)
+            self._with_theta_basis[label] = th
+            return th
+
+        raise NotImplementedError
 
     def riemann_relation(self, *data):
         """
@@ -322,33 +343,46 @@ class Variety_ThetaStructure(AlgebraicScheme):
             - Private or public?
 
         """
-        idx = self._char_to_idx
-        char = self._idx_to_char
         P0 = self.theta_null_point()
-        if len(data) == 1:
-            try:
-                return self._riemann[tuple(data[0])]
-            except KeyError:
-                idxchi, idxi, idxj = data[0]
-                i = char(idxi)
-                j = char(idxj)
-                chi = char(idxchi, True)
-        elif len(data) == 3:
-            chi, i, j = data
-            idxchi = idx(chi, True)
-            idxi = idx(i)
-            idxj = idx(j)
-            try:
-                return self._riemann[(idxchi, idxi, idxj)]
-            except KeyError:
-                pass
-        else:
-            raise TypeError("Input should be a tuple of length 3 or 3 elements.")
-
+        idx = partial(tools.idx, n=self.level())
         D = self._D
-        DD = [2 * d for d in D]
         twotorsion = self._twotorsion
-        i, j, tij = reduce_twotorsion_couple(i, j)
+        match data:
+            case [(idxchi, idxi, idxj)] | [[idxchi, idxi, idxj]]:
+                i = D[idxi]
+                j = D[idxj]
+                chi = twotorsion[idxchi]
+            case chi, i, j:
+                idxchi = tools.idx(chi, n=2)
+                idxi = idx(i)
+                idxj = idx(j)
+            case _:
+                raise TypeError("Input should be a tuple of length 3 or 3 elements.")
+
+        # try:
+        #     return self._riemann[(idxchi, idxi, idxj)]
+        # except KeyError:
+        #     pass
+        # if len(data) == 1:
+        #     try:
+        #         return self._riemann[tuple(data[0])]
+        #     except KeyError:
+        #         idxchi, idxi, idxj = data[0]
+        #         i = char(idxi)
+        #         j = char(idxj)
+        #         chi = char(idxchi, True)
+        # elif len(data) == 3:
+        #     chi, i, j = data
+        #
+        #     try:
+        #         return self._riemann[(idxchi, idxi, idxj)]
+        #     except KeyError:
+        #         pass
+        # else:
+        #     raise TypeError("Input should be a tuple of length 3 or 3 elements.")
+
+        DD = [2 * d for d in D]
+        i, j, tij = tools.reduce_twotorsion_couple(i, j)
         # we try to find k and l to apply the addition formulas such that
         # we can reuse the maximum the computations
         # for a differential addition, i == j (generically) and we take k = l = 0
@@ -363,10 +397,10 @@ class Variety_ThetaStructure(AlgebraicScheme):
         for u, v in product(D, D):
             if u + v not in DD:
                 continue
-            k, l, _ = reduce_symtwotorsion_couple(k0 + u, l0 + v)
+            k, l, _ = tools.reduce_symtwotorsion_couple(k0 + u, l0 + v)
             el = (idxchi, idx(k), idx(l))
             if el not in self._dual:
-                self._dual[el] = sum(eval_car(chi, t) * P0[idx(k + t)] * P0[idx(l + t)] for t in twotorsion)
+                self._dual[el] = sum(tools.eval_car(chi, t) * P0[k + t] * P0[l + t] for t in twotorsion)
             if self._dual[el] != 0:
                 kk = k0 + u
                 ll = l0 + v
@@ -375,10 +409,10 @@ class Variety_ThetaStructure(AlgebraicScheme):
             for t in twotorsion:
                 self._riemann[(idxchi, idx(i + t), idx(j + t))] = []
             return []
-        kk0, ll0, tkl = reduce_symtwotorsion_couple(kk, ll)
-        i2, j2, k2, l2 = get_dual_quadruplet(i, j, kk, ll)
-        i20, j20, tij2 = reduce_twotorsion_couple(-i2, j2)
-        k20, l20, tkl2 = reduce_twotorsion_couple(k2, l2)
+        kk0, ll0, tkl = tools.reduce_symtwotorsion_couple(kk, ll)
+        i2, j2, k2, l2 = tools.get_dual_quadruplet(i, j, kk, ll)
+        i20, j20, tij2 = tools.reduce_twotorsion_couple(-i2, j2)
+        k20, l20, tkl2 = tools.reduce_twotorsion_couple(k2, l2)
         for t in twotorsion:
             self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, t, kk0, ll0, tkl, i20, j20, tij2, k20, l20,
                                                                tkl2]  # DIFF Maybe we only need to store the sum of all twotorsion.
@@ -397,14 +431,13 @@ class Variety_ThetaStructure(AlgebraicScheme):
 
         """
         twotorsion = self._twotorsion
-        idx = self._char_to_idx
-        char = self._idx_to_char
+        idx = partial(tools.idx, n=self.level())
         r = {}
         for el in L:
             if el in r:
                 continue
-            IJ = self.riemann_relation(
-                el)  # Are we sure that this pair (i,j) is reduced as in riemann? Or it is not done like that? check.
+            # Are we sure that this pair (i,j) is reduced as in riemann? Or it is not done like that? check.
+            IJ = self.riemann_relation(el)
             if not len(IJ):
                 raise ValueError(
                     "Can't compute the addition! Either we are in level 2 and computing a normal addition, or a differential addition with null even theta null points.")
@@ -414,14 +447,14 @@ class Variety_ThetaStructure(AlgebraicScheme):
             ck20, cl20 = IJ[9:11]
             tt = IJ[2] + IJ[5] + IJ[8] + IJ[11]  # If we only want the addition, why not store _riemann only with that?
 
-            chi = char(el[0], True)
+            chi = twotorsion(el[0])
 
-            s1 = sum(eval_car(chi, t) * Q[idx(ci20 + t)] * Q[idx(cj20 + t)] for t in twotorsion)
-            s2 = sum(eval_car(chi, t) * P[idx(ck20 + t)] * P[idx(cl20 + t)] for t in twotorsion)
+            s1 = sum(tools.eval_car(chi, t) * Q[ci20 + t] * Q[cj20 + t] for t in twotorsion)
+            s2 = sum(tools.eval_car(chi, t) * P[ck20 + t] * P[cl20 + t] for t in twotorsion)
             A = self._dual[(el[0], k0, l0)]
-            S = eval_car(chi, tt) * s2 * s1 / A
+            S = tools.eval_car(chi, tt) * s2 * s1 / A
             for t in twotorsion:
-                r[(el[0], idx(ci0 + t), idx(cj0 + t))] = eval_car(chi, t) * S
+                r[(el[0], idx(ci0 + t), idx(cj0 + t))] = tools.eval_car(chi, t) * S
         return r
 
     def isogeny(self, l, basis):
@@ -468,8 +501,8 @@ class Variety_ThetaStructure(AlgebraicScheme):
         for idx in range(len(self)):
             P0B[idx] = sum(el[idx] ** l for el in K.values()).lift()
         if self.level() == 2:
-            return KummerVariety(F, g, P0B, check=True)
-        return AbelianVariety_ThetaStructure(F, self.level(), g, P0B, check=True)
+          return KummerVariety(F, g, P0B, check=True), K
+        return AbelianVariety_ThetaStructure(F, self.level(), g, P0B, check=True), K
 
 
 @richcmp_method
@@ -517,21 +550,11 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
 
         T = tuple(R(a) for a in T)
 
-        D = Zmod(n) ** g
-        twotorsion = Zmod(2) ** g
-
-        if not D.has_coerce_map_from(twotorsion):
-            from sage.structure.coerce_maps import CallableConvertMap
-            s = n // 2
-
-            def c(P, t):
-                return P(s * t.change_ring(ZZ))
-
-            c = CallableConvertMap(twotorsion, D, c)
-            D.register_coercion(c)
+        D, twotorsion = tools.create_indexing(n, g)
 
         if check:
-            idx = lambda i: ZZ(list(i), n)
+            from .tools import idx
+            idx = partial(tools.idx, n=n)
             dual = {}
             DD = [2 * d for d in D]
 
@@ -539,12 +562,12 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
                 raise ValueError('The given list does not define a valid thetanullpoint')
 
             for (idxi, i), (idxj, j) in product(enumerate(D), repeat=2):
-                ii, jj, tt = reduce_twotorsion_couple(i, j)
+                ii, jj, tt = tools.reduce_twotorsion_couple(i, j)
                 for idxchi, chi in enumerate(twotorsion):
                     el = (idxchi, idx(ii), idx(jj))
                     if el not in dual:
-                        dual[el] = sum(eval_car(chi, t) * T[idx(ii + t)] * T[idx(jj + t)] for t in twotorsion)
-                    dual[(idxchi, idxi, idxj)] = eval_car(chi, tt) * dual[el]
+                        dual[el] = sum(tools.eval_car(chi, t) * T[idx(ii + t)] * T[idx(jj + t)] for t in twotorsion)
+                    dual[(idxchi, idxi, idxj)] = tools.eval_car(chi, tt) * dual[el]
 
             for elem in combinations_with_replacement(combinations_with_replacement(enumerate(D), 2), 2):
                 ((idxi, i), (idxj, j)), ((idxk, k), (idxl, l)) = elem
@@ -598,7 +621,6 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
         D = self._D
         DD = [2 * d for d in D]
         twotorsion = self._twotorsion
-        idx = self._char_to_idx
         O = self.theta_null_point()
 
         eqns = []
@@ -607,10 +629,10 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
             if i + j + k + l in DD:
                 m = D([ZZ(x) / 2 for x in i + j + k + l])
                 for idxchi, chi in enumerate(twotorsion):
-                    Pel1 = sum(eval_car(chi, t) * P[idx(i + t)] * P[idx(j + t)] for t in twotorsion)
-                    Pel4 = sum(eval_car(chi, t) * P[idx(m - k + t)] * P[idx(m - l + t)] for t in twotorsion)
-                    Oel2 = sum(eval_car(chi, t) * O[idx(k + t)] * O[idx(l + t)] for t in twotorsion)
-                    Oel3 = sum(eval_car(chi, t) * O[idx(m - i + t)] * O[idx(m - j + t)] for t in twotorsion)
+                    Pel1 = sum(tools.eval_car(chi, t) * P[i + t] * P[j + t] for t in twotorsion)
+                    Pel4 = sum(tools.eval_car(chi, t) * P[m - k + t] * P[m - l + t] for t in twotorsion)
+                    Oel2 = sum(tools.eval_car(chi, t) * O[k + t] * O[l + t] for t in twotorsion)
+                    Oel3 = sum(tools.eval_car(chi, t) * O[m - i + t] * O[m - j + t] for t in twotorsion)
                     eq = Pel1 * Oel2 - Oel3 * Pel4
                     if eq != 0 and eq not in eqns:
                         eqns.append(eq)
@@ -618,120 +640,6 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
             eqns = []
         self._eqns = eqns
         return eqns
-
-    def isogeny_old(self, l, Q, k, P=None):
-        """
-        Old isogeny algorithm
-
-        INPUT:
-
-        - ``self`` -- An abelian variety given as a theta null point of level n and dimension g
-        - ``l`` -- an integer
-        - ``Q`` -- An univariate polynomial of degree l^g describing a l-torsion subgroup of A
-        - ``P`` -- A point of the abelian variety given as a projective theta point
-        - ``k`` -- a element of Zmod(n)^g
-
-
-        .. todo::
-
-            - Add more info to docstring & references. Add examples.
-
-        """
-
-        sqfree = l.squarefree_part()
-        l1 = ZZ((l / sqfree).sqrt())
-        if sqfree == 1:
-            return self._isogeny_1(l1, Q, P, k)
-        try:
-            a, b = two_squares(sqfree)
-            return self._isogeny_twoSq(l, l1, a, b, Q, P, k)
-        except ValueError:
-            a, b, c, d = four_squares(sqfree)
-            return self._isogeny_fourSq(l, l1, a, b, c, d, Q, P, k)
-
-    def _isogeny_1(self, l1, Q, P, k):
-        """
-        .. todo:: add minimal docstring (private function) and test.
-        """
-        pass
-
-    def _isogeny_twoSq(self, l, l1, a, b, Q, P, k):  ##Maybe add a line "if P != None"?
-        """
-        .. todo:: add minimal docstring (private function) and test.
-        """
-        S = Q.parent()
-        B = S.quotient(Q)
-        y, = B.gens()
-        IK = self.point([1, y], B)  ##TODO: generalize this line to general g
-        l1IK = l1 * IK
-        l1aP = (l1 * a) * P
-        eta = l1IK + l1aP  ##what shall we do when the level is 2? can't do it
-        T = PolynomialRing(B, names='mu')
-        mu, = T.gens()
-        etamu = eta.scale(mu, T)
-        beta0 = mod(-b / a, l)
-        eta1 = beta0 * etamu
-        D = self._D
-        Zn = D.base_ring()
-        M = l1 * matrix(Zn, 2, 2, [a, b, -b, a])
-        J = (column_matrix(Zn, [k, D(0)]) * M.inverse()).columns()
-        idx = self._char_to_idx
-        delta = l1IK.compatible_lift(l1aP, eta, l)
-        R = etamu[idx(D(J[0]))] * eta1[idx(D(J[1]))]  # This should have factors of mu^l, that we replace by delta
-        return evaluate_formal_points(B(R.mod(mu ** l - delta)))
-
-    def _isogeny_fourSq(self, l, l1, a, b, c, d, Q, P, k):
-        """
-        .. todo:: add minimal docstring (private function) and test.
-        """
-        # "Naive" implementation: Change to use three-way addition
-        S = Q.parent().extend_variables('y0')
-        B = S.quotient([q(v) for v in S.gens()])  # what is q here??
-        IK = [self.point([1, v], B) for v in B.gens()]  ##TODO: generalize this line to general g
-        l1IK = [l1 * IKi for IKi in IK]
-        l1aP = (l1 * a) * P
-        l1bP = (l1 * b) * P
-        eta1 = l1IK[0] + l1aP  ##what shall we do when the level is 2? can't do it
-        eta2 = l1IK[1] + l1bP
-        eta12 = eta1 + eta2
-        T = PolynomialRing(B, names='mu')
-        mu1, mu2, mu12, = T.gens()
-        etamu1 = eta1.scale(mu1, T)
-        etamu2 = eta2.scale(mu2, T)
-        etamu12 = eta12.scale(mu12, T)
-        delta = [eta1 ** l - l1IK[0].compatible_lift(l1aP, eta1, l),
-                 eta2 ** l - l1IK[1].compatible_lift(l1bP, eta2, l),
-                 eta12 ** l - (l1IK[0] + l1IK[1]).compatible_lift((l1 * (a + b)) * P, eta1, l)]
-        N = matrix(Zmod(l), 2, 2, [a, b, -b, a]).inverse() * matrix(Zmod(l), 2, 2, [c, d, -d, c])
-        eta1 = N[0, 0] * etamu1 + N[0, 1] * etamu2
-        eta2 = N[1, 0] * etamu1 + N[1, 1] * etamu2
-        D = self._D
-        Zn = D.base_ring()
-        M = matrix(Zn, 4, 4, [a, b, -c, -d, b, a, -d, c, c, d, a, -b, d, -c, b, a])
-        J = (column_matrix(Zn, [k] + [D(0)] * 3) * M.inverse()).columns()
-        idx = self._char_to_idx
-        R = etamu1[idx(D(J[0]))] * etamu1[idx(D(J[1]))] * eta1[idx(D(J[2]))] * eta2[idx(D(J[3]))]
-        for eq in delta:
-            R = R.mod(eq)
-        return evaluate_formal_points(B(R))  ##How does Evaluate work in this case?
-
-    def isogeny_pt(self, l, L, P=None):
-        """
-        Old isogeny algorithm
-
-        INPUT:
-
-        - ``self`` -- An abelian variety given as a theta null point of level n and dimension g
-        - ``l`` -- an integer
-        - ``L`` -- A list with a basis of the kernel of l-torsion of A
-        - ``P`` -- A point of the abelian variety given as a projective theta point
-        
-        .. todo::
-
-            - Add more info to docstring & references. Add examples.
-
-        """
-        raise NotImplementedError('TBD')
 
 
 @richcmp_method
@@ -756,6 +664,7 @@ class KummerVariety(Variety_ThetaStructure):
         
     """
     _point = KummerVarietyPoint
+    _level = 2
 
     def __init__(self, R, g, T, check=False):
         """
@@ -776,7 +685,7 @@ class KummerVariety(Variety_ThetaStructure):
 
         T = tuple(R(a) for a in T)
 
-        twotorsion = Zmod(2) ** g
+        twotorsion = tools.create_indexing(n, g, False)
 
         Variety_ThetaStructure.__init__(self, R, n, g, T)
 
@@ -815,175 +724,26 @@ class KummerVariety(Variety_ThetaStructure):
         if self._dimension != 2:
             raise NotImplementedError
         # TODO: add genericity condition checks.
-        a, c, d, b = list(self.theta_null_point())
-        A2 = (a ^ 2 + b ^ 2 + c ^ 2 + d ^ 2) / 4
-        B2 = (a ^ 2 + b ^ 2 - c ^ 2 - d ^ 2) / 4
-        C2 = (a ^ 2 - b ^ 2 + c ^ 2 - d ^ 2) / 4
-        D2 = (a ^ 2 - b ^ 2 - c ^ 2 + d ^ 2) / 4
+        O = self.with_theta_basis('F(2,2)^2')
+        idx = partial(tools.idx, n=2)
+        a2 = O[idx([0,0,0,0])]
+        b2 = O[idx([0,0,1,1])]
+        c2 = O[idx([0,0,0,1])]
+        d2 = O[idx([0,0,1,0])]
+        A2 = (a2 + b2 + c2 + d2) / 4
+        B2 = (a2 + b2 - c2 - d2) / 4
+        C2 = (a2 - b2 + c2 - d2) / 4
+        D2 = (a2 - b2 - c2 + d2) / 4
         E = a * b * c * d * A2 * B2 * C2 * D2 / (
-                    (a ^ 2 * d ^ 2 - b ^ 2 * c ^ 2) * (a ^ 2 * c ^ 2 - b ^ 2 * d ^ 2) * (a ^ 2 * b ^ 2 - c ^ 2 * d ^ 2))
-        F = (a ^ 4 - b ^ 4 - c ^ 4 + d ^ 4) / (a ^ 2 * d ^ 2 - b ^ 2 * c ^ 2)
-        G = (a ^ 4 - b ^ 4 + c ^ 4 - d ^ 4) / (a ^ 2 * c ^ 2 - b ^ 2 * d ^ 2)
-        H = (a ^ 4 + b ^ 4 - c ^ 4 - d ^ 4) / (a ^ 2 * b ^ 2 - c ^ 2 * d ^ 2)
-        x, z, t, y = list(self)
-        self._eqns = [
-            x ^ 4 + y ^ 4 + z ^ 4 + t ^ 4 + 2 * E * x * y * z * t - F * (x ^ 2 * t ^ 2 + y ^ 2 * z ^ 2) - G * (
-                        x ^ 2 * z ^ 2 + y ^ 2 * t ^ 2) - H * (x ^ 2 * y ^ 2 + z ^ 2 * t ^ 2)]
-        return self._eqns
+                (a2 * d2 - b2 * c2) * (a2 * c2 - b2 * d2) * (a2 * b2 - c2 * d2))
+        F = (a2 ** 2 - b2 ** 2 - c2 ** 2 + d2 ** 2) / (a2 * d2 - b2 * c2)
+        G = (a2 ** 2 - b2 ** 2 + c2 ** 2 - d2 ** 2) / (a2 * c2 - b2 * d2)
+        H = (a2 ** 2 + b2 ** 2 - c2 ** 2 - d2 ** 2) / (a2 * b2 - c2 * d2)
 
-    def isogeny_old(self, l, Q, k, P=None):
-        """
-        Old isogeny algorithm
-
-        INPUT:
-
-        - ``self`` -- An abelian variety given as a theta null point of level n and dimension g
-        - ``l`` -- an integer
-        - ``Q`` -- An univariate polynomial of degree l^g describing a l-torsion subgroup of A
-        - ``P`` -- A point of the abelian variety given as a projective theta point
-        - ``k`` -- a element of Zmod(n)^g
-
-
-        .. todo::
-
-            - Add more info to docstring & references. Add examples.
-
-        """
-        if P is not None:
-            raise ValueError('Cannot compute the image of a point via the isogeny')
-        # here do stuff taking into account the shape of q? depending on de degree of Q we have to do different thinks, because it can be of the shape (x - a)*self^2
-        if Q.degree() == l ** self.dimension():
-            poly = 1
-            for f, m in Q.factor():
-                if m == 2:
-                    poly *= f
-            Q = poly
-        assert 2 * Q.degree() + 1 == l ** self.dimension(), f'the input does not represent a valid {l}-torsion group of A={self}'
-        S = Q.parent()
-        B = S.quotient(Q)
-        y, = B.gens()
-        AB = self.change_ring(B)
-        Q = AB.point([1, y])
-        deltaQ = Q.compatible_lift(l)
-
-        T = PolynomialRing(B, names='mu')
-        mu, = T.gens()
-        T2 = T.quotient(mu ** l - deltaQ)
-        AT = self.change_ring(T2)
-        compQ = AT.point(Q).scale(mu)
-
-        # TODO generalize to include the other two cases.
-        sqfree = l.squarefree_part()
-        l1 = ZZ((l / sqfree).sqrt())
-        a, b = two_squares(sqfree)
-
-        t1 = (l1 * a) * compQ  # Revise if these are the right equations to use
-        t2 = (l1 * b) * compQ
-        idx = AT._char_to_idx
-        W = B((t1[idx(k)] * t2[0]).lift())  # lth power of lambda
-        P0 = self.theta_null_point()
-        return P0[idx(k)] * P0[0] + 2 * evaluate_formal_points(W)(0)
-
-    def isogeny_pt(self, l, L, P=None):
-        """
-        Old isogeny algorithm
-
-        INPUT:
-
-        - ``self`` -- An abelian variety given as a theta null point of level n and dimension g
-        - ``l`` -- an integer
-        - ``L`` -- A list with a basis of the kernel of l-torsion of A
-        - ``P`` -- A point of the abelian variety given as a projective theta point
-        
-        .. todo::
-
-            - Add more info to docstring & references. Add examples.
-
-        """
-        g = self.dimension()
         FF = self.base_ring()
-        D = self._D
-        idx = self._char_to_idx
-        if P is not None:
-            raise ValueError('Cannot compute the image of a point via the isogeny')
-        # here do stuff taking into account the shape of q? depending on de degree of Q we have to do different thinks, because it can be of the shape (x - a)*self^2
-        deltas = [pt.compatible_lift(l) for pt in L]
-
-        P0B = [0] * self._ng
-        S = PolynomialRing(FF, 'mu', len(L))
-        mu = S.gens()
-        T = S.quotient([mu[i] ** l - deltas[i] for i in range(len(L))])
-        AT = self.change_ring(T)
-        comps = [AT.point(L[i]).scale(mu[i]) for i in range(len(L))]
-
-        V = Zmod(l) ** g
-        idxl = lambda i: ZZ(list(i), l)
-        vs = V.basis()
-        K = [None] * V.cardinality()
-        # Kplain = [None]*V.cardinality()
-        K[0] = AT.theta_null_point()
-        # Kplain[0] = self.theta_null_point()
-        for i, v in enumerate(vs):
-            K[idxl(v)] = comps[i]
-            # Kplain[idxl(v)] = L[i]
-            if i != 0:
-                K[idxl(v + vs[0])] = comps[i + g - 1]
-                # Kplain[idxl(v + vs[0])] = L[i + g - 1]
-        if g == 1:
-            compQ = comps[0]
-            for el in range(l):
-                K[el] = ZZ(el) * compQ
-
-        elif g == 2:
-            compP, compQ, compPQ = comps
-            # P, Q, PQ = L
-            for v in V:
-                if K[idxl(v)] is not None:
-                    continue
-                i, j = v
-                compjQ = K[idxl([0, j])]
-                compPjQ = K[idxl([1, j])]
-                # jQ = Kplain[idxl([0,j])]
-                # PjQ = Kplain[idxl([1,j])]
-                if compjQ is None or compPjQ is None:
-                    K[idxl([1, j])], K[idxl([0, j])] = compQ.diff_multadd(ZZ(j), compPQ, compP)
-                    compjQ = K[idxl([0, j])]
-                    compPjQ = K[idxl([1, j])]
-                    # Kplain[idxl([1, j])], Kplain[idxl([0, j])] = Q.diff_multadd(ZZ(j), PQ, P)
-                    # jQ = Kplain[idxl([0,j])]
-                    # PjQ = Kplain[idxl([1,j])]
-                if i != 1:
-                    K[idxl([i, j])], K[idxl([i, 0])] = compP.diff_multadd(ZZ(i), compPjQ, compjQ)
-                    # Kplain[idxl([i, j])], Kplain[idxl([i, 0])] = P.diff_multadd(ZZ(i), PjQ, jQ)
-        else:
-            raise NotImplementedError
-
-        sqfree = l.squarefree_part()
-        l1 = ZZ((l / sqfree).sqrt())
-        if sqfree == 1:
-            r = 1
-            M = matrix(ZZ, 1, 1, [l1])
-        else:
-            try:
-                r = 2
-                a, b = two_squares(sqfree)
-                M = l1 * matrix(ZZ, 2, 2, [a, b, -b, a])
-            except ValueError:
-                r = 4
-                a, b, c, d = four_squares(sqfree)
-                M = matrix(ZZ, 4, 4, [a, -b, -c, -d, b, a, -d, c, c, d, a, -b, d, -c, b, a])
-
-        assert M.transpose() * M == l * identity_matrix(ZZ, r), f"Wrong matrix, Mt*M = {M.transpose() * M}"
-        Zn = D.base_ring()
-        ker = M.change_ring(Zmod(l)).kernel()
-        for idxk, k in enumerate(D):
-            J = (column_matrix(Zn, [k] + [D(0)] * (r - 1)) * M.change_ring(Zn).inverse()).columns()
-            for t in product(ker, repeat=g):
-                ti = matrix(ZZ, t).columns()
-                val = 1
-                for i in range(r):
-                    val *= K[idxl(ti[i])][idx(J[i])]
-                P0B[idxk] += val
-            P0B[idxk] = P0B[idxk].lift()
-        B = KummerVariety(FF, g, P0B, check=True)
-        return B
+        R = PolynomialRing(FF, 4, 'x')
+        x, z, t, y = R.gens()
+        self._eqns = [
+            x ** 4 + y ** 4 + z ** 4 + t ** 4 + 2 * E * x * y * z * t - F * (x ** 2 * t ** 2 + y ** 2 * z ** 2) - G * (
+                    x ** 2 * z ** 2 + y ** 2 * t ** 2) - H * (x ** 2 * y ** 2 + z ** 2 * t ** 2)]
+        return self._eqns

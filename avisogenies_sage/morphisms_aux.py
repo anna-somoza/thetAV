@@ -60,9 +60,8 @@ from collections import Counter
 from itertools import product, combinations, chain
 
 from sage.functions.other import ceil, floor
-from sage.misc.all import prod, flatten, is_odd
+from sage.misc.all import prod, is_odd
 from sage.rings.all import PolynomialRing, ZZ, Integer
-from sage.structure.element import parent
 
 integer_types = (int, Integer)
 
@@ -345,12 +344,12 @@ def IgusaTheorem(A, TH):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint
+        sage: from avisogenies_sage import KummerVariety
         sage: from avisogenies_sage.morphisms_aux import IgusaTheorem
         sage: from avisogenies_sage.eta_maps import eta
         sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
-        sage: thc = AnalyticThetaNullPoint.from_algebraic(A)
+        sage: thc = A.with_theta_basis('F(2,2)^2')
         sage: thp = thc(P)
         sage: thO = thc(0)
         sage: IgusaTheorem([eta(g,{2*x for x in range(g+1)})]*4, [thp,thO,thO,thO])
@@ -393,10 +392,10 @@ def constant_f2_level2(a, thc, A, C):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import KummerVariety, AnalyticThetaNullPoint
+        sage: from avisogenies_sage import KummerVariety
         sage: from avisogenies_sage.morphisms_aux import constant_f2_level2, choice_of_C_Cosset
         sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
-        sage: thc = AnalyticThetaNullPoint.from_algebraic(A)
+        sage: thc = A.with_theta_basis('F(2,2)^2')
         sage: a = [0,1,4,6,7]
         sage: A = {3,4}; constant_f2_level2(a, thc, A, choice_of_C_Cosset(g, A))
         170

@@ -7,25 +7,28 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
-from sage.arith.functions import lcm
 from sage.rings.all import ZZ, Integer, Zmod
+from sage.structure.coerce_maps import CallableConvertMap
+from sage.misc.constant_function import ConstantFunction
 
 integer_types = (int, Integer)
+
 
 def rangeS(n, S):
     for x in range(n):
         if x in S:
             continue
         yield x
+
 
 def reduce_sym(x):
     r"""
@@ -42,6 +45,7 @@ def reduce_sym(x):
         
     """
     return min(x, -x)
+
 
 def reduce_twotorsion(x):
     r"""
@@ -62,14 +66,15 @@ def reduce_twotorsion(x):
     r = list(x)
     D = x.parent()
     n = D.rank()
-    T = Zmod(2)**n
-    t = [0]*n
-    halflevels =[i.order()//2 for i in D.gens()]
+    T = Zmod(2) ** n
+    t = [0] * n
+    halflevels = [i.order() // 2 for i in D.gens()]
     for i in range(n):
         if r[i] >= halflevels[i]:
             r[i] = r[i] - halflevels[i]
             t[i] = 1
-    return  D(r), T(t)
+    return D(r), T(t)
+
 
 def reduce_symtwotorsion(x):
     r"""
@@ -92,7 +97,8 @@ def reduce_symtwotorsion(x):
     x2, tx2 = reduce_twotorsion(-x)
     return (x1, tx1) if x1 <= x2 else (x2, tx2)
 
-def reduce_symcouple(x,y):
+
+def reduce_symcouple(x, y):
     r"""
     Returns the lexicographic minimum of the symmetrical reduction of two
     elements x, y in Zmod(n)\ :sup:`g`.
@@ -111,7 +117,8 @@ def reduce_symcouple(x,y):
     yred = reduce_sym(y)
     return (xred, yred) if xred < yred else (yred, xred)
 
-def reduce_twotorsion_couple(x,y):
+
+def reduce_twotorsion_couple(x, y):
     r"""
     Given two elements x, y in Zmod(2n)\ :sup:`g`, returns elements r, s in
     Zmod(2n)\ :sup:`g`, t in Zmod(2)\ :sup:`g`, such that r is the lexicographic
@@ -131,20 +138,23 @@ def reduce_twotorsion_couple(x,y):
     """
     xred, tx = reduce_twotorsion(x)
     yred, ty = reduce_twotorsion(y)
-    #check that the inclusion of Zmod(2)^g in Zmod(2n)^g is taken into account already.
+    # check that the inclusion of Zmod(2)^g in Zmod(2n)^g is taken into account already.
     D = xred.parent()
     T = tx.parent()
     if not D.has_coerce_map_from(T):
         from sage.structure.coerce_maps import CallableConvertMap
         n = D.gens()[0].order()
-        s = n//2
+        s = n // 2
+
         def c(P, el):
-            return P(s*el.change_ring(ZZ))
+            return P(s * el.change_ring(ZZ))
+
         c = CallableConvertMap(T, D, c)
         D.register_coercion(c)
-    return (xred, y+tx, tx) if xred < yred else (yred, x+ty, ty)
+    return (xred, y + tx, tx) if xred < yred else (yred, x + ty, ty)
 
-def reduce_symtwotorsion_couple(x,y):
+
+def reduce_symtwotorsion_couple(x, y):
     r"""
     Given two elements x, y in Zmod(2n)\ :sup:`g`, returns elements r, s in
     Zmod(2n)\ :sup:`g`, t in Zmod(2)\ :sup:`g`, such that r is the lexicographic
@@ -167,32 +177,36 @@ def reduce_symtwotorsion_couple(x,y):
     """
     xred, tx = reduce_symtwotorsion(x)
     yred, ty = reduce_symtwotorsion(y)
-    #check that the inclusion of Zmod(2)^g in Zmod(2n)^g is taken into account already.
+    # check that the inclusion of Zmod(2)^g in Zmod(2n)^g is taken into account already.
     D = xred.parent()
     T = tx.parent()
     if not D.has_coerce_map_from(T):
         from sage.structure.coerce_maps import CallableConvertMap
         n = D.gens()[0].order()
-        s = n//2
+        s = n // 2
+
         def c(P, el):
-            return P(s*el.change_ring(ZZ))
+            return P(s * el.change_ring(ZZ))
+
         c = CallableConvertMap(T, D, c)
         D.register_coercion(c)
-    return (xred, reduce_sym(y+tx), tx) if xred < yred else (yred, reduce_sym(x+ty), ty)
+    return (xred, reduce_sym(y + tx), tx) if xred < yred else (yred, reduce_sym(x + ty), ty)
+
 
 def get_dual_quadruplet(x, y, u, v):
     r"""
     .. todo:: add minimal docstring. Twotorsion elements should be returned as elements in the twotorsion.
     """
     r = x + y + u + v
-    z = r.parent()([ZZ(e)//2 for e in list(r)])
+    z = r.parent()([ZZ(e) // 2 for e in list(r)])
     xbis = z - x
     ybis = z - y
     ubis = z - u
     vbis = z - v
     return xbis, ybis, ubis, vbis
 
-def eval_car(chi,t):
+
+def eval_car(chi, t):
     r"""
     .. todo:: add minimal docstring.
     """
@@ -200,12 +214,12 @@ def eval_car(chi,t):
         r = list(t)
         D = t.parent()
         twotorsion = chi.parent()
-        halflevels =[i.order()//2 for i in D.gens()]
+        halflevels = [i.order() // 2 for i in D.gens()]
         n = D.rank()
         for i in range(n):
-            r[i] = ZZ(r[i])/halflevels[i]
+            r[i] = ZZ(r[i]) / halflevels[i]
         t = twotorsion(r)
-    return ZZ(-1)**(chi*t)
+    return ZZ(-1) ** (chi * t)
 
 
 def evaluate_formal_points(w):
@@ -216,5 +230,35 @@ def evaluate_formal_points(w):
     q = B.modulus()
     S = q.parent()
     u = S.gen()
-    f = u*S(w.list())*q.derivative()
-    return f//q
+    f = u * S(w.list()) * q.derivative()
+    return f // q
+
+
+def idx(c, n):
+    """
+    Return the integer index that corresponds to a given characteristic in ``D``.
+    """
+    return ZZ(list(c), n)
+
+
+def create_conversions(n, g):
+    Z = Zmod(n) ** g
+    from_ZZ = CallableConvertMap(ZZ, Z, lambda U, idx: U(idx.digits(n, padto=g)))
+    from_int = CallableConvertMap(int, Z, lambda U, idx: U(ZZ(idx).digits(n, padto=g)))
+    from_int.domain = ConstantFunction(int)
+    Z._unset_coercions_used()
+    Z.register_conversion(from_ZZ)
+    Z.register_conversion(from_int)
+    return Z
+
+
+def create_indexing(n, g, twotorsion=True):
+    Z = create_conversions(n, g)
+    if not twotorsion:
+        return Z
+    TT = create_conversions(2, g)
+    if not Z.has_coerce_map_from(TT):
+        s = n // 2
+        c = CallableConvertMap(TT, Z, lambda U, tt: U([s * ZZ(i) for i in tt]))
+        Z.register_coercion(c)
+    return Z, TT
