@@ -938,14 +938,32 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
 
     """
 
-    # def __init__(self, X, v, check=False):
-    #    """
-    #    Initialize.
-    #    """
-    #    VarietyThetaStructurePoint.__init__(self, X, v)
-    #    
-    #    if check:
-    #        Gaudry if g==2?
+    def __init__(self, X, v, check=False, **kwargs):
+        """
+        Initialize.
+
+        TEST ::
+            sage: from avisogenies_sage import *
+            sage: p = 2 ^ 3 * 3 ^ 10 - 1
+            sage: Fp2 = GF(p^2)
+            sage: R.<x> = Fp2[]
+            sage: f = x ^ 6 - 1
+            sage: C = HyperellipticCurve(f)
+            sage: A = AbelianVariety.from_curve(C, 2)
+            sage: O = list(range(16))
+            sage: P = A(O, basis='F(2,2)^2', check=True)
+            Traceback (most recent call last):
+             ...
+            ValueError: The point is not in the Kummer Variety.
+        """
+        VarietyThetaStructurePoint.__init__(self, X, v)
+
+        bases = kwargs.pop('with_theta_basis', None)
+        if bases is not None:
+            self._with_theta_basis = bases
+
+        if check and not self._check():
+            raise ValueError('The point is not in the Kummer Variety.')
 
     def kummer_variety(self):
         """
@@ -962,6 +980,22 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
 
         """
         return self.scheme()
+
+    def _check(self):
+        eq, = self.kummer_variety().equations()
+
+        O = self.with_theta_basis('F(2,2)^2')
+        idx = partial(tools.idx, n=2)
+        a2 = O[idx([0, 0, 0, 0])]
+        b2 = O[idx([0, 0, 1, 1])]
+        c2 = O[idx([0, 0, 1, 0])]
+        d2 = O[idx([0, 0, 0, 1])]
+        L_bcd = [el.sqrt() for el in [b2, c2, d2]]
+        for a in a2.sqrt(all=True):
+            coord = [a] + L_bcd
+            if eq(*coord) == 0:
+                return True
+        return False
 
     def diff_add(self, Q, PmQ):
         """
