@@ -1,4 +1,4 @@
-"""
+r"""
 This module defines the classes of Abelian varieties with theta structure
 and Kummer variety with theta structure as an abstract schemes.
 
@@ -71,6 +71,7 @@ from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.structure.element import is_Vector
 from sage.structure.richcmp import richcmp_method, richcmp, op_EQ, op_NE
 from sage.schemes.hyperelliptic_curves.jacobian_morphism import JacobianMorphism_divisor_class_field
+from sage.misc.functional import sqrt
 
 from . import analytic_theta_point, constructor
 from . import tools
@@ -257,11 +258,11 @@ class Variety_ThetaStructure(AlgebraicScheme):
                     kwds['basis'] = 'F(2,2)'
                 case _:
                     raise NotImplementedError("Point from divisor only available for level 2 and 4.")
-        if 'basis' in kwds:
-            #Analytic basis
-            A = self.with_theta_basis(kwds['basis'])
+        label = kwds.pop('basis', None)
+        if label is not None and label != 'Fn': #Classical basis
+            A = self.with_theta_basis(label)
             AP = A(P)
-            return AP.to_algebraic(A=self)
+            return AP.to_algebraic(A=self, **kwds)
         return self._point(self, P, **kwds)
 
     __call__ = point
@@ -728,21 +729,22 @@ class KummerVariety(Variety_ThetaStructure):
         idx = partial(tools.idx, n=2)
         a2 = O[idx([0,0,0,0])]
         b2 = O[idx([0,0,1,1])]
-        c2 = O[idx([0,0,0,1])]
-        d2 = O[idx([0,0,1,0])]
-        A2 = (a2 + b2 + c2 + d2) / 4
-        B2 = (a2 + b2 - c2 - d2) / 4
-        C2 = (a2 - b2 + c2 - d2) / 4
-        D2 = (a2 - b2 - c2 + d2) / 4
-        E = a * b * c * d * A2 * B2 * C2 * D2 / (
+        c2 = O[idx([0,0,1,0])]
+        d2 = O[idx([0,0,0,1])]
+        A2 = (a2 + b2 + c2 + d2)
+        B2 = (a2 + b2 - c2 - d2)
+        C2 = (a2 - b2 + c2 - d2)
+        D2 = (a2 - b2 - c2 + d2)
+        abcd = sqrt(a2*b2*c2*d2)
+        E = abcd * A2 * B2 * C2 * D2 / (
                 (a2 * d2 - b2 * c2) * (a2 * c2 - b2 * d2) * (a2 * b2 - c2 * d2))
         F = (a2 ** 2 - b2 ** 2 - c2 ** 2 + d2 ** 2) / (a2 * d2 - b2 * c2)
         G = (a2 ** 2 - b2 ** 2 + c2 ** 2 - d2 ** 2) / (a2 * c2 - b2 * d2)
         H = (a2 ** 2 + b2 ** 2 - c2 ** 2 - d2 ** 2) / (a2 * b2 - c2 * d2)
 
-        FF = self.base_ring()
+        FF = abcd.parent()
         R = PolynomialRing(FF, 4, 'x')
-        x, z, t, y = R.gens()
+        x, y, z, t = R.gens()
         self._eqns = [
             x ** 4 + y ** 4 + z ** 4 + t ** 4 + 2 * E * x * y * z * t - F * (x ** 2 * t ** 2 + y ** 2 * z ** 2) - G * (
                     x ** 2 * z ** 2 + y ** 2 * t ** 2) - H * (x ** 2 * y ** 2 + z ** 2 * t ** 2)]

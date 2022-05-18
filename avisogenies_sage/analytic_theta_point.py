@@ -157,7 +157,7 @@ class AnalyticThetaPoint:
         """
         return f'({" : ".join(repr(f) for f in self._coords)})'
 
-    def to_algebraic(self, A=None):  # Corresponds to `AnalyticToAlgebraicThetaPoint` in magma
+    def to_algebraic(self, A=None, **kwargs):  # Corresponds to `AnalyticToAlgebraicThetaPoint` in magma
         """
         Compute the algebraic theta point corresponding to an analytic theta point.
 
@@ -182,8 +182,7 @@ class AnalyticThetaPoint:
         if n == 2:
             for b in range(ng):
                 point[b] = sum(self[a + 2 ** g * b] for a in range(ng))
-            P = A(point)
-            P._with_theta_basis['F(2,2)^2'] = self
+            P = A(point, with_theta_basis={'F(2,2)^2': self}, **kwargs)
             return P
 
         # if n == 4:
@@ -198,7 +197,7 @@ class AnalyticThetaPoint:
                 sign = (-1) ** ZZ(a * ib)
                 point[idxb] += self[idx(a, ttb)] * sign
 
-        P = A(point)
+        P = A(point, **kwargs)
         P._with_theta_basis['F(2,2)'] = self
         return P
 
