@@ -58,11 +58,11 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
 from functools import partial
-from itertools import product, combinations_with_replacement
+from itertools import product, combinations_with_replacement, accumulate
 
-
+from sage.misc.mrange import cantor_product
 from sage.categories.fields import Fields
-from sage.rings.all import PolynomialRing, FractionField, ZZ
+from sage.rings.all import PolynomialRing, FractionField, ZZ, Zmod
 from sage.rings.integer import Integer
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme
 from sage.schemes.generic.homset import SchemeHomset_points
@@ -360,28 +360,6 @@ class Variety_ThetaStructure(AlgebraicScheme):
             case _:
                 raise TypeError("Input should be a tuple of length 3 or 3 elements.")
 
-        # try:
-        #     return self._riemann[(idxchi, idxi, idxj)]
-        # except KeyError:
-        #     pass
-        # if len(data) == 1:
-        #     try:
-        #         return self._riemann[tuple(data[0])]
-        #     except KeyError:
-        #         idxchi, idxi, idxj = data[0]
-        #         i = char(idxi)
-        #         j = char(idxj)
-        #         chi = char(idxchi, True)
-        # elif len(data) == 3:
-        #     chi, i, j = data
-        #
-        #     try:
-        #         return self._riemann[(idxchi, idxi, idxj)]
-        #     except KeyError:
-        #         pass
-        # else:
-        #     raise TypeError("Input should be a tuple of length 3 or 3 elements.")
-
         DD = [2 * d for d in D]
         i, j, tij = tools.reduce_twotorsion_couple(i, j)
         # we try to find k and l to apply the addition formulas such that
@@ -415,8 +393,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
         i20, j20, tij2 = tools.reduce_twotorsion_couple(-i2, j2)
         k20, l20, tkl2 = tools.reduce_twotorsion_couple(k2, l2)
         for t in twotorsion:
-            self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, t, kk0, ll0, tkl, i20, j20, tij2, k20, l20,
-                                                               tkl2]  # DIFF Maybe we only need to store the sum of all twotorsion.
+            self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, kk0, ll0, i20, j20, k20, l20, t + tkl + tij2 + tkl2]  # DIFF Maybe we only need to store the sum of all twotorsion.
         return self._riemann[(idxchi, idxi, idxj)]
 
     def _addition_formula(self, P, Q, L):
@@ -442,11 +419,11 @@ class Variety_ThetaStructure(AlgebraicScheme):
             if not len(IJ):
                 raise ValueError(
                     "Can't compute the addition! Either we are in level 2 and computing a normal addition, or a differential addition with null even theta null points.")
-            ci0, cj0 = IJ[0:2]
-            k0, l0 = map(idx, IJ[3:5])
-            ci20, cj20 = IJ[6:8]
-            ck20, cl20 = IJ[9:11]
-            tt = IJ[2] + IJ[5] + IJ[8] + IJ[11]  # If we only want the addition, why not store _riemann only with that?
+            ci0, cj0 = IJ[:2]
+            k0, l0 = map(idx, IJ[2:4])
+            ci20, cj20 = IJ[4:6]
+            ck20, cl20 = IJ[6:8]
+            tt = IJ[8]
 
             chi = twotorsion(el[0])
 
@@ -458,52 +435,77 @@ class Variety_ThetaStructure(AlgebraicScheme):
                 r[(el[0], idx(ci0 + t), idx(cj0 + t))] = tools.eval_car(chi, t) * S
         return r
 
-    def isogeny(self, l, basis):
-        """
-        basis : list containing a basis of the kernel and the addition of x1 to all the other points
-        l: torsion int
-        """
+    def isogeny(self, l, basis, R=list(), check=True):
         F = self.base_ring()
         g = self.dimension()
-        deltas = [pt.compatible_lift(l) for pt in basis]
+        ng = self._ng
+        r = len(R) + 1
 
-        # This is part of the input. When done with a formal point we obtain the expression for the isogeny
-        P0 = self.theta_null_point()
-        P0B = [0] * self._ng
+        pts = []
+        deltas = []
+        for i, ei in enumerate(basis):
+            Re = [(P + ei)[0] for P in R]
+            Be = [(ei + ej)[0] for ej in basis[i + 1:]]
+            pts.append([ei] + Re + Be)
+            deltas += ei.compatible_lift(l, R, Re)
+            deltas += [eij.compatible_lift(l) for eij in Be]
+
         S = PolynomialRing(F, len(deltas), 'mu')
         mus = S.gens()
         T = S.quotient([mu ** l - delta for mu, delta in zip(mus, deltas)])
         AT = self.change_ring(T)
-        K_compatible = [AT(pt).scale(mu) for mu, pt in zip(mus, basis)]
 
-        # TODO check if it is more efficient to use the idx technique we use everywhere else
-        K = {tuple([0] * g): P0}
-        for i in range(g):
-            ei = [0] * g
-            ei[i] = 1
-            K[tuple(ei)] = K_compatible[i]
-            if i != 0:
-                ei[0] = 1
-                K[tuple(ei)] = K_compatible[g + i - 1]
+        idx = partial(tools.idx, n=l)
+        Zl = Zmod(l) ** g
+        B = Zl.basis()
+        Bidx = [idx(e) for e in B]
+        lg = l ** g
 
-        if self.dimension() != 2:
-            raise NotImplementedError
-        compP, compQ, compPQ = K_compatible
-        for i, j in product(range(l), repeat=g):
-            if (i, j) in K.keys():
+        support = [range(l)] * g + [range(r)]
+        rows = list(accumulate((len(lst) for lst in pts)))
+
+        K = [[None] * lg for i in range(r)]
+        # The cantor_product iterator guarantees that when we reach a certain element
+        # all the sub-sums are already initialized
+        for *lst, j in cantor_product(*support):
+            idxe = idx(lst)
+            e = Zl(lst)
+            ite = (i for i, t in enumerate(lst) if t)
+            if e == 0:
+                K[j][0] = AT(0) if j == 0 else AT(R[j - 1])
                 continue
-            try:
-                compjQ, compPjQ = K[(0, j)], K[(1, j)]
-            except KeyError:
-                K[(1, j)], K[(0, j)] = compQ.diff_multadd(ZZ(j), compPQ, compP)
-                compjQ, compPjQ = K[(0, j)], K[(1, j)]
-            if i != 1:
-                K[(i, j)], K[(i, 0)] = compP.diff_multadd(ZZ(i), compPjQ, compjQ)
-        for idx in range(len(self)):
-            P0B[idx] = sum(el[idx] ** l for el in K.values()).lift()
-        if self.level() == 2:
-          return KummerVariety(F, g, P0B, check=True), K
-        return AbelianVariety_ThetaStructure(F, self.level(), g, P0B, check=True), K
+            i0 = next(ite)  # first non-zero element
+            if e in B:  # i0 will be the index of the element in the basis
+                rowi0 = rows[i0 - 1] if i0 != 0 else 0
+                K[j][idxe] = AT(pts[i0][j]).scale(mus[rowi0 + j])
+                continue
+            k = next((i for i, t in enumerate(lst) if t > 1), None)
+            if k is None:  # all elements are 0 or 1, and sum is at least 2
+                i1 = next(ite)
+                if j == 0 and next(ite, None) is None:  # we only have two ones, so it's still given in the input
+                    rowi0 = rows[i0 - 1] if i0 != 0 else 0  # i0 < i1 by definition
+                    ij = r + i1 - i0 - 1
+                    K[0][idxe] = AT(pts[i0][ij]).scale(mus[rowi0 + ij])
+                    continue
+                e0, e1 = B[i0], B[i1]
+                idx0, idx1 = Bidx[i0], Bidx[i1]
+                K[j][idxe] = K[0][idx0].three_way_add(K[0][idx1], K[j][idx(e - e0 - e1)], K[0][idx(e0 + e1)],
+                                                      K[j][idx(e - e0)], K[j][idx(e - e1)])
+                continue
+            ek = B[k]
+            idxk = Bidx[k]
+            K[j][idxe] = K[j][idx(e - ek)].diff_add(K[0][idxk], K[j][idx(e - 2 * ek)])
+
+        img = []
+        for j in range(r):
+            imgr = [0] * ng
+            for i in range(ng):
+                imgr[i] = sum(el[i] ** l for el in K[j]).lift()
+            img.append(imgr)
+
+        fA = KummerVariety(F, g, img[0], check=check)
+        fR = [fA(el, check=check) for el in img[1:]]
+        return fA, fR
 
 
 @richcmp_method

@@ -171,4 +171,4 @@ def _from_curve(C, level=4):
 
 
 setattr(AbelianVariety, 'from_curve', _from_curve)
-setattr(theta_null_point.KummerVariety, 'from_curve', partial(_from_curve, n=2))
+setattr(theta_null_point.KummerVariety, 'from_curve', partial(_from_curve, level=2))

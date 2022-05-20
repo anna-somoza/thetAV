@@ -27,6 +27,7 @@ from __future__ import print_function, division, absolute_import
 
 from functools import partial
 from itertools import product, combinations_with_replacement
+import warnings
 
 from sage.matrix.all import Matrix
 from sage.misc.all import ConstantFunction
@@ -456,64 +457,24 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
                 n1P = nn1P
         return n1PQ, n1P
 
-    def _weil_pairing_from_points(self, Q, lP, lQ, lPQ, PlQ):
-        """
-        Computes the Weil pairing of self and Q, given all the points needed.
-        
-        .. todo::
-        
-            - Maybe this could be included in the :meth:`~.weil_pairing` with a keyword
-              argument points that by default is None and otherwise is a list
-              [lP, lQ, lPQ, PlQ]. But in that case we don't need l. 
-            
-            - Add examples
-            
-        """
-        point0 = self.scheme().theta_null_point()
-        r, k0P = lP.is_equal(point0, proj=True, factor=True)
-        assert r
-        r, k0Q = lQ.is_equal(point0, proj=True, factor=True)
-        assert r
-        r, k1P = PlQ.is_equal(self, proj=True, factor=True)
-        assert r
-        r, k1Q = lPQ.is_equal(Q, proj=True, factor=True)
-        assert r
-        return k1P * k0P / (k1Q * k0Q)
-
     def weil_pairing(self, l, Q, PQ=None):
         """
-        Computes the Weil pairing of P=self and Q.  See also 
+        Computes the Weil pairing of P=self and Q.  See also
         :meth:`~._weil_pairing_from_points` to use precomputed points.
-        
+
         INPUT:
-        
+
         - ``l`` -- An integer
         - ``P=self`` -- An point of torsion `level`
         - ``Q`` -- Another point of torsion `level`
         - ``PQ`` (default: None) -- The addition of ``P`` and ``Q``.
-        
+
         OUTPUT:
-        
+
         The nth power of the weil pairing of P and Q, where n is the level
         of the theta structure.
-        
+
         ..todo:: Should check that points belong to same AV.
-        
-        EXAMPLES ::
-        
-            sage: from avisogenies_sage import KummerVariety
-            sage: R.<X> = PolynomialRing(GF(331))
-            sage: poly = X^4 + 3*X^2 + 290*X + 3
-            sage: F.<t> = poly.splitting_field()
-            sage: A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
-            sage: P = A([255 , 89 , 30 , 1])
-            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
-             155*t^3 + 84*t^2 + 15*t + 170, 1])
-            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 , \
-                258*t^3 + 39*t^2 + 313*t + 150 , 1])
-            sage: PQ = P.diff_add(Q, PmQ)
-            sage: P.weil_pairing(1889, Q, PQ)
-            17*t^3 + 153*t^2 + 305*t + 187
         """
         if PQ is None:
             if self.scheme().level() == 2:
@@ -535,24 +496,24 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
     def tate_pairing(self, l, Q, PQ=None):
         """
         Computes the Weil pairing of P=self and Q.
-        
+
         INPUT:
-        
+
         - ``P=self`` -- A point
         - ``l`` -- An integer
         - ``Q`` -- A point of torsion `l` in the same Abelian Variety as `P`.
         - ``PQ`` (default: None) -- The addition of P and Q.
-        
+
         OUTPUT:
-        
+
         The r-th power of the tate pairing of P and Q, where `r = (p^k - 1)/l`.
-        
+
         ..todo::
-        
+
             - Should check that points belong to same AV.
-        
+
         EXAMPLES ::
-        
+
             sage: from avisogenies_sage import KummerVariety
             sage: R.<X> = PolynomialRing(GF(331))
             sage: poly = X^4 + 3*X^2 + 290*X + 3
@@ -787,7 +748,7 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
 
         if check:
             O = X.theta_null_point()
-            idx = partial(tools.idx, n=O.level())
+            idx = partial(tools.idx, n=X.level())
             dual = X._dual
             D = X._D
             twotorsion = X._twotorsion
@@ -809,7 +770,7 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
                 for idxchi, chi in enumerate(twotorsion):
                     el = (idxchi, idx(ii), idx(jj))
                     if el not in dualself:
-                        dualself[el] = sum(tools.eval_car(chi, t) * v[ii + t] * v[jj + t] for t in twotorsion)
+                        dualself[el] = sum(tools.eval_car(chi, t) * v[idx(ii + t)] * v[idx(jj + t)] for t in twotorsion)
                     el2 = (idxchi, idx(i), idx(j))
                     dualself[el2] = tools.eval_car(chi, tt) * dualself[el]
 
@@ -1067,13 +1028,13 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
         If (self - other)[i] == 0, then it tries with another affine plane.
 
         .. seealso::
-        
+
             :meth:`~._add_`
 
         .. todo::
-        
+
             - Deal with case where self or other is the thetanullpoint.
-            
+
             - Find tests where P and Q are not rational in the av but rational in the kummer variety, so P+Q won't be rational
         """
         from .tools import eval_car
@@ -1104,26 +1065,25 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
                 kappa1[idxi] = sum(r[(idxchi, idxi, idxi1)] for idxchi in cartosum) / len(cartosum)
             F = kappa1[idxi0].parent()
             R = PolynomialRing(F, 'X')
-            invkappa0 = 1 / kappa0[idxi0]
             PmQ[idxi0] = F(1)
             PQ[idxi0] = kappa0[idxi0]
-            poly = R([kappa1[idxi1] * invkappa0, - kappa0[idxi1] * invkappa0, 1])
+            poly = R([kappa1[idxi1], - kappa0[idxi1], kappa0[idxi0]])
             roots = poly.roots(multiplicities=False)
             # it can happen that P and Q are not rational in the av but
             # rational in the kummer variety, so P+Q won't be rational
+            # in that case we give a generic point
             ## TODO: Find tests where this happens
-            if len(roots) == 0:
-                # We need to work on the splitting field.
-                F = poly.splitting_field('t')
-                raise ValueError(f'The normal addition is defined over the extension {F}.')
             if len(roots) == 1:
-                roots = roots * 2
+                continue
+            elif len(roots) == 0:
+                # We compute the generic sum
+                S = PolynomialRing(F, 'r')
+                r = S.gen()
+                roots = [poly[1] - r, r]
+                warnings.warn('The normal addition is defined in an extension. Computing generic point.')
             PmQ[idxi1] = roots[0] * PmQ[idxi0]
             PQ[idxi1] = roots[1] * PQ[idxi0]
-
             M = Matrix([[PmQ[idxi0], PmQ[idxi1]], [PQ[idxi0], PQ[idxi1]]])
-            if not M.is_invertible():
-                continue
             for i in range(ng):
                 if i == idxi0 or i == idxi1:
                     continue
@@ -1147,3 +1107,20 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
             
         """
         return self
+
+    def weil_pairing(self, l, Q):
+        """
+        EXAMPLES ::
+
+            sage: from avisogenies_sage import KummerVariety
+            sage: R.<X> = PolynomialRing(GF(331))
+            sage: poly = X^4 + 3*X^2 + 290*X + 3
+            sage: F.<t> = poly.splitting_field()
+            sage: A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
+            sage: P = A([255 , 89 , 30 , 1])
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
+             155*t^3 + 84*t^2 + 15*t + 170, 1])
+            sage: P.weil_pairing(1889, Q)
+            61*t^3 + 285*t^2 + 196*t + 257
+        """
+        return sum(VarietyThetaStructurePoint.weil_pairing(self, l, Q, pt) for pt in self + Q)
