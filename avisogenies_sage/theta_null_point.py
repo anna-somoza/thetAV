@@ -669,7 +669,7 @@ class KummerVariety(Variety_ThetaStructure):
     _point = KummerVarietyPoint
     _level = 2
 
-    def __init__(self, R, g, T, check=False):
+    def __init__(self, R, g, T):
         """
         Initialize.
         """
