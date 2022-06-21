@@ -75,7 +75,7 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
 
     In order to see the vector representation of the keys in `numer` and `denom` one can use the `str` or `print` methods ::
 
-        sage: from avisogenies_sage.ep_elements import EpElement
+        sage: from thetAV.ep_elements import EpElement
         sage: from collections import Counter
         sage: x = EpElement(sign=-1, power=1, numer=Counter({662: 1, 694: 1, 573: 1}), denom=Counter({663: 1, 607: 1, 725: 1}))
         sage: print(x)
@@ -100,7 +100,7 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage.ep_elements import EpElement
+            sage: from thetAV.ep_elements import EpElement
             sage: from collections import Counter
             sage: x = EpElement(numer=Counter([1,2,3]), denom=Counter([1,1,2,4])); x
             EpElement(sign=1, power=0, numer=Counter({1: 1, 2: 1, 3: 1}), denom=Counter({1: 2, 2: 1, 4: 1}))
@@ -117,7 +117,7 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage.ep_elements import EpElement
+            sage: from thetAV.ep_elements import EpElement
             sage: from collections import Counter
             sage: x = EpElement(sign=-1, power=2, numer=Counter([3]), denom=Counter([4]))
             sage: y = EpElement(sign=-1, power=3, numer=Counter([3]), denom=Counter([4, 5]))
@@ -148,7 +148,7 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage.ep_elements import EpElement
+            sage: from thetAV.ep_elements import EpElement
             sage: from collections import Counter
             sage: x = EpElement(sign=-1, power=2, numer=Counter([3]), denom=Counter([4]))
             sage: y = EpElement(sign=-1, power=3, numer=Counter([3]), denom=Counter([4, 5]))
@@ -168,7 +168,7 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage.ep_elements import EpElement
+            sage: from thetAV.ep_elements import EpElement
             sage: from collections import Counter
             sage: x = EpElement(sign=-1, power=2, numer=Counter([3]), denom=Counter([4]))
             sage: y = EpElement(sign=-1, power=3, numer=Counter([3]), denom=Counter([4, 5]))
@@ -201,8 +201,8 @@ class EpElement(namedtuple('EpElement', ['sign', 'power', 'numer', 'denom'], def
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage import KummerVariety
-            sage: from avisogenies_sage.morphisms_aux import compatible_sqrt
+            sage: from thetAV import KummerVariety
+            sage: from thetAV.morphisms_aux import compatible_sqrt
             sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
             sage: thc = A.with_theta_basis('F(2,2)^2')
             sage: a = [0,1,4,6,7]

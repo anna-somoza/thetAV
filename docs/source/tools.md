@@ -3,7 +3,7 @@
 ## Abelian variety with theta structure
 
 ```{eval-rst} 
-.. automodule:: avisogenies_sage.tools
+.. automodule:: thetAV.tools
    :members:
    :undoc-members:
    :show-inheritance:
@@ -13,7 +13,7 @@
 ## Hyperelliptic curves
 
 ```{eval-rst} 
-.. automodule:: avisogenies_sage.aux_hyper
+.. automodule:: thetAV.aux_hyper
    :members:
    :undoc-members:
    :show-inheritance:

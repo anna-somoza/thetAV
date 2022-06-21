@@ -81,8 +81,8 @@ def MumfordToTheta_2_Generic(a, thc2, points):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import KummerVariety
-        sage: from avisogenies_sage.morphisms_level2 import MumfordToTheta_2_Generic
+        sage: from thetAV import KummerVariety
+        sage: from thetAV.morphisms_level2 import MumfordToTheta_2_Generic
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62)), (F(8), F(10))]
@@ -157,8 +157,8 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import KummerVariety
-        sage: from avisogenies_sage.morphisms_level2 import MumfordToLevel2ThetaPoint
+        sage: from thetAV import KummerVariety
+        sage: from thetAV.morphisms_level2 import MumfordToLevel2ThetaPoint
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62)), (F(8), F(10))]
@@ -168,8 +168,8 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
         (92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70)
 
 
-        sage: from avisogenies_sage import KummerVariety
-        sage: from avisogenies_sage.morphisms_level2 import MumfordToLevel2ThetaPoint
+        sage: from thetAV import KummerVariety
+        sage: from thetAV.morphisms_level2 import MumfordToLevel2ThetaPoint
         sage: F = GF(331); g = 2; n = 2
         sage: a = list(map(F, [0, 1, 2, 3, 4]))
         sage: points = [(F(7), F(62))]
@@ -277,8 +277,8 @@ def ThetaToMumford_2_Generic(a, th2):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import KummerVariety
-        sage: from avisogenies_sage.morphisms_level2 import ThetaToMumford_2_Generic
+        sage: from thetAV import KummerVariety
+        sage: from thetAV.morphisms_level2 import ThetaToMumford_2_Generic
         sage: F = GF(331); A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
         sage: thc = A.with_theta_basis('F(2,2)^2')

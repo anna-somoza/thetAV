@@ -2,7 +2,7 @@
 
 # Goal
 
-The aim of AVisogeny is to have a set of tools as complete as possible to represent and compute with
+The aim of *thetAV* is to have a set of tools as complete as possible to represent and compute with
 Abelian varieties and their moduli space available in Sagemath. Our aim is to be as
 general, efficient and user friendly as possible. We also want to lay the groundwork and
 appeal to the community to developp extensions on top of our library.
@@ -14,7 +14,7 @@ available such as Mumford's representation if $C$ is hyperelliptic: we want to m
 switch between the different representations as transparent as possible for the user.
 
 
-This library borrows some of its code and has been much inspired by [avisogenies](https://gitlab.inria.fr/roberdam/avisogenies/).
+This library borrows some of its code and has been much inspired by the Magma package [avisogenies](https://gitlab.inria.fr/roberdam/avisogenies/).
 
 # Introduction
 

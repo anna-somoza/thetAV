@@ -39,7 +39,7 @@ def reduce_sym(x):
     
         sage: D = Zmod(10)^4
         sage: el = D([6, 6, 6, 3])
-        sage: from avisogenies_sage.tools import reduce_sym
+        sage: from thetAV.tools import reduce_sym
         sage: reduce_sym(el)
         (4, 4, 4, 7)
         
@@ -58,7 +58,7 @@ def reduce_twotorsion(x):
     
         sage: D = Zmod(10)^4
         sage: el = D([9, 2, 0, 8])
-        sage: from avisogenies_sage.tools import reduce_twotorsion
+        sage: from thetAV.tools import reduce_twotorsion
         sage: reduce_twotorsion(el)
         ((4, 2, 0, 3), (1, 0, 0, 1))
 
@@ -88,7 +88,7 @@ def reduce_symtwotorsion(x):
     
         sage: D = Zmod(10)^4
         sage: el = D([8, 1, 5, 3])
-        sage: from avisogenies_sage.tools import reduce_symtwotorsion
+        sage: from thetAV.tools import reduce_symtwotorsion
         sage: reduce_symtwotorsion(el)
         ((2, 4, 0, 2), (0, 1, 1, 1))
     
@@ -108,7 +108,7 @@ def reduce_symcouple(x, y):
     
         sage: D = Zmod(10)^4
         sage: el1 = D([4, 0, 5, 1]); el2 = D([9, 4, 6, 9])
-        sage: from avisogenies_sage.tools import reduce_symcouple
+        sage: from thetAV.tools import reduce_symcouple
         sage: reduce_symcouple(el1, el2)
         ((1, 6, 4, 1), (4, 0, 5, 1))
         
@@ -131,7 +131,7 @@ def reduce_twotorsion_couple(x, y):
     
         sage: D = Zmod(10)^4
         sage: el1 = D([8, 1, 8, 0]); el2 = D([5, 8, 4, 5])
-        sage: from avisogenies_sage.tools import reduce_twotorsion_couple
+        sage: from thetAV.tools import reduce_twotorsion_couple
         sage: reduce_twotorsion_couple(el1, el2)
         ((0, 3, 4, 0), (3, 6, 8, 5), (1, 1, 0, 1))
         
@@ -170,7 +170,7 @@ def reduce_symtwotorsion_couple(x, y):
     
         sage: D = Zmod(10)^4
         sage: el1 = D([0, 7, 9, 1]); el2 = D([3, 5, 8, 8])
-        sage: from avisogenies_sage.tools import reduce_symtwotorsion_couple
+        sage: from thetAV.tools import reduce_symtwotorsion_couple
         sage: reduce_symtwotorsion_couple(el1, el2)
         ((0, 2, 4, 1), (3, 0, 3, 8), (0, 1, 1, 0))
         

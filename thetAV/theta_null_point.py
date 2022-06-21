@@ -85,7 +85,7 @@ integer_types = (int, Integer)
 class Variety_ThetaStructure(AlgebraicScheme):
     r"""
     Generic class for Varieties with theta structure. See also
-    :func:`~avisogenies_sage.theta_null_point.AbelianVariety_ThetaStructure`, :class:`~avisogenies_sage.theta_null_point.KummerVariety`..
+    :func:`~thetAV.theta_null_point.AbelianVariety_ThetaStructure`, :class:`~thetAV.theta_null_point.KummerVariety`..
 
     INPUT:
 
@@ -131,7 +131,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
         
         EXAMPLES ::
         
-            sage: from avisogenies_sage import AbelianVariety, KummerVariety
+            sage: from thetAV import AbelianVariety, KummerVariety
             sage: F1 = GF(331); F2 = GF(331^2)
             sage: pt = [328 , 213 , 75 , 1]
             sage: K1 = KummerVariety(F1, 2, pt)
@@ -172,12 +172,12 @@ class Variety_ThetaStructure(AlgebraicScheme):
         
         TEST ::
             
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: F = GF(331)
             sage: K = KummerVariety(F, 2, [328 , 213 , 75 , 1])
             sage: K.level()
             2
-            sage: from avisogenies_sage import AbelianVariety
+            sage: from thetAV import AbelianVariety
             sage: n = 2*randint(2,5); g = randint(2,5)
             sage: T = [randint(1, 331) for _ in range(n^g)]
             sage: A = AbelianVariety(F, n, g, T)
@@ -239,7 +239,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
         INPUT:
 
         - ``v`` -- anything that defines a point in a variety
-          with theta structure. See :class:`~avisogenies_sage.theta_point.VarietyPoint`
+          with theta structure. See :class:`~thetAV.theta_point.VarietyPoint`
           for details.
 
         - ``check`` -- boolean (optional, default: *False*); if *True*,
@@ -512,7 +512,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
 class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
     r"""
     Class for Abelian Varieties with theta structure. See also
-    :func:`~avisogenies_sage.constructor.AbelianVariety`.
+    :func:`~thetAV.constructor.AbelianVariety`.
 
     INPUT:
 
@@ -526,7 +526,7 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
 
     EXAMPLES::
 
-        sage: from avisogenies_sage import AbelianVariety
+        sage: from thetAV import AbelianVariety
         sage: FF2 = GF(10753)
         sage: A2 = AbelianVariety(FF2, 4, 1, [732,45,98,7]); A2
         Abelian variety of dimension 1 with theta null point (732 : 45 : 98 : 7) defined over Finite Field of size 10753
@@ -660,7 +660,7 @@ class KummerVariety(Variety_ThetaStructure):
 
     EXAMPLES::
 
-        sage: from avisogenies_sage import KummerVariety
+        sage: from thetAV import KummerVariety
         sage: FF1 = GF(331)
         sage: K1 = KummerVariety(FF1, 2, [328,213,75,1]); K1
         Kummer variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331

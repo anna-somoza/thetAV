@@ -1,7 +1,7 @@
 # Varieties with theta structure
 
 ```{eval-rst} 
-.. automodule:: avisogenies_sage.theta_null_point
+.. automodule:: thetAV.theta_null_point
    :members:
    :undoc-members:
    :show-inheritance:
@@ -11,7 +11,7 @@
 ## Abelian variety constructor
 
 ```{eval-rst} 
-.. automodule:: avisogenies_sage.constructor
+.. automodule:: thetAV.constructor
    :members:
    :undoc-members:
    :show-inheritance:

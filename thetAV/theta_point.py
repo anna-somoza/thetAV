@@ -1,5 +1,5 @@
 """This module defines the base class of Theta points as elements of
-:class:`~avisogenies_sage.abelian_variety.AbelianVariety_ThetaStructure`.
+:class:`~thetAV.abelian_variety.AbelianVariety_ThetaStructure`.
 
 
 AUTHORS:
@@ -146,7 +146,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1]) #A 1889-torsion point
             sage: 1889*P
@@ -210,7 +210,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
 
         EXAMPLES::
 
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1]) #A 1889-torsion point
             sage: (1889*P).is_zero()
@@ -272,7 +272,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: R.<X> = PolynomialRing(GF(331))
             sage: poly = X^4 + 3*X^2 + 290*X + 3
             sage: F.<t> = poly.splitting_field()
@@ -304,7 +304,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1]); - P
             (255 : 89 : 30 : 1)
@@ -323,7 +323,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1])
             sage: 42*P
@@ -348,7 +348,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1])
             sage: P._mult(42)
@@ -403,7 +403,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         
         EXAMPLES::
         
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: R.<X> = PolynomialRing(GF(331))
             sage: poly = X^4 + 3*X^2 + 290*X + 3
             sage: F.<t> = poly.splitting_field()
@@ -514,7 +514,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: R.<X> = PolynomialRing(GF(331))
             sage: poly = X^4 + 3*X^2 + 290*X + 3
             sage: F.<t> = poly.splitting_field()
@@ -550,7 +550,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         
         EXAMPLES::
         
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: R.<X> = PolynomialRing(GF(331))
             sage: poly = X^4 + 3*X^2 + 290*X + 3
             sage: F.<t> = poly.splitting_field()
@@ -607,7 +607,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         
         EXAMPLE ::
         
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: F = GF(331)
             sage: A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1])
@@ -719,7 +719,7 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import KummerVariety
+        sage: from thetAV import KummerVariety
         sage: A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1]); P
         (255 : 89 : 30 : 1)
@@ -792,7 +792,7 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
 
         EXAMPLES::
 
-            sage: from avisogenies_sage import AbelianVariety
+            sage: from thetAV import AbelianVariety
             sage: A = AbelianVariety(GF(331), 4, 1, [328 , 213 , 75 , 1]); A
             Abelian variety of dimension 1 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
             sage: P = A([255 , 89 , 30 , 1])
@@ -878,7 +878,7 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import KummerVariety
+        sage: from thetAV import KummerVariety
         sage: A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1]); P
         (255 : 89 : 30 : 1)
@@ -904,7 +904,7 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
         Initialize.
 
         TEST ::
-            sage: from avisogenies_sage import *
+            sage: from thetAV import *
             sage: p = 2 ^ 3 * 3 ^ 10 - 1
             sage: Fp2 = GF(p^2)
             sage: R.<x> = Fp2[]
@@ -932,7 +932,7 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
 
         EXAMPLES::
 
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1]); A
             Kummer variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
             sage: P = A([255 , 89 , 30 , 1])
@@ -973,7 +973,7 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
         
         EXAMPLES ::
         
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: R.<X> = PolynomialRing(GF(331))
             sage: poly = X^4 + 3*X^2 + 290*X + 3
             sage: F.<t> = poly.splitting_field()
@@ -1100,7 +1100,7 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1]); - P
             (255 : 89 : 30 : 1)
@@ -1112,7 +1112,7 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
         """
         EXAMPLES ::
 
-            sage: from avisogenies_sage import KummerVariety
+            sage: from thetAV import KummerVariety
             sage: R.<X> = PolynomialRing(GF(331))
             sage: poly = X^4 + 3*X^2 + 290*X + 3
             sage: F.<t> = poly.splitting_field()

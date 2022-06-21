@@ -1,7 +1,7 @@
 # This Makefile is for convenience as a reminder and shortcut for the most used commands
 
 # Package folder
-PACKAGE = avisogenies_sage
+PACKAGE = thetAV
 
 # change to your sage command if needed
 SAGE = sage

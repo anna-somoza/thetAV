@@ -63,7 +63,7 @@ def eta_prime(g, L, normalized=False):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.eta_maps import eta_prime
+        sage: from thetAV.eta_maps import eta_prime
         sage: eta_prime(4, 6)
         (0, 0, 0, 1)
         sage: x = eta_prime(4,6) + eta_prime(4, 7)
@@ -112,7 +112,7 @@ def eta_second(g, L, normalized=False):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.eta_maps import eta_second
+        sage: from thetAV.eta_maps import eta_second
         sage: eta_second(4, 6)
         (1, 1, 1, 0)
         sage: x = eta_second(4,6) + eta_second(4, 7)
@@ -163,7 +163,7 @@ def eta(g, L, normalized=False, idx=False):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.eta_maps import eta
+        sage: from thetAV.eta_maps import eta
         sage: eta(4, 6)
         (0, 0, 0, 1, 1, 1, 1, 0)
         sage: x = eta(4,6) + eta(4, 7)
@@ -205,7 +205,7 @@ def normalize_eta(v):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.eta_maps import eta, eta_second, normalize_eta
+        sage: from thetAV.eta_maps import eta, eta_second, normalize_eta
         sage: x = eta(4, [0,1,2,3]); x
         (2, 2, 0, 0, 3, 1, 0, 0)
         sage: normalize_eta(x)
@@ -230,7 +230,7 @@ def sign_theta_normalized(*data):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.eta_maps import eta, sign_theta_normalized
+        sage: from thetAV.eta_maps import eta, sign_theta_normalized
         sage: x = eta(4, [0,1,3,4]); x
         (2, 1, 1, 0, 3, 2, 0, 0)
         sage: sign_theta_normalized(x)
@@ -257,7 +257,7 @@ def e_star(e):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.eta_maps import eta, e_star
+        sage: from thetAV.eta_maps import eta, e_star
         sage: x = eta(4, [0,1,3,4]); x
         (2, 1, 1, 0, 3, 2, 0, 0)
         sage: e_star(x)
@@ -276,7 +276,7 @@ def e_2(g, A1, A2):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.eta_maps import e_2
+        sage: from thetAV.eta_maps import e_2
         sage: e_2(5, [0,1], [5,6])
         1
 

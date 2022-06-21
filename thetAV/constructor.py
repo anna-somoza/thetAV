@@ -34,21 +34,21 @@ def AbelianVariety(*data, **kwargs):
     INPUT:
 
     An integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups (see :func:`~sage:sage.modular.abvar.constructor.AbelianVariety` in Sagemath) or a theta
-    structure (see :class:`~avisogenies_sage.abelian_variety.AbelianVariety_ThetaStructure`).
+    structure (see :class:`~thetAV.abelian_variety.AbelianVariety_ThetaStructure`).
 
     OUTPUT: a modular abelian variety with extra structure.
     
     EXAMPLES:
     
-    Giving the data of the theta structure associated to an Abelian Variety we can create an instance of :class:`~avisogenies_sage.abelian_variety.AbelianVariety_ThetaStructure`::
+    Giving the data of the theta structure associated to an Abelian Variety we can create an instance of :class:`~thetAV.abelian_variety.AbelianVariety_ThetaStructure`::
     
-        sage: from avisogenies_sage import AbelianVariety
+        sage: from thetAV import AbelianVariety
         sage: AbelianVariety(GF(331), 4, 1, [328,213,75,1])
         Abelian variety of dimension 1 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
         
-    If the level of the abelian variety is 2, it correctly returns an instance of :class:`~avisogenies_sage.abelian_variety.KummerVariety_ThetaStructure`::
+    If the level of the abelian variety is 2, it correctly returns an instance of :class:`~thetAV.abelian_variety.KummerVariety_ThetaStructure`::
     
-        sage: from avisogenies_sage import AbelianVariety
+        sage: from thetAV import AbelianVariety
         sage: AbelianVariety(GF(331), 2, 2, [328,213,75,1])
         Kummer variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
     
@@ -75,7 +75,7 @@ def AbelianVariety(*data, **kwargs):
     
     The constructor should also pass the named parameters::
     
-        sage: from avisogenies_sage import *
+        sage: from thetAV import *
         sage: F.<z> = GF(83^2)
         sage: T = [68, z + 33, 46, z + 33, 2*z + 29, 77*z + 58, 81*z + 31, 38*z + 16, 8, 67*z + 53, 48, 67*z + 53, 2*z + 29, 38*z + 16, 81*z + 31, 77*z + 58]
         sage: A = AbelianVariety(F, 4, 2, T, check=True)
@@ -112,7 +112,7 @@ def _from_curve(C, level=4):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import AbelianVariety
+        sage: from thetAV import AbelianVariety
         sage: F = GF(83^2); Fx.<X> = PolynomialRing(F)
         sage: a = [0, 1, 3, 15, 20]
         sage: C = HyperellipticCurve(prod(X - al for al in a)); C

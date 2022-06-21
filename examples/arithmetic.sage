@@ -1,4 +1,4 @@
-from avisogenies_sage import *
+from thetAV import *
 
 #Example from Section 6 of 'Efficient Pairing Computation with theta functions'
 #by David Lubicz and Damien Robert

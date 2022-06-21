@@ -1,4 +1,4 @@
-# Welcome to the AVIsogenies' documentation!
+# thetAV - A SageMath package on abelian varieties with theta structure
 
 ```{include} ../../README.md
 ```

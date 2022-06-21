@@ -14,34 +14,32 @@ def readfile(filename):
 # For the tests
 class SageTest(TestCommand):
     def run_tests(self):
-        errno = os.system("sage -t --force-lib avisogenies_sage")
+        errno = os.system("sage -t --force-lib thetAV")
         if errno != 0:
             sys.exit(1)
 
 setup(
-    name = "avisogenies_sage",
+    name = "thetAV",
     version = 0.1, #readfile("VERSION").strip(), # the VERSION file is shared with the documentation
-    description = 'Description here',
+    description = 'A SageMath package on abelian varieties with theta structure',
     long_description = readfile("README.md"),
     long_description_content_type="text/markdown",
     url='https://avisogenies.readthedocs.io/',
     author='Anna Somoza',
     author_email='anna.somoza.henares@gmail.com', # choose a main contact email
-    license='GPLv2+', # This should be consistent with the LICENCE file
+    license='GPLv3', # This should be consistent with the LICENCE file
     classifiers=[
       # How mature is this project? Common values are
       #   3 - Alpha
       #   4 - Beta
       #   5 - Production/Stable
-      'Development Status :: 3 - Alpha',
+      'Development Status :: 4 - Beta',
       'Intended Audience :: Science/Research',
       'Topic :: Scientific/Engineering :: Mathematics',
-      'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
+      'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
       'Programming Language :: Python :: 3.10',
     ], # classifiers list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
     keywords = "SageMath packaging",
-    packages = ['avisogenies_sage'],
-    cmdclass = {'test': SageTest}, # adding a special setup command for tests
-#    setup_requires   = ['sage-package'],
-#    install_requires = ['sage-package', 'sphinx'],
+    packages = ['thetAV'],
+    cmdclass = {'test': SageTest},
 )

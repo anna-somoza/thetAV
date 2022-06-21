@@ -1,4 +1,4 @@
-from avisogenies_sage import *
+from thetAV import *
 
 p = 2 ^ 3 * 3 ^ 10 - 1
 Fp2.<z2> = FiniteField(p ^ 2)

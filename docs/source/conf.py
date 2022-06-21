@@ -15,8 +15,8 @@
 # General information about the project.
 project = u"AVIsogenies"
 copyright = u'2021, Anna Somoza'
-package_name = 'avisogenies_sage'
-package_folder = "../../avisogenies_sage"
+package_name = 'thetAV'
+package_folder = "../../thetAV"
 authors = u"Anna Somoza"
 
 import os

@@ -1,4 +1,4 @@
-from avisogenies_sage import *
+from thetAV import *
 
 #***** In level 4 *****/
 
@@ -64,7 +64,7 @@ assert thD._coords == th._coords
 
 #The reverse functionality
 #TODO create as method of analytic classes
-from avisogenies_sage.morphisms_level4 import Level4ThetaPointToMumford
+from thetAV.morphisms_level4 import Level4ThetaPointToMumford
 uth,vth = Level4ThetaPointToMumford(a, rac, th.with_theta_basis('F(2,2)'))
 
 assert D == J([uth, vth])
@@ -131,6 +131,6 @@ th2 = thc2(th2, basis='F(2,2)^2')
 assert th2._coords == th2D._coords
 
 #TODO create as method of analytic classes
-from avisogenies_sage.morphisms_level2 import Level2ThetaPointToMumford
+from thetAV.morphisms_level2 import Level2ThetaPointToMumford
 uth,v2th = Level2ThetaPointToMumford(a, th2.with_theta_basis('F(2,2)^2'))
 assert D == J([uth, sqrt(v2th)])

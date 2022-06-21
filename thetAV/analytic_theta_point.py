@@ -207,8 +207,8 @@ class AnalyticThetaPoint:
 
         EXAMPLES ::
 
-            sage: from avisogenies_sage import KummerVariety
-            sage: from avisogenies_sage.eta_maps import eta
+            sage: from thetAV import KummerVariety
+            sage: from thetAV.eta_maps import eta
             sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1])
             sage: th = A.with_theta_basis('F(2,2)^2')

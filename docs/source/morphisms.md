@@ -1,7 +1,7 @@
 # Ep elements
 
 ```{eval-rst} 
-.. automodule:: avisogenies_sage.ep_elements
+.. automodule:: thetAV.ep_elements
    :members:
    :undoc-members:
    :show-inheritance:
@@ -11,7 +11,7 @@
 # Eta maps
 
 ```{eval-rst} 
-.. automodule:: avisogenies_sage.eta_maps
+.. automodule:: thetAV.eta_maps
    :members:
    :undoc-members:
    :show-inheritance:
@@ -23,7 +23,7 @@
 ## Auxiliary functions
 
 ```{eval-rst} 
-.. automodule:: avisogenies_sage.morphisms_aux
+.. automodule:: thetAV.morphisms_aux
    :members:
    :undoc-members:
    :show-inheritance:
@@ -32,7 +32,7 @@
 
 ## Level-2 conversions
 ```{eval-rst} 
-.. automodule:: avisogenies_sage.morphisms_level2
+.. automodule:: thetAV.morphisms_level2
    :members:
    :undoc-members:
    :show-inheritance:
@@ -41,7 +41,7 @@
 
 ## Level-4 conversions
 ```{eval-rst} 
-.. automodule:: avisogenies_sage.morphisms_level4
+.. automodule:: thetAV.morphisms_level4
    :members:
    :undoc-members:
    :show-inheritance:

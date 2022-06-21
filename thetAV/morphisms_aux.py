@@ -86,7 +86,7 @@ def compatible_sqrt(g, i, j):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.morphisms_aux import compatible_sqrt
+        sage: from thetAV.morphisms_aux import compatible_sqrt
         sage: compatible_sqrt(5, 6, 3)
         EpElement(sign=-1, power=1, numer=Counter({662: 1, 694: 1, 573: 1}), denom=Counter({663: 1, 607: 1, 725: 1}))
 
@@ -162,7 +162,7 @@ def constant_f(g, A, C):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.morphisms_aux import constant_f
+        sage: from thetAV.morphisms_aux import constant_f
         sage: g = 5; A = set([1, 2, 3]); C = set([5, 6, 7])
         sage: fA = constant_f(g, A, C); fA
         EpElement(sign=1, power=-4, numer=Counter({607: 4, 694: 2, 911: 2, 843: 2, 415: 2, 347: 2, 723: 2, 850: 2, 484: 1, 637: 1, 626: 1, 561: 1, 950: 1, 638: 1, 724: 1, 573: 1, 595: 1, 978: 1, 330: 1}), denom=Counter({699: 5, 606: 4, 725: 2, 910: 2, 414: 2, 826: 1, 661: 1, 980: 1, 594: 1, 662: 1, 942: 1, 446: 1, 567: 1, 918: 1, 674: 1, 178: 1, 722: 1, 571: 1, 418: 1}))
@@ -221,7 +221,7 @@ def choice_of_C_Cosset(g, A):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.morphisms_aux import choice_of_C_Cosset
+        sage: from thetAV.morphisms_aux import choice_of_C_Cosset
         sage: choice_of_C_Cosset(5, {0,1,2})
         {3, 4}
 
@@ -261,7 +261,7 @@ def choice_of_all_C_Cosset(g):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.morphisms_aux import choice_of_all_C_Cosset
+        sage: from thetAV.morphisms_aux import choice_of_all_C_Cosset
         sage: g = 5; C = choice_of_all_C_Cosset(g)
         sage: C[frozenset({1,3,4})]
         {0, 5}
@@ -292,7 +292,7 @@ def sign_s_A(g, A, C):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.morphisms_aux import choice_of_all_C_Cosset, sign_s_A
+        sage: from thetAV.morphisms_aux import choice_of_all_C_Cosset, sign_s_A
         sage: g = 5; C = choice_of_all_C_Cosset(g)
         sage: sign_s_A(g, [1, 2, 3], C)
         1
@@ -344,9 +344,9 @@ def IgusaTheorem(A, TH):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import KummerVariety
-        sage: from avisogenies_sage.morphisms_aux import IgusaTheorem
-        sage: from avisogenies_sage.eta_maps import eta
+        sage: from thetAV import KummerVariety
+        sage: from thetAV.morphisms_aux import IgusaTheorem
+        sage: from thetAV.eta_maps import eta
         sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
         sage: P = A([255 , 89 , 30 , 1])
         sage: thc = A.with_theta_basis('F(2,2)^2')
@@ -392,8 +392,8 @@ def constant_f2_level2(a, thc, A, C):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage import KummerVariety
-        sage: from avisogenies_sage.morphisms_aux import constant_f2_level2, choice_of_C_Cosset
+        sage: from thetAV import KummerVariety
+        sage: from thetAV.morphisms_aux import constant_f2_level2, choice_of_C_Cosset
         sage: g = 2; A = KummerVariety(GF(331), 2, [328 , 213 , 75 , 1])
         sage: thc = A.with_theta_basis('F(2,2)^2')
         sage: a = [0,1,4,6,7]
@@ -435,7 +435,7 @@ def YS_fromMumford_Generic(g, a, S, points):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.morphisms_aux import YS_fromMumford_Generic
+        sage: from thetAV.morphisms_aux import YS_fromMumford_Generic
         sage: g = 2; a = [0,1,4,6,7]; S = [0,2,3]
         sage: points = [(2, 4), (3, 8)]
         sage: YS_fromMumford_Generic(g, a, S, points)
@@ -470,7 +470,7 @@ def YS_fromMumford_Delta(g, a, S, points, F): #DIFF: Not tested against Magma
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.morphisms_aux import YS_fromMumford_Delta
+        sage: from thetAV.morphisms_aux import YS_fromMumford_Delta
         sage: F = GF(331); g = 2; a = [0, 1, 2, 3, 4]; S = [0,2,3]
         sage: points = [(F(5), F(38))]*2
         sage: YS_fromMumford_Delta(g, [F(el) for el in a], S, points, F)
@@ -615,7 +615,7 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C, F):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.morphisms_aux import choice_of_all_C_Cosset, prodYp_fromMumford_with2torsion
+        sage: from thetAV.morphisms_aux import choice_of_all_C_Cosset, prodYp_fromMumford_with2torsion
         sage: F = GF(331); g = 2; a = list(map(F, [0, 1, 2, 3, 4]))
         sage: S = [{0,2,3},{0},{2,4}, {3,4}]; V = {1}
         sage: points = [(F(1), F(0)), (F(8), F(10))]
@@ -708,7 +708,7 @@ def Y_fromMumford_with2torsion(g,a,S,points,V):
 
     EXAMPLES ::
 
-        sage: from avisogenies_sage.morphisms_aux import Y_fromMumford_with2torsion
+        sage: from thetAV.morphisms_aux import Y_fromMumford_with2torsion
         sage: F = GF(331); g = 2; a = list(map(F, [0, 1, 2, 3, 4]))
         sage: S = {0,2,3,4}; V = {0,2}
         sage: points = [(F(0), F(0)), (F(2), F(0))]
@@ -717,7 +717,7 @@ def Y_fromMumford_with2torsion(g,a,S,points,V):
 
     TESTS::
 
-        sage: from avisogenies_sage.morphisms_aux import Y_fromMumford_with2torsion
+        sage: from thetAV.morphisms_aux import Y_fromMumford_with2torsion
         sage: F = GF(331); g = 2; a = list(map(F, [0, 1, 2, 3, 4]))
         sage: S = {0,2,3,4}; V = {0}
         sage: points = [(F(0), F(0)), (F(8), F(10))]
