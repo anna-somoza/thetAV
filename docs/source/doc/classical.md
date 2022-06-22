@@ -1,4 +1,4 @@
-# Analytic theta null point
+# The classical representation
 
 ```{eval-rst} 
 .. automodule:: thetAV.analytic_theta_point

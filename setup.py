@@ -4,6 +4,7 @@ import sys
 from setuptools import setup
 from codecs import open # To open the README file with proper encoding
 from setuptools.command.test import test as TestCommand # for tests
+from thetAV import __version__
 
 
 # Get information from separate files (README, VERSION)
@@ -20,7 +21,7 @@ class SageTest(TestCommand):
 
 setup(
     name = "thetAV",
-    version = 0.1, #readfile("VERSION").strip(), # the VERSION file is shared with the documentation
+    version = __version__, #readfile("VERSION").strip(), # the VERSION file is shared with the documentation
     description = 'A SageMath package on abelian varieties with theta structure',
     long_description = readfile("README.md"),
     long_description_content_type="text/markdown",

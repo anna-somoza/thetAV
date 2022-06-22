@@ -1,4 +1,6 @@
-# Ep elements
+# Other functions
+
+## Ep elements
 
 ```{eval-rst} 
 .. automodule:: thetAV.ep_elements
@@ -8,7 +10,7 @@
    :private-members:
 ```
 
-# Eta maps
+## Eta maps
 
 ```{eval-rst} 
 .. automodule:: thetAV.eta_maps
@@ -18,9 +20,9 @@
    :private-members:
 ```
 
-# Morphisms
+## Morphisms
 
-## Auxiliary functions
+### Auxiliary functions
 
 ```{eval-rst} 
 .. automodule:: thetAV.morphisms_aux
@@ -30,7 +32,7 @@
    :private-members:
 ```
 
-## Level-2 conversions
+### Level-2 conversions
 ```{eval-rst} 
 .. automodule:: thetAV.morphisms_level2
    :members:
@@ -39,7 +41,7 @@
    :private-members:
 ```
 
-## Level-4 conversions
+### Level-4 conversions
 ```{eval-rst} 
 .. automodule:: thetAV.morphisms_level4
    :members:

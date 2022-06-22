@@ -33,7 +33,7 @@ def AbelianVariety(*data, **kwargs):
 
     INPUT:
 
-    An integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups (see :func:`~sage:sage.modular.abvar.constructor.AbelianVariety` in Sagemath) or a theta
+    An integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups (see :func:`~sage:sage.modular.abvar.constructor.AbelianVariety` in SageMath) or a theta
     structure (see :class:`~thetAV.abelian_variety.AbelianVariety_ThetaStructure`).
 
     OUTPUT: a modular abelian variety with extra structure.
@@ -52,7 +52,7 @@ def AbelianVariety(*data, **kwargs):
         sage: AbelianVariety(GF(331), 2, 2, [328,213,75,1])
         Kummer variety of dimension 2 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
     
-    But the function is also compatible with the functionality currently available in Sagemath::
+    But the function is also compatible with the functionality currently available in SageMath::
     
         sage: AbelianVariety(Gamma0(37))
         Abelian variety J0(37) of dimension 2

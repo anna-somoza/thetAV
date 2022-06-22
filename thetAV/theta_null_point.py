@@ -2,23 +2,23 @@ r"""
 This module defines the classes of Abelian varieties with theta structure
 and Kummer variety with theta structure as an abstract schemes.
 
-Following [Mum66] an abelian variety $A$ of dimension $g$ together with a level $n$ theta
-structure is provided with a unique embedding $i: A \rightarrow P^{n^g-1}$. The data of
-the theta structure is equivalent to the data of the theta null point $i(0)$. Actually, one
-of the main results of [Mum66] states that if $n \eq 4$, one can recover a complete set of
-equations for $i(A)$ thanks to Riemann equations which are parametrized by the theta null
+Following [Mum66]_ an abelian variety `A` of dimension `g` together with a level `n` theta
+structure is provided with a unique embedding `i: A \rightarrow P^{n^g-1}`. The data of
+the theta structure is equivalent to the data of the theta null point `i(0)`. Actually, one
+of the main results of [Mum66]_ states that if `n \eq 4`, one can recover a complete set of
+equations for `i(A)` thanks to Riemann equations which are parametrized by the theta null
 point.
 
-In the case that $n=2$, as all the level two theta functions are even the map $i A
-\rightarrow P^{n^g-1}$ factor through the Kummer variety $K=A/(-1)$ associated to $A$.
+In the case that `n=2`, as all the level two theta functions are even the map `i A
+\rightarrow P^{n^g-1}` factor through the Kummer variety `K=A/(-1)` associated to `A`.
 
 As for computations, one look for the most compact and efficient representation, in most
-instances level $4$ representation is enough. In some cases, one can find useful the
-increased speed up provided by the level $2$ representation, so working with Kummer
+instances level `4` representation is enough. In some cases, one can find useful the
+increased speed up provided by the level `2` representation, so working with Kummer
 varieties, at the expense of loosing the group law of the abelian variety (but x
 
 The main point of this module is to provide constructors for the creation of an Abelian
-and Kummer variety together with a level $n$ theta structure ($n=2$ in case of Kummer
+and Kummer variety together with a level `n` theta structure (`n=2` in case of Kummer
 variety) and computing Riemann equations to represent its projective embedding and
 arithmetic. 
 
@@ -26,26 +26,6 @@ arithmetic.
 AUTHORS:
 
 - Anna Somoza (2020-22): initial implementation
-
-REFERENCES:
-
-.. [Gaud] P. Gaudry. Fast genus 2 arithmetic based on theta functions.
-   J. Math. Cryptol. 1 (3) (2007) 243–265.
-
-.. [Mum66] D. Mumford. On the equations defining abelian varieties. I. Invent. Math.,
-237-354, 1966.
-
-.. [Mum67a] D. Mumford. On the equations defining abelian varieties. II. Invent. Math.,
-75-135, 1967.
-
-
-.. todo::
-
-    - Add more info to the paragraph above
-
-    - Change coefficients in examples to be powers of gen?
-
-    - Can we use equations to generate random points?
 
 """
 
@@ -271,8 +251,6 @@ class Variety_ThetaStructure(AlgebraicScheme):
         """
         Let thc be a theta null point given by algebraic coordinates (i.e. :class:`AbelianVariety_ThetaStructure`, :class:`KummerVariety`). Compute the
         corresponding theta null point (i.e. :class:`AnalyticThetaNullPoint`) in analytic coordinates.
-
-        TODO: check that label matches level
         """
         if type(self) == str:
             from .constructor import _with_theta_basis
@@ -284,8 +262,11 @@ class Variety_ThetaStructure(AlgebraicScheme):
             pass
         if label == 'Fn':
             return self
-        if label not in ['F(2,2)', 'F(2,2)^2']:
+        if label not in ['classical', 'F(2,2)', 'F(2,2)^2']:
             raise ValueError(f'The basis {label} is either not implemented or unknown.')
+        if label == 'F(2,2)':
+            raise ValueError(f'The basis {label} should be of level 2.')
+
         n = self.level()
         g = self.dimension()
 
@@ -335,12 +316,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
 
         .. todo::
 
-            - Check change with David.
-
             - Rename?
-
-            - If we only want the addition of the two-torsion elements, why not store _riemann only with that? see _addition_formula
-
             - Private or public?
 
         """
@@ -713,7 +689,7 @@ class KummerVariety(Variety_ThetaStructure):
         Returns a list of defining equations for the abelian variety.
 
         If the theta null point has dimension 2 and level 2, these are
-        the equations as given by Gaudry in [Gaud].
+        the equations as given by Gaudry in [Gaud]_.
 
         Otherwise, these are computed using the Riemann relations.
 

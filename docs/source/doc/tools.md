@@ -1,4 +1,4 @@
-# Auxiliary functions
+# Auxiliary tools
 
 ## Abelian variety with theta structure
 

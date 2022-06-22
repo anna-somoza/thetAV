@@ -1,29 +1,32 @@
-# thetAV - A SageMath package on abelian varieties with theta structure
+---
+hide-toc: true
+---
+<h1 align="center">thetAV</h1>
+<p align="center">
+  A <a href="https://www.sagemath.org/">SageMath</a> package on abelian varieties with theta structure
+</p>
+
+-----------------
 
 ```{include} ../../README.md
+:start-after: <!-- start elevator-pitch -->
+:end-before: <!-- end elevator-pitch -->
 ```
 
 ```{toctree}
-:maxdepth: 2
-:caption: Documentation
+:hidden:
 
-theta_null_point
-theta_point
-analytic_theta_point
-morphisms
-tools
+install
+doc/index
+tutorials/index
+math/introduction
 ```
 
 ```{toctree}
-:maxdepth: 2
-:caption: Tutorials
+:caption: Development
+:hidden:
 
-tutorials/example
+todo
+develop
+license
 ```
-
-## Indices and Tables
-
-* {ref}`genindex`
-* {ref}`modindex`
-* {ref}`search`
-* {doc}`todo`

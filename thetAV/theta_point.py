@@ -1,7 +1,6 @@
 """This module defines the base class of Theta points as elements of
 :class:`~thetAV.abelian_variety.AbelianVariety_ThetaStructure`.
 
-
 AUTHORS:
 
 - Anna Somoza (2020-22): initial implementation
@@ -546,8 +545,6 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
 
     def three_way_add(self, Q, R, PQ, QR, PR):
         """
-        ..todo:: Document
-        
         EXAMPLES::
         
             sage: from thetAV import KummerVariety
@@ -563,7 +560,15 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: PQ = P.diff_add(Q, PmQ)
             sage: P.diff_multadd(2, PQ, Q)[0] == P.three_way_add(P,Q,2*P, PQ, PQ)
             True
-                        
+
+        .. TODO::
+
+            - Document
+            - Add hidden tests using hyperelliptic curve.
+            - Maybe change example to be level 4 so that we can just compare it with 2*P + Q.
+            - Maybe add time comparison with diff_add
+            - This function could be optimized, following the notes in [REF MISSING, page]_.
+
         """
         from .tools import eval_car, reduce_twotorsion_couple
         point0 = self.scheme()
@@ -819,7 +824,13 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
         then the output is also a good lift.
         
         EXAMPLES ::
-        
+
+            sage: from thetAV import AbelianVariety
+            sage: A = AbelianVariety(GF(331), 4, 1, [328 , 213 , 75 , 1]); A
+            Abelian variety of dimension 1 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
+            sage: #P = A([255 , 89 , 30 , 1]); Q = A([123, 345, 23, 13]); PQ = A([23,12,45,5])
+            sage: #P.diff_add(Q, PQ)
+
         """
         point0 = self.abelian_variety()
         n = point0.level()

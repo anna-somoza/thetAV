@@ -1,5 +1,6 @@
-# Varieties with theta structure
+# The $F_n$ representation
 
+## Varieties
 ```{eval-rst} 
 .. automodule:: thetAV.theta_null_point
    :members:
@@ -8,13 +9,12 @@
    :private-members:
 ```
 
-## Abelian variety constructor
+## Theta points
 
 ```{eval-rst} 
-.. automodule:: thetAV.constructor
+.. automodule:: thetAV.theta_point
    :members:
+   :private-members:
    :undoc-members:
    :show-inheritance:
-   :private-members:
 ```
-

@@ -1,10 +1,16 @@
 """
 Half-integer characteristics and computations of sign with half-integer characteristics
 
+Based on the work in [VanW]_ and the magma implementation by Romain Cosset.
 
 AUTHORS:
 
 - Anna Somoza (2021-22): initial implementation
+
+.. todo::
+
+    - Reformat info above.
+    - Sort documentation by source (to maintain layout)
 
 """
 
@@ -18,24 +24,6 @@ AUTHORS:
 #                                    https://www.gnu.org/licenses/
 # ****************************************************************************
 
-"""
-Half-integer characteristics and computations of sign with half-integer characteristics
-
-
-Based on the work in [VanW]_ and the magma implementation by Romain Cosset.
-
-
-REFERENCES:
-
-.. [VanW] P. Van Wamelen. Equations for the Jacobian of a hyperelliptic curve.
-   Trans. Am. Math. Soc, 350(8), pp.3083-3106, 1998.
-
-.. todo::
-
-    - Reformat info above.
-    - Sort documentation by source (to maintain layout)
-    
-"""
 
 from itertools import chain
 
@@ -253,7 +241,7 @@ def sign_theta_normalized(*data):
 
 def e_star(e):
     """
-    Computes e_star as defined in [VanW, page 3090].
+    Computes e_star as defined in [VanW, page 3090]_.
 
     EXAMPLES ::
 
@@ -272,7 +260,7 @@ def e_star(e):
 
 def e_2(g, A1, A2):
     """
-    Compute e_2(eta(A1),eta(A2)) as defined in [VanW, page 3090].
+    Compute e_2(eta(A1),eta(A2)) as defined in [VanW, page 3090]_.
 
     EXAMPLES ::
 

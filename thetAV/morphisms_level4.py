@@ -8,15 +8,6 @@ AUTHORS:
 
 - Anna Somoza (2021-22): initial implementation
 
-REFERENCES:
-
-.. [VanW] P. Van Wamelen. Equations for the Jacobian of a hyperelliptic curve.
-   Trans. Am. Math. Soc, 350(8), pp.3083-3106, 1998.
-
-.. [Coss] R. Cosset. Applications des fonctions thêta à la cryptographie sur courbes hyperelliptiques.
-   PhD thesis, Université Henri Poincaré – Nancy 1, 2011.
-
-
 .. todo::
 
     - Sort documentation by source (to maintain layout)
