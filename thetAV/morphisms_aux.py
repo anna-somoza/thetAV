@@ -6,6 +6,8 @@ AUTHORS:
 
 - Anna Somoza (2021-22): initial implementation
 
+.. todo: Function names are horrible!
+
 """
 
 
@@ -13,7 +15,7 @@ AUTHORS:
 #             Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #    Distributed under the terms of the GNU General Public License (GPL)
-#    as published by the Free Software Foundation; either version 2 of
+#    as published by the Free Software Foundation; either version 3 of
 #    the License, or (at your option) any later version.
 #                                    https://www.gnu.org/licenses/
 # ****************************************************************************
@@ -346,7 +348,6 @@ def IgusaTheorem(A, TH):
         sage: IgusaTheorem([eta(g,{2*x for x in range(g+1)})]*4, [thp,thO,thO,thO])
         56
 
-    .. todo:: Add reference, see FIXME.
     """
     if len(A)!=4 or len(TH)!=4:
         raise ValueError
@@ -614,7 +615,6 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C, F):
         sage: prodYp_fromMumford_with2torsion(g, a, S, points, V, C, F)
         187
 
-    .. todo:: Address FIXME.
     """
 
     if len(V) < 1 or len(V) > g:
@@ -635,7 +635,7 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C, F):
     x = K.gen()
     u = prod(x - point[0] for point in points)
     if any(u(a[l]) != 0 for l in V):
-        raise ValueError('Indices in V should vanish u??') #FIXME
+        raise ValueError('Indices in V should vanish u??') #FIXME check error message
 
     # Let R be a subset {1, ..., g} which correspond to the index i such that P_i is the
     # ramification point a_l with l in V
@@ -646,10 +646,10 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C, F):
     zg = eta_second(g, range(2*g + 1))/2
     W = V.intersection(*S)
 
-    Y = 0
+    Y = F(0)
     for Ip in product(*[combinations(rangeS(g, R), ni - len(V & si)) for ni, si in zip(n, S)]):
         I = [ s | set(ip) for s, ip in zip(ind_VmS, Ip)]
-        t = prod(points[i][1]  for Ij in I for i in Ij.difference(R))
+        t = prod((points[i][1]  for Ij in I for i in Ij.difference(R)), F(1))
 
         for s, i in zip(S, I):
             if len(s) >=2:
@@ -679,17 +679,15 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C, F):
             Y *= sign_s_A(g, range(2*g +1), C)
             Y *= (-1)**floor((g+1)/2)
             Y *= (-1)**ZZ(eta_prime(g,C[frozenset()])*zg)
-        else:
-            raise ValueError(F'Expected length of S={s} between 1 and {2*g+1}')
 
     return Y
 
-def Y_fromMumford_with2torsion(g,a,S,points,V):
+def Y_fromMumford_with2torsion(g, a, S, points, V):
     """
     Let D be a point in Jac(C)\\Theta. D can be writen as
     D = sum_1^g P_i - g P_infty
     Let points be the list of coordinates (x,y) (as tuples) of P_i
-    Let a be the x-coordinate of th Weierstrass points of the curve
+    Let a be the x-coordinate of the Weierstrass points of the curve
 
     Assume that all P_i are distinct.
     Assume that the first P_i are [a[l],0] with l in V
@@ -715,16 +713,14 @@ def Y_fromMumford_with2torsion(g,a,S,points,V):
         sage: Y_fromMumford_with2torsion(g,a,S,points,V)
         300
 
-    .. todo:: Address FIXME.
     """
     if not V < S or len(V) == 0:
         raise ValueError(F'V={V} should be a non-empty subset of S={S}')
     if len(points) != g:
         raise ValueError(F'Expected length of points={points} to be {g}')
     if len(S) < 2*len(V):
-        raise ValueError(F'Error?? FIXME')
+        raise ValueError(F'Error?? ') #FIXME when do we get this error?
 
-    #s = len(S)
     v = len(V)
     n = floor(len(S)/2)
 
@@ -734,8 +730,8 @@ def Y_fromMumford_with2torsion(g,a,S,points,V):
 
     if v == n:
         Y = prod(a[l] - a[k] for l, k in product(V, range(2*g + 1)) if k not in V)
-        Y /= prod(points[k][1] - a[l] for l, k in product(V, range(v, g)))
-        Y *= prod((points[k][1] - a[l])**2 for l, k in product(S - V, range(v, g)))
+        Y /= prod(points[k][0] - a[l] for l, k in product(V, range(v, g)))
+        Y *= prod((points[k][0] - a[l])**2 for l, k in product(S - V, range(v, g)))
         return Y
 
     Y = 0

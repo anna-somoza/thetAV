@@ -13,7 +13,7 @@ AUTHORS:
 #             Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #    Distributed under the terms of the GNU General Public License (GPL)
-#    as published by the Free Software Foundation; either version 2 of
+#    as published by the Free Software Foundation; either version 3 of
 #    the License, or (at your option) any later version.
 #                                    https://www.gnu.org/licenses/
 # ****************************************************************************
@@ -82,11 +82,8 @@ def MumfordToTheta_2_Generic(a, thc2, points):
         sage: MumfordToTheta_2_Generic(a, thc, points)._coords #FIXME change when _repr_ is done
         (92, 265, 295, 308, 319, 261, 303, 111, 89, 193, 275, 12, 262, 214, 46, 70)
 
-    .. todo:: 
-    
-        - Test against Magma in the case that uses YS_fromMumford_Delta
-        
-        - Address FIXME.
+    .. todo::  Test against Magma in the case that uses YS_fromMumford_Delta
+
     """
     if thc2.level() != 2:
         raise ValueError(F'Expected level-2 theta structure.')
@@ -170,13 +167,7 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
         (288, 101, 184, 91, 289, 74, 111, 10, 106, 54, 12, 0, 292, 48, 113, 243)
 
 
-    .. todo:: 
-    
-        - Add tests that cover the missing cases.
-        
-        - Address FIXME.
-        
-        - We might want to change the input to take an actual mumford representation, we can compute the point list later!
+    .. todo:: Add tests that cover the missing cases.
     
     """
     if thc2.level() != 2:
@@ -200,13 +191,15 @@ def MumfordToLevel2ThetaPoint(a, thc2, points):
         return MumfordToTheta_2_Generic(a, thc2, points)
 
     V2 = set()
-    for l, al in enumerate(a):
-        if l not in V1:
-            V2.add(l)
-            up *= (x - al)
-            points_p.append((al, 0))
-            if up.degree() == g:
-                break
+    
+    if len(points) < g:
+        for l, al in enumerate(a):
+            if l not in V1:
+                V2.add(l)
+                up *= (x - al)
+                points_p.append((al, 0))
+                if up.degree() == g:
+                    break
 
     V = V1 | V2
 
@@ -278,7 +271,6 @@ def ThetaToMumford_2_Generic(a, th2):
         sage: ThetaToMumford_2_Generic(a, thp)
         (139*x^2 + 117*x + 157, 57*x^2 + 70*x + 210)
 
-    .. todo:: Address FIXME.
     """
     thc2 = th2.abelian_variety()
     g = thc2.dimension()
@@ -407,11 +399,7 @@ def ThetaToMumford_2_algclose(a,th2):
 
     Compute the Mumford polynomials (u,v^2) associated to D
     
-    .. todo:: 
-    
-        - Difference with funcion above? Do we need this or can we join them somehow?
-        
-        - Test against Magma, add examples
+    .. todo:: Difference with funcion above? Do we need this or can we join them somehow? Test against Magma, add examples
     """
     thc2 = th2.abelian_variety()
     g = thc2.dimension()

@@ -1,6 +1,6 @@
 # Documentation
 
-### Abelian variety constructor
+## Abelian variety constructor
 
 ```{eval-rst} 
 .. automodule:: thetAV.constructor

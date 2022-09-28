@@ -12,7 +12,7 @@ AUTHORS:
 #             Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #    Distributed under the terms of the GNU General Public License (GPL)
-#    as published by the Free Software Foundation; either version 2 of
+#    as published by the Free Software Foundation; either version 3 of
 #    the License, or (at your option) any later version.
 #                                    https://www.gnu.org/licenses/
 # ****************************************************************************

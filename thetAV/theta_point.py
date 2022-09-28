@@ -4,12 +4,6 @@
 AUTHORS:
 
 - Anna Somoza (2020-22): initial implementation
-
-.. todo::
-
-    - Add more info to the paragraph above
-    
-    - On binary operations, test that all the points belong to the same abelian variety.
     
 """
 
@@ -17,7 +11,7 @@ AUTHORS:
 #       Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
+#  as published by the Free Software Foundation; either version 3 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
@@ -99,7 +93,9 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         """
         Return the n-th coordinate of this point.
 
-        TODO: maybe test for twotorsion?
+        TEST::
+
+            sage: #TODO tests
         """
         if isinstance(n, list):
             return self._coords[ZZ(n, self._level)]
@@ -284,9 +280,9 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             (1 : 56*t^3 + 312*t^2 + 147*t + 287 : 277*t^3 + 295*t^2 + 7*t + 287 : 290*t^3 + 203*t^2 + 274*t + 10))
 
 
-        .. todo::
+        TESTS ::
 
-            Find tests that are not level 2!
+            sage: #TODO level 4 tests
             
         """
         return self._add(other)
@@ -312,8 +308,8 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         point0 = self.scheme()
         D = point0._D
         mPcoord = [0] * len(point0)
-        for i, val in zip(D, self):
-            mPcoord[-i] = val
+        for idxi, i in enumerate(D):
+            mPcoord[idxi] = self[-i]
         return point0.point(mPcoord)
 
     def _rmul_(self, k):
@@ -328,9 +324,9 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: 42*P
             (311 : 326 : 136 : 305)
 
-        .. todo::
+        TESTS ::
 
-            Find tests that are not level 2!
+            sage: #TODO level 4 tests
             
         """
         return self._mult(k)
@@ -357,9 +353,9 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         
             :meth:`~._rmul_`
             
-        .. todo::
+        TESTS ::
 
-            Find tests that are not level 2!
+            sage: #TODO level 4 tests
             
         """
         if not isinstance(k, integer_types + (Integer,)):
@@ -371,13 +367,12 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             return self
         if k < 0:
             return (-k) * (-self)
-        kb = (k - 1).digits(2)
         nP = self
         if algorithm == 'Montgomery':
             mP = -self
             n1P = self.diff_add(self, point0)
-            for i in range(2, len(kb) + 1):  # FIXME: We can change this to walk the vector kb in reversed order?
-                if kb[-i] == 1:
+            for b in (k-1).binary()[1:]:
+                if b == '1':
                     nn11P = n1P.diff_add(n1P, point0)
                     nP = nP.diff_add(n1P, mP)
                     n1P = nn11P
@@ -389,9 +384,9 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         if algorithm == 'SquareAndMultiply':
             if self.scheme().level() == 2:
                 raise NotImplementedError("Square and Multiply algorithm is only for level > 2.")
-            for i in range(2, len(kb) + 1):
+            for b in (k-1).binary()[1:]:
                 nP = nP.diff_add(nP, point0)
-                if kb[-i] == 1:
+                if b == '1':
                     nP = nP + self
             return nP
         raise NotImplementedError("Unknown algorithm %s" % algorithm)
@@ -418,7 +413,6 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             (311 : 326 : 136 : 305))
         
         .. todo::
-        
             If we don't need kP, then we don't need to compute kP, only (k/2)P, so
             we lose 2 differential additions. Could be optimized here.
             
@@ -473,12 +467,19 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         The nth power of the weil pairing of P and Q, where n is the level
         of the theta structure.
 
-        ..todo:: Should check that points belong to same AV.
+        EXAMPLES::
+
+            sage: #TODO examples
         """
+        if self.scheme() != Q.scheme():
+            raise ValueError('The points must belong to the same Abelian Variety.')
         if PQ is None:
             if self.scheme().level() == 2:
                 raise NotImplementedError
             PQ = self + Q
+        else:
+            if self.scheme() != PQ.scheme():
+                raise ValueError('The points must belong to the same Abelian Variety.')
         point0 = self.scheme().theta_null_point()
         lPQ, lP = self.diff_multadd(l, PQ, Q)  # lP + Q, lP
         PlQ, lQ = Q.diff_multadd(l, PQ, self)  # P + lQ, lQ
@@ -507,10 +508,6 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
 
         The r-th power of the tate pairing of P and Q, where `r = (p^k - 1)/l`.
 
-        ..todo::
-
-            - Should check that points belong to same AV.
-
         EXAMPLES ::
 
             sage: from thetAV import KummerVariety
@@ -529,10 +526,15 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: Q.tate_pairing(1889, P, PQ)
             130*t^3 + 124*t^2 + 49*t + 153
         """
+        if self.scheme() != Q.scheme():
+            raise ValueError('The points must belong to the same Abelian Variety.')
         if PQ is None:
             if self.scheme().level() == 2:
                 raise NotImplementedError
             PQ = self + Q
+        else:
+            if self.scheme() != PQ.scheme():
+                raise ValueError('The points must belong to the same Abelian Variety.')
         A = self.scheme()
         point0 = A.theta_null_point()
         PlQ, lQ = Q.diff_multadd(l, PQ, self)  # P + lQ, lQ
@@ -561,8 +563,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: P.diff_multadd(2, PQ, Q)[0] == P.three_way_add(P,Q,2*P, PQ, PQ)
             True
 
-        .. TODO::
-
+        .. todo::
             - Document
             - Add hidden tests using hyperelliptic curve.
             - Maybe change example to be level 4 so that we can just compare it with 2*P + Q.
@@ -652,12 +653,12 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
           point is needed.
         
         - ``l`` -- the torsion
-        
-        .. todo:: 
-            
-            - Add examples
-            
-            - Add check keyword to assert that all the quotients are equal vs just taking one.
+
+
+        EXAMPLES::
+
+            sage: #TODO examples
+
         """
         A = self.scheme()
         if add is None:
@@ -678,7 +679,6 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         deltas = [lam]
         for P, PQ in zip(other, add):
             PlQ, lQ = self.diff_multadd(l, PQ, P)
-            # assert lQ == 0
 
             # the lift
             M = []
@@ -693,7 +693,8 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         Let thc be a theta null point given by algebraic coordinates (i.e. :class:`AbelianVariety_ThetaStructure`, :class:`KummerVariety`). Compute the
         corresponding theta null point (i.e. :class:`AnalyticThetaNullPoint`) in analytic coordinates.
 
-        TODO: check that label matches level
+        .. todo:: check that label matches level. Use python3 match to study the cases, maybe!
+
         """
         try:
             return self._with_theta_basis[label]
@@ -701,7 +702,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             pass
         if label == 'Fn':
             return self
-        if label not in ['F(2,2)', 'F(2,2)^2']:
+        if label not in ['F(2,2)', 'F(2,2)^2', 'classical']:
             raise ValueError(f'The basis {label} is either not implemented or unknown.')
         A = self.scheme().with_theta_basis(label)
         self._with_theta_basis[label] = A._point.from_algebraic(self, thc=A)
@@ -735,13 +736,6 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
         sage: Q = B([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
          155*t^3 + 84*t^2 + 15*t + 170, 1]); Q
         (158*t^3 + 67*t^2 + 9*t + 293 : 290*t^3 + 25*t^2 + 235*t + 280 : 155*t^3 + 84*t^2 + 15*t + 170 : 1)
-        
-    .. todo::
-    
-        - When ``v`` is a point already and ``check`` is `True`, we should make sure that v has been checked when generated.
-          maybe with a boolean in X (or in the point) that saves if it has been checked.
-          
-        - Make check on the point/AV a method that caches the result.
 
     """
 
@@ -828,6 +822,7 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
             sage: from thetAV import AbelianVariety
             sage: A = AbelianVariety(GF(331), 4, 1, [328 , 213 , 75 , 1]); A
             Abelian variety of dimension 1 with theta null point (328 : 213 : 75 : 1) defined over Finite Field of size 331
+            sage: #TODO finish example
             sage: #P = A([255 , 89 , 30 , 1]); Q = A([123, 345, 23, 13]); PQ = A([23,12,45,5])
             sage: #P.diff_add(Q, PQ)
 
@@ -859,12 +854,12 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
         
             :meth:`~._add_`
 
-        .. todo::
-        
-            - Deal with case where self or other is the thetanullpoint.
-            
-            - Find tests where P and Q are not rational in the av but rational in the kummer variety, so P+Q won't be rational
+        TESTS::
+
+            sage: #TODO  Find tests where P and Q are not rational in the av but rational in the kummer variety, so P+Q won't be rational
         """
+        if (x := self == 0) or other == 0:
+            return other if x else self
         point0 = self.abelian_variety()
         n = point0.level()
         g = point0.dimension()
@@ -900,13 +895,6 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
         sage: Q = B([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
          155*t^3 + 84*t^2 + 15*t + 170, 1]); Q
         (158*t^3 + 67*t^2 + 9*t + 293 : 290*t^3 + 25*t^2 + 235*t + 280 : 155*t^3 + 84*t^2 + 15*t + 170 : 1)
-        
-    .. todo::
-    
-        - When ``v`` is a point already and ``check`` is `True`, we should make sure that v has been checked when generated.
-          maybe with a boolean in X (or in the point) that saves if it has been checked.
-          
-        - Make check on the point/AV a method that caches the result.
 
     """
 
@@ -1021,16 +1009,6 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
             else:
                 PQ[i] = sum(r[(chi, i, i)] for chi in range(ng)) / (ng * PmQ[i])
 
-        # I think that this section is unnecessary
-        # for i in range(ng):
-        # # in level 2, in this case we only computed
-        # # (PQ[i]PmQ[j]+PQ[j]PmQ[i])/PmQ[j] so we correct to get PQ[i]
-        # # we have to do it here to be sure we have computed PQ[j]
-        # # FIXME We are subtracting 0 all the time? Doesn't make too much sense...
-        # # In the case with PmQ[i] == 0 (j = i0) we have computed (PQ[i]PmQ[i0] + PQ[i0]PmQ[i])/PmQ[i0] = PQ[i]
-        # # In the case with PmQ[i] != 0 (j = i) we have computed (PQ[i]PmQ[i] + PQ[i]PmQ[i])/PmQ[i] = 2*PQ[i]
-        # if PmQ[i] == 0:
-        # PQ[i] -= PQ[j]*PmQ[i]/PmQ[j]
         return point0.point(PQ)
 
     def _add(self, other, idxi0=0):
@@ -1042,12 +1020,12 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
 
             :meth:`~._add_`
 
-        .. todo::
+        TESTS::
 
-            - Deal with case where self or other is the thetanullpoint.
-
-            - Find tests where P and Q are not rational in the av but rational in the kummer variety, so P+Q won't be rational
+            sage: #TODO Find tests where P and Q are not rational in the av but rational in the kummer variety, so P+Q won't be rational
         """
+        if (x := self == 0) or other == 0:
+            return other if x else self
         from .tools import eval_car
         point0 = self.kummer_variety()
         twotorsion = point0._twotorsion

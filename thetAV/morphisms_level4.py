@@ -8,9 +8,7 @@ AUTHORS:
 
 - Anna Somoza (2021-22): initial implementation
 
-.. todo::
-
-    - Sort documentation by source (to maintain layout)
+.. todo:: Sort documentation by source (to maintain layout)
 
 """
 
@@ -18,7 +16,7 @@ AUTHORS:
 #             Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #    Distributed under the terms of the GNU General Public License (GPL)
-#    as published by the Free Software Foundation; either version 2 of
+#    as published by the Free Software Foundation; either version 3 of
 #    the License, or (at your option) any later version.
 #                                    https://www.gnu.org/licenses/
 # ****************************************************************************
@@ -53,11 +51,7 @@ def MumfordToTheta_4_Generic(a, rac, thc, points):
 
     Return the theta functions of level 4 associated to points.
     
-    .. todo:: 
-    
-        - Test against Magma, add examples
-        
-        - Address FIXME.
+    .. todo:: Test against Magma, add examples
     """
     if thc.level() != 4:
         raise ValueError(F'Expected level-4 theta structure.')
@@ -182,12 +176,7 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
         sage: th = MumfordToLevel4ThetaPoint(a, rac, thc, points); th
         (78*z2 + 13 : 77*z2 + 26 : 43*z2 + 3 : 54*z2 + 67 : 77*z2 + 61 : 35*z2 + 2 : 31*z2 + 8 :
         19*z2 + 38 : 25*z2 + 9 : z2 + 65 : 17*z2 + 75 : 18*z2 + 38 : 50*z2 + 17 : 41*z2 + 6 : 18*z2 + 48 : 39*z2 + 73)
-        
-    .. todo:: 
-    
-        - Check question in code.
-        
-        - Address FIXME.
+
     """
     if thc.level() != 4:
         raise ValueError(F'Expected level-4 theta structure.')
@@ -253,7 +242,7 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
                 # we divide by f_Bi
                 t = 1 / prod(constant_f(g, Bi, C[Bi]).evaluate(a, thc, rac) for Bi in B)
 
-                W = V & frozenset.union(*B[:-1])  # TODO: Why not B[4]?
+                W = V & frozenset.union(*B[:-1])
 
                 if len(W) != 0:
                     # we multiply by Y_Bi'
@@ -341,11 +330,7 @@ def Ylm_fromTheta(a, rac, l, m, th, C):
 
     Compute the function Y_{l,m}
     
-    .. todo::
-    
-        - Test against Magma, add examples.
-        
-        - Address FIXME.
+    .. todo:: Test against Magma, add examples.
     """
     thc = th.abelian_variety()
     g = thc.dimension()
@@ -384,11 +369,7 @@ def ThetaToMumford_4_Generic(a, rac, th):
 
     Compute the Mumford polynomials associated to D
     
-    .. todo:: 
-    
-        - Test against Magma, add examples
-        
-        - Address FIXME.
+    .. todo:: Test against Magma, add examples
     """
     thc = th.abelian_variety()
     g = thc.dimension()

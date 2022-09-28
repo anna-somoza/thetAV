@@ -12,7 +12,7 @@ AUTHORS:
 #       Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
+#  as published by the Free Software Foundation; either version 3 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
@@ -93,7 +93,7 @@ def AbelianVariety(*data, **kwargs):
 def _with_theta_basis(label: str, *data, **kwargs):
     if label == 'Fn':
         return AbelianVariety(*data, **kwargs)
-    if label in ['F(2,2)', 'F(2,2)^2']:
+    if label in ['F(2,2)', 'F(2,2)^2', 'classical']:
         #TODO: add checks for level
         A = analytic_theta_point.AnalyticThetaNullPoint(*data, **kwargs)
         return A.to_algebraic()
@@ -120,9 +120,7 @@ def _from_curve(C, level=4):
         sage: th = AbelianVariety.from_curve(C); th.with_theta_basis('F(2,2)')
         (1 : 37 : 56 : 57 : 34*z2 + 43 : 0 : 50*z2 + 73 : 0 : 30 : 2*z2 + 82 : 0 : 0 : 16*z2 + 37 : 0 : 0 : 61*z2 + 21)
 
-    TODO ::
-
-        - Can we generalize to more curves? Genus 1? Genus >2?
+    TODO :: Can we generalize to more curves: Genus 1? Genus >2?
 
     """
     if not isinstance(C, HyperellipticCurve_g2):

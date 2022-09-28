@@ -12,7 +12,7 @@ AUTHORS:
 #             Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #    Distributed under the terms of the GNU General Public License (GPL)
-#    as published by the Free Software Foundation; either version 2 of
+#    as published by the Free Software Foundation; either version 3 of
 #    the License, or (at your option) any later version.
 #                                    https://www.gnu.org/licenses/
 # ****************************************************************************
@@ -41,7 +41,7 @@ class AnalyticThetaPoint:
     - level, // an integer
     - coord, // a ThetaStructure of level 2 and g = 2*g
     
-    .. todo::
+    .. todo:: Refactor class
     
         - Add examples to all class functions
         
@@ -79,7 +79,7 @@ class AnalyticThetaPoint:
         if phi is None or phi.codomain() == C:
             points = sum(([(x, v(x))] * mult for x, mult in u.roots()), [])
         else:
-            points = sum(([phi([x, v(x), 1])][:2] * mult for x, mult in u.roots()), [])
+            points = sum(([phi([x, v(x), 1])[:2]] * mult for x, mult in u.roots()), [])
         if len(points) != u.degree():
             raise ValueError('Support not defined over field of definition')
         if th.level() == 2:
@@ -215,8 +215,7 @@ class AnalyticThetaPoint:
             sage: thp = th(P)
             sage: thp.add_twotorsion_point(eta(g, 2))._coords #FIXME change when _repr_ is done.
             (163, 328, 50, 185, 96, 217, 63, 183, 53, 307, 229, 76, 56, 118, 48, 199)
-            
-        .. todo:: Address FIXME.
+
         """
         thc = self.abelian_variety()
         level = thc.level()
@@ -228,7 +227,7 @@ class AnalyticThetaPoint:
             return thc(t)
 
         if level == 4:
-            t = self._coords
+            t = list(self._coords)
             for idxe, e in enumerate(Ab):
                 t[idxe] *= (-1) ** ZZ(e[:g] * eta[g:] + eta[:g] * e[g:])
             return thc(t)
@@ -366,14 +365,13 @@ class AnalyticThetaNullPoint:
 
         The corresponding theta null point in algebraic coordinates (see :class:`AbelianVariety_ThetaStructure`, :class:`KummerVariety`)
 
-        .. todo:: Address FIXME.
         """
 
         n = self.level()
         g = self.dimension()
         ng = n ** g
         point = [0] * ng
-        R = parent(self._coords[0])  # FIXME
+        R = parent(self._coords[0])  #FIXME Field of definition rework
 
         if n == 2:
             for b in range(ng):  # char(b) in Zmod(2)^g

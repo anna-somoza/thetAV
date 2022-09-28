@@ -1,26 +1,25 @@
 r"""
 This module defines the classes of Abelian varieties with theta structure
-and Kummer variety with theta structure as an abstract schemes.
+and Kummer variety with theta structure as abstract schemes.
 
 Following [Mum66]_ an abelian variety `A` of dimension `g` together with a level `n` theta
-structure is provided with a unique embedding `i: A \rightarrow P^{n^g-1}`. The data of
+structure is provided with a unique embedding `i: A \rightarrow \mathbb{P}^{n^g-1}`. The data of
 the theta structure is equivalent to the data of the theta null point `i(0)`. Actually, one
-of the main results of [Mum66]_ states that if `n \eq 4`, one can recover a complete set of
-equations for `i(A)` thanks to Riemann equations which are parametrized by the theta null
+of the main results of [Mum66]_ states that if `n = 4`, one can recover a complete set of
+equations for `i(A)` thanks to the Riemann equations, which are parametrized by the theta null
 point.
 
-In the case that `n=2`, as all the level two theta functions are even the map `i A
-\rightarrow P^{n^g-1}` factor through the Kummer variety `K=A/(-1)` associated to `A`.
+In the case that `n = 2`, since all the level two theta functions are even, the map `i: A
+\rightarrow \mathbb{P}^{n^g-1}` factors through the Kummer variety `K = A/(-1)` associated to `A`.
 
-As for computations, one look for the most compact and efficient representation, in most
-instances level `4` representation is enough. In some cases, one can find useful the
-increased speed up provided by the level `2` representation, so working with Kummer
-varieties, at the expense of loosing the group law of the abelian variety (but x
+As for computations, one looks for the most compact and efficient representation, which means that
+in most instances a level `4` representation is enough. In some cases, one can find useful the
+increased speed up provided by the level `2` representation, that is, working with Kummer
+varieties, at the expense of loosing the group law of the abelian variety.
 
 The main point of this module is to provide constructors for the creation of an Abelian
 and Kummer variety together with a level `n` theta structure (`n=2` in case of Kummer
-variety) and computing Riemann equations to represent its projective embedding and
-arithmetic. 
+variety) and computing Riemann equations to represent its projective embedding and arithmetic.
 
 
 AUTHORS:
@@ -33,7 +32,7 @@ AUTHORS:
 #       Copyright (C) 2022 Anna Somoza <anna.somoza.henares@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
+#  as published by the Free Software Foundation; either version 3 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
@@ -65,7 +64,7 @@ integer_types = (int, Integer)
 class Variety_ThetaStructure(AlgebraicScheme):
     r"""
     Generic class for Varieties with theta structure. See also
-    :func:`~thetAV.theta_null_point.AbelianVariety_ThetaStructure`, :class:`~thetAV.theta_null_point.KummerVariety`..
+    :class:`~thetAV.theta_null_point.AbelianVariety_ThetaStructure`, :class:`~thetAV.theta_null_point.KummerVariety`..
 
     INPUT:
 
@@ -78,8 +77,6 @@ class Variety_ThetaStructure(AlgebraicScheme):
       the riemann relations are satisfied by the input.
     """
     _point = VarietyThetaStructurePoint
-    #from_curve = partial(constructor._from_curve, level=2)
-    #with_theta_basis = constructor._with_theta_basis
 
     def __init__(self, R, n, g, T):
         """
@@ -249,8 +246,31 @@ class Variety_ThetaStructure(AlgebraicScheme):
 
     def with_theta_basis(self, *data, **kwargs):
         """
-        Let thc be a theta null point given by algebraic coordinates (i.e. :class:`AbelianVariety_ThetaStructure`, :class:`KummerVariety`). Compute the
-        corresponding theta null point (i.e. :class:`AnalyticThetaNullPoint`) in analytic coordinates.
+        Compute the representation of the thetanullpoint in the given basis of the space of theta functions.
+
+        Possible values are:
+
+        - 'F(n)'
+        - 'F(2,2)', for level 4
+        - 'F(2,2)^2', for level 2
+        - 'classical', corresponds to 'F(2,2)' or 'F(2,2)^2' depending on the level of self.
+
+        The method saves the already-computed values in the private variable _with_theta_basis.
+
+        It can also be used as the constructor for the thetanullpoint using other representations, see
+        :func:`~thetAV.constructor._with_theta_basis`
+
+        EXAMPLES::
+
+            sage: from thetAV import AbelianVariety, KummerVariety
+            sage: F.<z2> = GF(19^2)
+            sage: A = AbelianVariety(F, 4, 2, (5*z2 + 7 , 6*z2 + 8 , 6*z2 + 5 , 6*z2 + 8 , z2 + 13 , 4*z2 + 12 , 14*z2 + 11 , 11*z2 + 9 , 11*z2 + 6 , 6*z2 + 14 , 16*z2 + 5 , 6*z2 + 14 , z2 + 13 , 11*z2 + 9 , 14*z2 + 11 , 4*z2 + 12), check=True)
+            sage: A.with_theta_basis('classical')
+            (1 : 8*z2 + 15 : 15*z2 + 5 : z2 + 5 : 6*z2 + 11 : 0 : 16 : 0 : 17*z2 + 12 : 3*z2 + 1 : 0 : 0 : 17*z2 + 1 : 0 : 0 : 6*z2 + 11)
+            sage: K1 = KummerVariety(GF(331), 2, [328,213,75,1])
+            sage: K1.with_theta_basis('F(2,2)^2')
+            (173 : 327 : 8 : 163 : 49 : 0 : 305 : 0 : 325 : 112 : 0 : 0 : 42 : 0 : 0 : 286)
+
         """
         if type(self) == str:
             from .constructor import _with_theta_basis
@@ -264,18 +284,17 @@ class Variety_ThetaStructure(AlgebraicScheme):
             return self
         if label not in ['classical', 'F(2,2)', 'F(2,2)^2']:
             raise ValueError(f'The basis {label} is either not implemented or unknown.')
-        if label == 'F(2,2)':
-            raise ValueError(f'The basis {label} should be of level 2.')
 
         n = self.level()
         g = self.dimension()
-
         O = self.theta_null_point()
         D = self._D
         point = [0] * (4 ** g)
         R = self.base_ring()
 
         if n == 2:
+            if label == 'F(2,2)':
+                raise ValueError(f'The basis {label} should be of level {n}.')
             for (idxa, a), (idxb, b) in product(enumerate(D), repeat=2):
                 point[idxa + 2 ** g * idxb] = sum(
                     (-1) ** ZZ(a * beta) * O[b + beta] * O[idxbeta] for idxbeta, beta in enumerate(D)) / 2 ** g
@@ -284,11 +303,13 @@ class Variety_ThetaStructure(AlgebraicScheme):
             return th
 
         if n == 4:
+            if label == 'F(2,2)^2':
+                raise ValueError(f'The basis {label} should be of level {n}.')
             twotorsion = self._twotorsion  # Zmod(2)^g
             for (idxa, a), (idxb, b) in product(enumerate(twotorsion), repeat=2):
                 Db = D(list(b))
                 point[idxa + 2 ** g * idxb] = sum(
-                    (-1) ** (a * beta) * O[Db + beta] for beta in twotorsion) / 2 ** g
+                    (-1) ** ZZ(a * beta) * O[Db + beta] for beta in twotorsion) / 2 ** g
             th = analytic_theta_point.AnalyticThetaNullPoint(R, n, g, point)
             self._with_theta_basis[label] = th
             return th
@@ -297,8 +318,8 @@ class Variety_ThetaStructure(AlgebraicScheme):
 
     def riemann_relation(self, *data):
         """
-        Returns the riemann relation associated to a given triple chi, i, j. If it is not computed,
-        it computes it and stores it in the private variable _riemann.
+        Returns the indices appearing in the Riemann relation associated to a given triple chi, i, j.
+        If it has not been computed, it computes it and stores it in the private variable _riemann.
 
         INPUT:
 
@@ -312,12 +333,11 @@ class Variety_ThetaStructure(AlgebraicScheme):
         -  ``j`` -- the index of a coordinate of P. For now we are assuming that they are an
            element of Zmod(n)^g.
 
-       Or a triple of 3 integers, the integer representation of ``chi``, ``i`` and ``j``.
+        Or a triple of 3 integers, the integer representation of ``chi``, ``i`` and ``j``.
 
-        .. todo::
+        EXAMPLES:
 
-            - Rename?
-            - Private or public?
+            sage: #TODO examples
 
         """
         P0 = self.theta_null_point()
@@ -342,12 +362,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
         # we can reuse the maximum the computations
         # for a differential addition, i == j (generically) and we take k = l = 0
         # for a normal addition we have j = 0, so we take k = i, l = j.
-        if i == j:
-            k0 = D(0)
-            l0 = D(0)
-        else:
-            k0 = i
-            l0 = j
+        k0, l0 = (D(0), D(0)) if i == j else (i, j)
 
         for u, v in product(D, D):
             if u + v not in DD:
@@ -369,19 +384,23 @@ class Variety_ThetaStructure(AlgebraicScheme):
         i20, j20, tij2 = tools.reduce_twotorsion_couple(-i2, j2)
         k20, l20, tkl2 = tools.reduce_twotorsion_couple(k2, l2)
         for t in twotorsion:
-            self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, kk0, ll0, i20, j20, k20, l20, t + tkl + tij2 + tkl2]  # DIFF Maybe we only need to store the sum of all twotorsion.
+            self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, kk0, ll0, i20, j20, k20, l20, t + tkl + tij2 + tkl2]
         return self._riemann[(idxchi, idxi, idxj)]
 
     def _addition_formula(self, P, Q, L):
         """
-        Given two points P and Q and a list L containing triplets [chi, i, j]
+        Given two points P and Q and a list L containing integer triplets [idxchi, idxi, idxj]
         compute
         `\\sum_{t \\in Z(2)} \\chi(t) (P+Q)_{i + t} (P-Q)_{j + t}`
         for every given triplet.
 
-        .. todo::
+        TESTS::
 
-            - Add tests.
+            sage: from thetAV import *
+            sage: F.<z2> = GF(19^2)
+            sage: A = AbelianVariety(F, 4, 2, (5*z2 + 7 , 6*z2 + 8 , 6*z2 + 5 , 6*z2 + 8 , z2 + 13 , 4*z2 + 12 , 14*z2 + 11 , 11*z2 + 9 , 11*z2 + 6 , 6*z2 + 14 , 16*z2 + 5 , 6*z2 + 14 , z2 + 13 , 11*z2 + 9 , 14*z2 + 11 , 4*z2 + 12), check=True)
+            sage: A._addition_formula(A(0), A(0), [(1,8,7)])
+            {(1, 0, 15): 11, (1, 2, 13): 8, (1, 8, 7): 11, (1, 10, 5): 8}
 
         """
         twotorsion = self._twotorsion
@@ -412,6 +431,16 @@ class Variety_ThetaStructure(AlgebraicScheme):
         return r
 
     def isogeny(self, l, basis, R=list(), check=True):
+        """
+        Given the basis of an isotropic subgroup B of the l-torsion of A, compute
+        the thetanullpoints of the isogenous abelian variety A/B. Moreover, given a list of points R, it computes the
+        image of these points via the isogeny.
+
+        EXAMPLE::
+
+            sage: #TODO examples
+
+        """
         F = self.base_ring()
         g = self.dimension()
         ng = self._ng
@@ -479,7 +508,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
                 imgr[i] = sum(el[i] ** l for el in K[j]).lift()
             img.append(imgr)
 
-        fA = KummerVariety(F, g, img[0], check=check)
+        fA = constructor.AbelianVariety(F, self.level(), g, img[0])
         fR = [fA(el, check=check) for el in img[1:]]
         return fA, fR
 
@@ -584,9 +613,9 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
         """
         Returns a list of defining equations for the abelian variety.
 
-        .. todo::
+        EXAMPLES::
 
-            - Find a couple of examples
+            sage: #TODO examples
 
         """
         if self._eqns is not None:
@@ -689,20 +718,20 @@ class KummerVariety(Variety_ThetaStructure):
         Returns a list of defining equations for the abelian variety.
 
         If the theta null point has dimension 2 and level 2, these are
-        the equations as given by Gaudry in [Gaud]_.
+        the equations as given by Gaudry in [Gaud]_. In that case, it assumes that the
+        genericity conditions are satisfied (see [Gaud]_ for details).
 
         Otherwise, these are computed using the Riemann relations.
 
-        .. todo::
+        EXAMPLES::
 
-            - Find a couple of examples
+            sage: #TODO examples
 
         """
         if self._eqns is not None:
             return self._eqns
         if self._dimension != 2:
             raise NotImplementedError
-        # TODO: add genericity condition checks.
         O = self.with_theta_basis('F(2,2)^2')
         idx = partial(tools.idx, n=2)
         a2 = O[idx([0,0,0,0])]
