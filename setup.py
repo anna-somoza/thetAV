@@ -4,8 +4,6 @@ import sys
 from setuptools import setup
 from codecs import open # To open the README file with proper encoding
 from setuptools.command.test import test as TestCommand # for tests
-from thetAV import __version__
-
 
 # Get information from separate files (README, VERSION)
 def readfile(filename):
@@ -21,7 +19,7 @@ class SageTest(TestCommand):
 
 setup(
     name = "thetAV",
-    version = __version__, #readfile("VERSION").strip(), # the VERSION file is shared with the documentation
+    version = 0.1, #readfile("VERSION").strip(), # the VERSION file is shared with the documentation
     description = 'A SageMath package on abelian varieties with theta structure',
     long_description = readfile("README.md"),
     long_description_content_type="text/markdown",
@@ -42,5 +40,6 @@ setup(
     ], # classifiers list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
     keywords = "SageMath package",
     packages = ['thetAV'],
+    install_requires=['sage',],
     cmdclass = {'test': SageTest},
 )

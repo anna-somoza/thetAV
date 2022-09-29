@@ -36,5 +36,3 @@ clean-doc:
 	cd docs && $(SAGE) -sh -c "make clean"
 
 .PHONY: all install develop test coverage clean clean-doc doc doc-pdf
-
-distripypi
