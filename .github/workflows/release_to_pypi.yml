@@ -17,6 +17,9 @@ jobs:
       - name: Set conda environment
         uses: conda-incubator/setup-miniconda@v2
         with:
+          mamba-version: "*"
+          channels: conda-forge,defaults
+          channel-priority: true
           activate-environment: thetav
           environment-file: .basic_conda.yml
           auto-activate-base: false
