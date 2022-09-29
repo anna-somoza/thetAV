@@ -25,7 +25,7 @@ setup(
     description = 'A SageMath package on abelian varieties with theta structure',
     long_description = readfile("README.md"),
     long_description_content_type="text/markdown",
-    url='https://avisogenies.readthedocs.io/',
+    url='https://thetav.readthedocs.io/',
     author='Anna Somoza',
     author_email='anna.somoza.henares@gmail.com', # choose a main contact email
     license='GPLv3', # This should be consistent with the LICENCE file
@@ -40,7 +40,7 @@ setup(
       'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
       'Programming Language :: Python :: 3.10',
     ], # classifiers list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    keywords = "SageMath packaging",
+    keywords = "SageMath package",
     packages = ['thetAV'],
     cmdclass = {'test': SageTest},
 )

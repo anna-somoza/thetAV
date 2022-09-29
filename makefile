@@ -14,7 +14,7 @@ install:
 uninstall:
 	$(SAGE) -pip uninstall $(PACKAGE)
 
-develop:
+dev:
 	$(SAGE) -pip install --upgrade -e .
 
 test:
@@ -29,9 +29,12 @@ doc:
 doc-pdf:
 	cd docs && $(SAGE) -sh -c "make latexpdf" && $(SAGE) -sh -c "make latexpdf"
 
-clean: clean-doc
+clean: uninstall
+	clean-doc
 
 clean-doc:
 	cd docs && $(SAGE) -sh -c "make clean"
 
 .PHONY: all install develop test coverage clean clean-doc doc doc-pdf
+
+distripypi
