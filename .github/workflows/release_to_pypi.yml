@@ -1,4 +1,4 @@
-name: Publish ${package_name} to TestPyPI / GitHub
+name: Publish ${{ github.repository }} to TestPyPI / GitHub
 
 on:
   push:
