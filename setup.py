@@ -19,7 +19,7 @@ class SageTest(TestCommand):
 
 setup(
     name = "thetAV",
-    version = 0.1, #readfile("VERSION").strip(), # the VERSION file is shared with the documentation
+    version = "0.1.1", #readfile("VERSION").strip(), # the VERSION file is shared with the documentation
     description = 'A SageMath package on abelian varieties with theta structure',
     long_description = readfile("README.md"),
     long_description_content_type="text/markdown",
