@@ -1,0 +1,26 @@
+## This is a conda environment file.
+## Use it as follows:
+##
+##    conda env create -f environment.yml
+##
+## See https://towardsdatascience.com/a-guide-to-conda-environments-bc6180fc533
+## or    https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
+name: thetav-doc
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - sage=9.6
+  - setuptools_scm
+  - sphinx=4.4
+  - sphinxcontrib-websupport
+  - sphinxcontrib-bibtex
+  - lrslib
+  - normaliz
+  - boost-cpp      # For installing PyNormaliz
+  - mathjax
+  - pandoc
+  - pip
+  - pip:
+    - .[doc]

@@ -19,7 +19,7 @@ class SageTest(TestCommand):
 
 setup(
     name = "thetAV",
-    version = "0.1.1", #readfile("VERSION").strip(), # the VERSION file is shared with the documentation
+    version = readfile("VERSION").strip(), # the VERSION file is shared with the documentation
     description = 'A SageMath package on abelian varieties with theta structure',
     long_description = readfile("README.md"),
     long_description_content_type="text/markdown",
@@ -28,9 +28,6 @@ setup(
     author_email='anna.somoza.henares@gmail.com', # choose a main contact email
     license='GPLv3', # This should be consistent with the LICENCE file
     classifiers=[
-      # How mature is this project? Common values are
-      #   3 - Alpha
-      #   4 - Beta
       #   5 - Production/Stable
       'Development Status :: 4 - Beta',
       'Intended Audience :: Science/Research',
@@ -38,8 +35,25 @@ setup(
       'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
       'Programming Language :: Python :: 3.10',
     ], # classifiers list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    keywords = "SageMath package",
+    python_requires=">=3.10, <4",
+    project_urls={
+        'Documentation': 'https://thetav.readthedocs.io/',
+        'Source': 'https://github.com/anna-somoza/thetAV/',
+    },
+    keywords = "SageMath",
     packages = ['thetAV'],
-    install_requires=['sage',],
+    install_requires = ['sage-setup'],
+    extras_require={  # Optional
+        "doc": [
+            "pynormaliz",
+            "sage-package",
+            "myst_parser",
+            "matplotlib",
+            "nbsphinx",
+            "sphinxcontrib-svg2pdfconverter",
+            "sphinx_copybutton",
+            "furo"
+        ],
+    },
     cmdclass = {'test': SageTest},
 )

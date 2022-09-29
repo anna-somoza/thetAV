@@ -4,8 +4,8 @@
 <p align="center">
   A <a href="https://www.sagemath.org/">SageMath</a> package on abelian varieties with theta structure
 </p>
-<p align="center">      <a href="https://avisogenies.readthedocs.io/en/latest/?badge=latest">
-         <img alt="Documentation Status" src="https://readthedocs.org/projects/avisogenies/badge/?version=latest">
+<p align="center">      <a href="https://thetav.readthedocs.io/en/latest/?badge=latest">
+         <img alt="Documentation Status" src="https://readthedocs.org/projects/thetav/badge/?version=latest">
       </a></p>
 </div>
 </div>
@@ -42,12 +42,12 @@ This library also implements a full range of arithmetic operations over these ab
 <!-- start install -->
 First of all, make sure that you have SageMath 9.5 or later.
 
-**Install from PyPI**
+**Install from TestPyPI**
 
-thetAV is distributed on [PyPI]. You can install it with the command:
+thetAV is currently distributed on [TestPyPI]. You can install it with the command:
 
 ```console
-$ sage -pip install thetAV
+$ sage -pip install -i https://test.pypi.org/simple/ thetAV
 ```
 
 **Local installation from source**
@@ -55,7 +55,7 @@ $ sage -pip install thetAV
 1. Download the source from the repository:
 
 ```console
-$ git clone https://github.com/dlubicz/thetAV.git
+$ git clone https://github.com/anna-somoza/thetAV.git
 ```
 
 2. Go to the package directory and run
@@ -64,7 +64,7 @@ $ git clone https://github.com/dlubicz/thetAV.git
 $ make install
 ```
 
-[PyPI]:https://pypi.org/project/thetAV/
+[TestPyPI]:https://test.pypi.org/project/thetAV/
 <!-- end install -->
 
 # First steps

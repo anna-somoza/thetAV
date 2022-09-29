@@ -15,7 +15,7 @@ uninstall:
 	$(SAGE) -pip uninstall $(PACKAGE)
 
 dev:
-	$(SAGE) -pip install --upgrade -e .
+	$(SAGE) -pip install --upgrade -e .[doc]
 
 test:
 	$(SAGE) -t $(PACKAGE)/.
@@ -29,8 +29,8 @@ doc:
 doc-pdf:
 	cd docs && $(SAGE) -sh -c "make latexpdf" && $(SAGE) -sh -c "make latexpdf"
 
-clean: uninstall
-	clean-doc
+clean:
+	uninstall clean-doc
 
 clean-doc:
 	cd docs && $(SAGE) -sh -c "make clean"
