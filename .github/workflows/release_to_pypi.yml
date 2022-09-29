@@ -1,4 +1,4 @@
-name: Publish ${{ github.repository }} to TestPyPI / GitHub
+name: Publish thetAV to TestPyPI / GitHub
 
 on:
   push:
