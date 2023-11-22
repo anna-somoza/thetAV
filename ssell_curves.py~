@@ -1,0 +1,23 @@
+"""
+Additional tools.
+
+AUTHORS:
+
+- Andreas Pieper 2023 initial implementation
+
+"""
+
+# *****************************************************************************
+#       Copyright (C) 2023 Andreas Pieper <andreas.pieper@univ-rennes1.fr>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 3 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+# *****************************************************************************
+
+from sage.rings.all import ZZ, Integer, Zmod
+from sage.structure.coerce_maps import CallableConvertMap
+from sage.misc.constant_function import ConstantFunction
+from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebraFactory
+

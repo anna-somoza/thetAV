@@ -748,19 +748,15 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
         if check:
             O = X.theta_null_point()
             idx = partial(tools.idx, n=X.level())
-            dual = X._dual
             D = X._D
             twotorsion = X._twotorsion
-            if len(dual) != len(X):
-                for (idxi, i), (idxj, j) in product(enumerate(D), enumerate(D)):
-                    ii, jj, tt = tools.reduce_twotorsion_couple(i, j)
-                    for idxchi, chi in enumerate(twotorsion):
-                        el = (idxchi, idx(ii), idx(jj))
-                        if el not in dual:
-                            dual[el] = sum(tools.eval_car(chi, t) * O[ii + t] * O[jj + t] for t in twotorsion)
-                        el2 = (idxchi, idxi, idxj)
-                        dual[el2] = tools.eval_car(chi, tt) * dual[el]
-            X._dual = dual
+            dual = {}
+            for (idxi, i), (idxj, j) in product(enumerate(D), enumerate(D)):
+                for idxchi, chi in enumerate(twotorsion):
+                     el = (idxchi, idxi, idxj)
+                     if el not in dual:
+                          dual[el] = sum(tools.eval_car(chi, t) * v[idx(i + t)] * v[idx(j + t)] for t in twotorsion)
+
 
             dualself = {}
             DD = [2 * d for d in D]
@@ -769,7 +765,7 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
                 for idxchi, chi in enumerate(twotorsion):
                     el = (idxchi, idx(ii), idx(jj))
                     if el not in dualself:
-                        dualself[el] = sum(tools.eval_car(chi, t) * v[idx(ii + t)] * v[idx(jj + t)] for t in twotorsion)
+                        dualself[el] = sum(tools.eval_car(chi, t) * O[idx(ii + t)] * O[idx(jj + t)] for t in twotorsion)
                     el2 = (idxchi, idx(i), idx(j))
                     dualself[el2] = tools.eval_car(chi, tt) * dualself[el]
 
@@ -783,6 +779,9 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
                         el3 = (idxchi, idx(m - i), idx(m - j))
                         el4 = (idxchi, idx(m - k), idx(m - l))
                         if dual[el1] * dualself[el2] != dual[el3] * dualself[el4]:
+                            print(dual[el1], dualself[el2], dual[el3], dualself[el4])
+                            print((v[0]**2+v[2]**2), 2*O[0]*O[2], ( 2*v[1]*v[3]),( 2*O[1]*O[3]))
+                            print(el1, el2, el3, el4)
                             raise ValueError('The given list does not define a valid thetapoint')
 
     def abelian_variety(self):
