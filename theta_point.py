@@ -600,8 +600,8 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
                 val = 0
                 for chi in twotorsion:
                     l2 = sum(eval_car(chi, t) * Q[idxt] * R[idxt] for idxt, t in enumerate(twotorsion))
-                    l3 = sum(eval_car(chi, t) * O[I + t] * QR[J + t] for t in twotorsion)
-                    l4 = sum(eval_car(chi, t) * PR[idxt] * PQ[idxt] for idxt, t in enumerate(twotorsion))
+                    l3 = sum(eval_car(chi, t) * O[idxt] * QR[idxt] for idxt, t in enumerate(twotorsion))
+                    l4 = sum(eval_car(chi, t) * PR[I+t] * PQ[J+t] for idxt, t in enumerate(twotorsion))
                     val += l3 * l4 / l2
                 PQR[idxI] = val / (2 ** g * self[idxJ])
         return point0.point(PQR)
