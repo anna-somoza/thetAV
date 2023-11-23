@@ -584,6 +584,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
         i0 = D(idxi0)
         for idxI, I in enumerate(D):
             if self[idxI] == 0:
+                print("not here")
                 idxJ, J = idxi0, i0
                 i1, j1, t1 = reduce_twotorsion_couple(I - J, 0)
                 i2, j2, t2 = reduce_twotorsion_couple(I, J)
@@ -596,13 +597,12 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
                 PQR[idxI] = val / (2 ** g * self[idxJ])
             else:
                 idxJ, J = idxI, I
-                i2, j2, t2 = reduce_twotorsion_couple(I, J)
                 val = 0
                 for chi in twotorsion:
                     l2 = sum(eval_car(chi, t) * Q[idxt] * R[idxt] for idxt, t in enumerate(twotorsion))
-                    l3 = sum(eval_car(chi, t) * O[i2 + t] * QR[j2 + t] for t in twotorsion)
+                    l3 = sum(eval_car(chi, t) * O[I + t] * QR[J + t] for t in twotorsion)
                     l4 = sum(eval_car(chi, t) * PR[idxt] * PQ[idxt] for idxt, t in enumerate(twotorsion))
-                    val += eval_car(chi, t2) * l3 * l4 / l2
+                    val += l3 * l4 / l2
                 PQR[idxI] = val / (2 ** g * self[idxJ])
         return point0.point(PQR)
 
@@ -778,9 +778,7 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
                         el2 = (idxchi, idxk, idxl)
                         el3 = (idxchi, idx(m - i), idx(m - j))
                         el4 = (idxchi, idx(m - k), idx(m - l))
-                        if dual[el1] * dualself[el2] != dual[el3] * dualself[el4]:
-                            print(dual[el1], dualself[el2], dual[el3], dualself[el4])
-                            print((v[0]**2+v[2]**2), 2*O[0]*O[2], ( 2*v[1]*v[3]),( 2*O[1]*O[3]))
+                        if dual[el1] * dualself[el2] != dualself[el3] * dual[el4]:
                             print(el1, el2, el3, el4)
                             raise ValueError('The given list does not define a valid thetapoint')
 
