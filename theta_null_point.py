@@ -494,16 +494,15 @@ class Variety_ThetaStructure(AlgebraicScheme):
                 idx0, idx1 = Bidx[i0], Bidx[i1]
                 K[j][idxe] = K[0][idx0].three_way_add(K[0][idx1], K[j][idx(e - e0 - e1)], K[0][idx(e0 + e1)],
                                                       K[j][idx(e - e0)], K[j][idx(e - e1)])
-                print("three_add", j, idxe)
-                print([i for i in  range(lg) if K[0][i] != K[1][i] and K[0][i]!=None and K[1][i] != None])
-                print(lst, j, "\n")
+                if K[j][idxe]!= K[0][idx0]+K[0][idx1]+ K[j][idx(e - e0 - e1)]:
+                       print(K[0][idx0]+K[0][idx1]== K[0][idx(e0 + e1)],K[0][idx0]+K[j][idx(e - e0 - e1)] == K[j][idx(e - e1)], K[0][idx1]+K[j][idx(e - e0 - e1)]==  K[j][idx(e - e0)] )
+                       print("problem in threeway add", j, Zl[idxe], Zl[idx0], Zl[idx1], e-e0-e1, e0+e1, e-e0, e-e1)
                 continue
             ek = B[k]
             idxk = Bidx[k]
             K[j][idxe] = K[j][idx(e - ek)].diff_add(K[0][idxk], K[j][idx(e - 2 * ek)])
-            print("diff_add", j,  idxe, idx(e-ek), idx(e-2*ek))
-            print([i for i in  range(lg) if K[0][i] != K[1][i] and K[0][i]!=None and K[1][i] != None])      
-            print(lst, j, "\n")
+            if K[j][idxe] !=  K[j][idx(e - ek)]+K[0][idxk]:
+                       print("problem in diff add", j, Zl[idxe], e-ek, Zl[idxk], e-2*ek)
         img = []
         for j in range(r):
             imgr = [0] * ng
@@ -512,8 +511,6 @@ class Variety_ThetaStructure(AlgebraicScheme):
             img.append(imgr)
 
         fA = constructor.AbelianVariety(F, self.level(), g, img[0])
-        print([el/img[0][0] for el in img[0]])
-        print(img[1])
         fR = [fA(el, check=check) for el in img[1:]]
         return fA, fR
 
