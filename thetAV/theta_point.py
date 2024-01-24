@@ -16,7 +16,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, division, absolute_import
 
 from functools import partial
 from itertools import product, combinations_with_replacement
@@ -635,7 +634,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             raise ValueError(f'The scalar factor k={k} should be in the base ring R={self._R}')
         v = self._coords
         A = self.scheme()
-        return A.point(map(lambda i: k * i, v))
+        return A.point((k * i for i in v))
 
     def compatible_lift(self, l, other=None, add=None):
         """
@@ -848,10 +847,11 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
     def _add(self, other, i0=0):
         """
         Normal addition between self and other on the affine plane with respect to i0.
+
         If (self - other)[i] == 0, then it tries with another affine plane.
 
-        .. seealso::
-        
+        .. SEEALSO::
+
             :meth:`~._add_`
 
         TESTS::
@@ -871,6 +871,7 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
         if not any(PQ):
             return self._add(other, i0 + 1)
         return point0.point(PQ)
+
 
 @richcmp_method
 class KummerVarietyPoint(VarietyThetaStructurePoint):
@@ -902,7 +903,8 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
         """
         Initialize.
 
-        TEST ::
+        TESTS::
+
             sage: from thetAV import *
             sage: p = 2 ^ 3 * 3 ^ 10 - 1
             sage: Fp2 = GF(p^2)
@@ -1016,7 +1018,7 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
         Normal addition between self and other on the affine plane with respect to i0.
         If (self - other)[i] == 0, then it tries with another affine plane.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`~._add_`
 

@@ -15,7 +15,7 @@ In the case that `n = 2`, since all the level two theta functions are even, the 
 As for computations, one looks for the most compact and efficient representation, which means that
 in most instances a level `4` representation is enough. In some cases, one can find useful the
 increased speed up provided by the level `2` representation, that is, working with Kummer
-varieties, at the expense of loosing the group law of the abelian variety.
+varieties, at the expense of losing the group law of the abelian variety.
 
 The main point of this module is to provide constructors for the creation of an Abelian
 and Kummer variety together with a level `n` theta structure (`n=2` in case of Kummer
@@ -430,7 +430,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
                 r[(el[0], idx(ci0 + t), idx(cj0 + t))] = tools.eval_car(chi, t) * S
         return r
 
-    def isogeny(self, l, basis, R=list(), check=True):
+    def isogeny(self, l, basis, R=[], check=True):
         """
         Given the basis of an isotropic subgroup B of the l-torsion of A, compute
         the thetanullpoints of the isogenous abelian variety A/B. Moreover, given a list of points R, it computes the
@@ -467,7 +467,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
         lg = l ** g
 
         support = [range(l)] * g + [range(r)]
-        rows = list(accumulate((len(lst) for lst in pts)))
+        rows = list(accumulate(len(lst) for lst in pts))
 
         K = [[None] * lg for i in range(r)]
         # The cantor_product iterator guarantees that when we reach a certain element
