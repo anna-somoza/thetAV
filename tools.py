@@ -199,10 +199,10 @@ def get_dual_quadruplet(x, y, u, v):
     """
     r = x + y + u + v
     z = r.parent()([ZZ(e) // 2 for e in list(r)])
-    xbis = z - x
-    ybis = z - y
-    ubis = z - u
-    vbis = z - v
+    xbis = z
+    ybis = z - u - v
+    ubis = z - y - v
+    vbis = z - y - u
     return xbis, ybis, ubis, vbis
 
 

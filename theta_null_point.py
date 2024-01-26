@@ -378,11 +378,12 @@ class Variety_ThetaStructure(AlgebraicScheme):
                 self._riemann[(idxchi, idx(i + t), idx(j + t))] = []
             return []
         kk0, ll0, tkl = tools.reduce_symtwotorsion_couple(kk, ll)
-        i2, j2, k2, l2 = tools.get_dual_quadruplet(i, j, kk, ll)
-        i20, j20, tij2 = tools.reduce_twotorsion_couple(-i2, j2)
+        i2, j2, k2, l2 = tools.get_dual_quadruplet(i, j, kk0, ll0)
+        i20, j20, tij2 = tools.reduce_twotorsion_couple(i2, j2)
         k20, l20, tkl2 = tools.reduce_twotorsion_couple(k2, l2)
+        print(tkl, tij2, tkl2);
         for t in twotorsion:
-            self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, kk0, ll0, i20, j20, k20, l20, t + tkl + tij2 + tkl2]
+            self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, kk0, ll0, i20, j20, k20, l20, t + tij2 + tkl2 ]
         return self._riemann[(idxchi, idxi, idxj)]
 
     def _addition_formula(self, P, Q, L):
@@ -416,14 +417,20 @@ class Variety_ThetaStructure(AlgebraicScheme):
             k0, l0 = map(idx, IJ[2:4])
             ci20, cj20 = IJ[4:6]
             ck20, cl20 = IJ[6:8]
-            tt = IJ[8]
+            ck0, cl0 = IJ[2:4]
+            cibis, cjbis, ckbis, clbis = tools.get_dual_quadruplet(ci0, cj0, ck0, cl0)
+            print(cibis-ci20, cjbis-cj20,ckbis-ck20,clbis-cl20  )
 
+            tt = IJ[8]
             chi = twotorsion(el[0])
 
             s1 = sum(tools.eval_car(chi, t) * Q[ci20 + t] * Q[cj20 + t] for t in twotorsion)
             s2 = sum(tools.eval_car(chi, t) * P[ck20 + t] * P[cl20 + t] for t in twotorsion)
             A = self._dual[(el[0], k0, l0)]
+            #There is a problem with the characters here:
+            print(tt)
             S = tools.eval_car(chi, tt) * s2 * s1 / A
+            print(chi, tools.eval_car(chi, tt))
             for t in twotorsion:
                 r[(el[0], idx(ci0 + t), idx(cj0 + t))] = tools.eval_car(chi, t) * S
         return r
@@ -611,7 +618,7 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
         """
         return AbelianVariety_ThetaStructure(R, self.level(), self.dimension(), self.theta_null_point())
 
-    def equations(self):
+    def equations(self, stop=0):
         """
         Returns a list of defining equations for the abelian variety.
 
@@ -646,6 +653,8 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
                     eq = Pel1 * Oel2 - Oel3 * Pel4
                     if eq != 0 and eq not in eqns:
                         eqns.append(eq)
+                        if len(eqns) == stop:
+                            return eqns
         if eqns == [0]:
             eqns = []
         self._eqns = eqns

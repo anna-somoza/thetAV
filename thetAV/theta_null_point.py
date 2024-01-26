@@ -618,6 +618,7 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
             sage: #TODO examples
 
         """
+        print("Hello")
         if self._eqns is not None:
             return self._eqns
         F = self.base_ring()
@@ -644,6 +645,8 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
                     eq = Pel1 * Oel2 - Oel3 * Pel4
                     if eq != 0 and eq not in eqns:
                         eqns.append(eq)
+                        if len(eqns) == stop:
+                            break elem
         if eqns == [0]:
             eqns = []
         self._eqns = eqns
