@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # sample documentation build configuration file,
 # inspried by slabbe configuration file created sphinx-quickstart
@@ -13,11 +12,11 @@
 # serve to show the default.
 
 # General information about the project.
-project = u"thetAV"
-copyright = u'2021, Anna Somoza'
+project = "thetAV"
+copyright = '2021, Anna Somoza'
 package_name = 'thetAV'
 package_folder = "../../thetAV"
-authors = u"Anna Somoza"
+authors = "Anna Somoza"
 
 import os
 import sys
@@ -41,7 +40,7 @@ sys.path.insert(0, os.path.abspath('./theme'))
 #sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
 
 
-print("Using sys.path = {}".format(sys.path))
+print(f"Using sys.path = {sys.path}")
 
 # -- General configuration ------------------------------------------------
 
@@ -377,7 +376,7 @@ latex_toplevel_sectioning = 'section'
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', package_name + '.tex', u'Documentation of thetAV\_sage',
+  ('index', package_name + '.tex', 'Documentation of thetAV\_sage',
    authors, 'manual'),
 ]
 
@@ -403,7 +402,7 @@ latex_show_pagerefs = True
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', package_name, six.text_type(package_name) + u" documentation",
+    ('index', package_name, six.text_type(package_name) + " documentation",
      [authors], 1)
 ]
 
@@ -417,7 +416,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', package_name, six.text_type(package_name) + u" documentation",
+  ('index', package_name, six.text_type(package_name) + " documentation",
    authors, package_name, project,
    'Miscellaneous'),
 ]
@@ -444,7 +443,7 @@ from pygments.formatters.latex import LatexFormatter
 
 class CustomLatexFormatter(LatexFormatter):
     def __init__(self, **options):
-        super(CustomLatexFormatter, self).__init__(**options)
+        super().__init__(**options)
         self.verboptions = r"formatcom=\footnotesize"
 
 PygmentsBridge.latex_formatter = CustomLatexFormatter
@@ -484,5 +483,5 @@ autodoc_member_order = 'bysource'
 ## The following is needed on conda-forge sagemath
 from sage.repl.user_globals import initialize_globals
 import sage.all
-my_globs = dict()
+my_globs = {}
 initialize_globals(sage.all, my_globs)

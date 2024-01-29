@@ -37,17 +37,17 @@ class SageConsoleLexer(PythonConsoleLexer):
         tb = 0
         for match in line_re.finditer(text):
             line = match.group()
-            if line.startswith(u'sage: ') or line.startswith(u'....: '):
+            if line.startswith('sage: ') or line.startswith('....: '):
                 tb = 0
                 insertions.append((len(curcode),
                                    [(0, Generic.Prompt, line[:6])]))
                 curcode += line[6:]
-            elif line.rstrip() == u'...' and not tb:
+            elif line.rstrip() == '...' and not tb:
                 # only a new >>> prompt can end an exception block
                 # otherwise an ellipsis in place of the traceback frames
                 # will be mishandled
                 insertions.append((len(curcode),
-                                   [(0, Generic.Prompt, u'...')]))
+                                   [(0, Generic.Prompt, '...')]))
                 curcode += line[3:]
             else:
                 if curcode:
@@ -56,8 +56,8 @@ class SageConsoleLexer(PythonConsoleLexer):
                         yield item
                     curcode = ''
                     insertions = []
-                if (line.startswith(u'Traceback (most recent call last):') or
-                        re.match(u' {2}File "[^"]+", line \d+\n$', line)):
+                if (line.startswith('Traceback (most recent call last):') or
+                        re.match(' {2}File "[^"]+", line \d+\n$', line)):
                     tb = 1
                     curtb = line
                     tbindex = match.start()
@@ -65,7 +65,7 @@ class SageConsoleLexer(PythonConsoleLexer):
                     yield match.start(), Name.Class, line
                 elif tb:
                     curtb += line
-                    if not (line.startswith(' ') or line.strip() == u'...'):
+                    if not (line.startswith(' ') or line.strip() == '...'):
                         tb = 0
                         for i, t, v in tblexer.get_tokens_unprocessed(curtb):
                             yield tbindex+i, t, v

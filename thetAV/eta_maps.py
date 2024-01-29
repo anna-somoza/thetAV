@@ -176,8 +176,8 @@ def eta(g, L, normalized=False, idx=False):
         v = V(list(chain(ep, es)))
         return ZZ(list(v), 2) if idx else v
     else:
-        ep = sum((eta_prime(g, i) for i in L))
-        es = sum((eta_second(g, i) for i in L))
+        ep = sum(eta_prime(g, i) for i in L)
+        es = sum(eta_second(g, i) for i in L)
         v = V(list(chain(ep, es)))
         if normalized:
             return ZZ([x%2 for x in v], 2) if idx else normalize_eta(v)
