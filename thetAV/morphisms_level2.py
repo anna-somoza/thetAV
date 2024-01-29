@@ -60,9 +60,10 @@ from sage.arith.misc import XGCD
 from .eta_maps import eta, eta_prime, eta_second, normalize_eta, e_2
 from .morphisms_aux import choice_of_all_C_Cosset, constant_f2_level2, YS_fromMumford_Generic, YS_fromMumford_Delta, Y_fromMumford_with2torsion, sign_s_A
 
+
 def MumfordToTheta_2_Generic(a, thc2, points):
     """
-    Let D be a point in Jac(C)\\Theta. D can be writen as
+    Let D be a point in Jac(C)\\Theta. D can be written as
     D = sum_1^g P_i - g P_infty
     Let points be the list of coordinates (x,y) (as tuples) of P_i
     Let a be the x-coordinate of th Weierstrass points of the curve
@@ -132,7 +133,7 @@ def MumfordToTheta_2_Generic(a, thc2, points):
 
 def MumfordToLevel2ThetaPoint(a, thc2, points):
     """
-    Let D be a point in Jac(C)\\Theta. D can be writen as
+    Let D be a point in Jac(C)\\Theta. D can be written as
     D = sum_1^d P_i - g P_infty
     Let points be the list of coordinates [x,y] of P_i
     Let a be the x-coordinates of the Weierstrass points of the curve
@@ -389,7 +390,8 @@ def ThetaToMumford_2_Generic(a, th2):
 
     return u, v2
 
-def ThetaToMumford_2_algclose(a,th2):
+
+def ThetaToMumford_2_algclose(a, th2):
     """
     Let D be a point in Jac(C).
     D is represented by the theta functions th2 of level 2
@@ -399,7 +401,7 @@ def ThetaToMumford_2_algclose(a,th2):
 
     Compute the Mumford polynomials (u,v^2) associated to D
     
-    .. todo:: Difference with funcion above? Do we need this or can we join them somehow? Test against Magma, add examples
+    .. todo:: Difference with function above? Do we need this or can we join them somehow? Test against Magma, add examples
     """
     thc2 = th2.abelian_variety()
     g = thc2.dimension()

@@ -41,7 +41,7 @@ integer_types = (int, Integer)
 
 def MumfordToTheta_4_Generic(a, rac, thc, points):
     """
-    Let D be a point in Jac(C)\\Theta. D can be writen as
+    Let D be a point in Jac(C)\\Theta. D can be written as
     D = sum_1^g P_i - g P_infty
     Let points be the list of coordinates [x,y] of P_i
     Let a be the x-coordinate of th Weierstrass points of the curve
@@ -152,7 +152,7 @@ def MumfordToTheta_4_Generic(a, rac, thc, points):
 
 def MumfordToLevel4ThetaPoint(a, rac, thc, points):
     """
-    Let D be a point in Jac(C)\\Theta. D can be writen as
+    Let D be a point in Jac(C)\\Theta. D can be written as
     D = sum_1^d P_i - g P_infty
     Let points be the list of coordinates [x,y] of P_i
     Let a be the x-coordinates of the Weierstrass points of the curve
@@ -179,7 +179,7 @@ def MumfordToLevel4ThetaPoint(a, rac, thc, points):
 
     """
     if thc.level() != 4:
-        raise ValueError(F'Expected level-4 theta structure.')
+        raise ValueError('Expected level-4 theta structure.')
 
     g = thc.dimension()
     thO = thc(0)
