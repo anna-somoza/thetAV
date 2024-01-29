@@ -646,7 +646,7 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
                     if eq != 0 and eq not in eqns:
                         eqns.append(eq)
                         if len(eqns) == stop:
-                            break elem
+                            return eqns
         if eqns == [0]:
             eqns = []
         self._eqns = eqns
