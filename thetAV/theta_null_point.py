@@ -362,28 +362,23 @@ class Variety_ThetaStructure(AlgebraicScheme):
         # for a differential addition, i == j (generically) and we take k = l = 0
         # for a normal addition we have j = 0, so we take k = i, l = j.
         k0, l0 = (D(0), D(0)) if i == j else (i, j)
-        for u, v in product(D, D):
-            if u + v not in DD:
-                continue
+        for u, uv in product(D, DD):
+            v = uv-u
             k, l, _ = tools.reduce_symtwotorsion_couple(k0 + u, l0 + v)
             el = (idxchi, idx(k), idx(l))
             if el not in self._dual:
                 self._dual[el] = sum(tools.eval_car(chi, t) * P0[k + t] * P0[l + t] for t in twotorsion)
             if self._dual[el] != 0:
-                kk = k0 + u
-                ll = l0 + v
+                kk = k
+                ll = l
                 break
         else:  # If we leave the for loop without encountering a break
             for t in twotorsion:
                 self._riemann[(idxchi, idx(i + t), idx(j + t))] = []
             return []
-        kk0, ll0, tkl = tools.reduce_symtwotorsion_couple(kk, ll)
-        i2, j2, k2, l2 = tools.get_dual_quadruplet(i, j, kk0, ll0)
-        i20, j20, tij2 = tools.reduce_twotorsion_couple(i2, j2)
-        k20, l20, tkl2 = tools.reduce_twotorsion_couple(k2, l2)
-        print(tkl, tij2, tkl2);
+        i2, j2, k2, l2 = tools.get_dual_quadruplet(i, j, kk, ll)
         for t in twotorsion:
-            self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, kk0, ll0, i20, j20, k20, l20, t + tij2 + tkl2 ]
+            self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, kk, ll, i2, j2, k2, l2, t]
         return self._riemann[(idxchi, idxi, idxj)]
 
     def _addition_formula(self, P, Q, L):
@@ -419,8 +414,6 @@ class Variety_ThetaStructure(AlgebraicScheme):
             ck20, cl20 = IJ[6:8]
             ck0, cl0 = IJ[2:4]
             cibis, cjbis, ckbis, clbis = tools.get_dual_quadruplet(ci0, cj0, ck0, cl0)
-            print(cibis-ci20, cjbis-cj20,ckbis-ck20,clbis-cl20  )
-
             tt = IJ[8]
             chi = twotorsion(el[0])
 
@@ -428,9 +421,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
             s2 = sum(tools.eval_car(chi, t) * P[ck20 + t] * P[cl20 + t] for t in twotorsion)
             A = self._dual[(el[0], k0, l0)]
             #There is a problem with the characters here:
-            print(tt)
             S = tools.eval_car(chi, tt) * s2 * s1 / A
-            print(chi, tools.eval_car(chi, tt))
             for t in twotorsion:
                 r[(el[0], idx(ci0 + t), idx(cj0 + t))] = tools.eval_car(chi, t) * S
         return r
