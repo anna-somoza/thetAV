@@ -35,7 +35,7 @@ from . import tools
 integer_types = (int, Integer)
 
 @richcmp_method
-class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
+class VarietyThetaStructurePoint(SchemeMorphism_point):
     """
     Constructor for a point on a variety with theta structure.
 
@@ -44,6 +44,10 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
     - ``X`` -- a variety with theta structure
     - ``v`` -- data determining a point (another point or a tuple of coordinates)
     """
+
+    def _acted_upon_(self, k, on_left):
+        return self._mult(k)
+
 
     def __init__(self, X, v):
         """

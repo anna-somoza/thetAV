@@ -15,7 +15,7 @@ In the case that `n = 2`, since all the level two theta functions are even, the 
 As for computations, one looks for the most compact and efficient representation, which means that
 in most instances a level `4` representation is enough. In some cases, one can find useful the
 increased speed up provided by the level `2` representation, that is, working with Kummer
-varieties, at the expense of losing the group law of the abelian variety.
+varieties, at the expense of loosing the group law of the abelian variety.
 
 The main point of this module is to provide constructors for the creation of an Abelian
 and Kummer variety together with a level `n` theta structure (`n=2` in case of Kummer
@@ -355,7 +355,6 @@ class Variety_ThetaStructure(AlgebraicScheme):
                 idxj = idx(j)
             case _:
                 raise TypeError("Input should be a tuple of length 3 or 3 elements.")
-
         DD = [2 * d for d in D]
         i, j, tij = tools.reduce_twotorsion_couple(i, j)
         # we try to find k and l to apply the addition formulas such that
@@ -363,7 +362,6 @@ class Variety_ThetaStructure(AlgebraicScheme):
         # for a differential addition, i == j (generically) and we take k = l = 0
         # for a normal addition we have j = 0, so we take k = i, l = j.
         k0, l0 = (D(0), D(0)) if i == j else (i, j)
-
         for u, v in product(D, D):
             if u + v not in DD:
                 continue
@@ -380,11 +378,12 @@ class Variety_ThetaStructure(AlgebraicScheme):
                 self._riemann[(idxchi, idx(i + t), idx(j + t))] = []
             return []
         kk0, ll0, tkl = tools.reduce_symtwotorsion_couple(kk, ll)
-        i2, j2, k2, l2 = tools.get_dual_quadruplet(i, j, kk, ll)
-        i20, j20, tij2 = tools.reduce_twotorsion_couple(-i2, j2)
+        i2, j2, k2, l2 = tools.get_dual_quadruplet(i, j, kk0, ll0)
+        i20, j20, tij2 = tools.reduce_twotorsion_couple(i2, j2)
         k20, l20, tkl2 = tools.reduce_twotorsion_couple(k2, l2)
+        print(tkl, tij2, tkl2);
         for t in twotorsion:
-            self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, kk0, ll0, i20, j20, k20, l20, t + tkl + tij2 + tkl2]
+            self._riemann[(idxchi, idx(i + t), idx(j + t))] = [i, j, kk0, ll0, i20, j20, k20, l20, t + tij2 + tkl2 ]
         return self._riemann[(idxchi, idxi, idxj)]
 
     def _addition_formula(self, P, Q, L):
@@ -418,19 +417,25 @@ class Variety_ThetaStructure(AlgebraicScheme):
             k0, l0 = map(idx, IJ[2:4])
             ci20, cj20 = IJ[4:6]
             ck20, cl20 = IJ[6:8]
-            tt = IJ[8]
+            ck0, cl0 = IJ[2:4]
+            cibis, cjbis, ckbis, clbis = tools.get_dual_quadruplet(ci0, cj0, ck0, cl0)
+            print(cibis-ci20, cjbis-cj20,ckbis-ck20,clbis-cl20  )
 
+            tt = IJ[8]
             chi = twotorsion(el[0])
 
             s1 = sum(tools.eval_car(chi, t) * Q[ci20 + t] * Q[cj20 + t] for t in twotorsion)
             s2 = sum(tools.eval_car(chi, t) * P[ck20 + t] * P[cl20 + t] for t in twotorsion)
             A = self._dual[(el[0], k0, l0)]
+            #There is a problem with the characters here:
+            print(tt)
             S = tools.eval_car(chi, tt) * s2 * s1 / A
+            print(chi, tools.eval_car(chi, tt))
             for t in twotorsion:
                 r[(el[0], idx(ci0 + t), idx(cj0 + t))] = tools.eval_car(chi, t) * S
         return r
 
-    def isogeny(self, l, basis, R=[], check=True):
+    def isogeny(self, l, basis, R=list(), check=True):
         """
         Given the basis of an isotropic subgroup B of the l-torsion of A, compute
         the thetanullpoints of the isogenous abelian variety A/B. Moreover, given a list of points R, it computes the
@@ -449,8 +454,8 @@ class Variety_ThetaStructure(AlgebraicScheme):
         pts = []
         deltas = []
         for i, ei in enumerate(basis):
-            Re = [(P + ei)[0] for P in R]
-            Be = [(ei + ej)[0] for ej in basis[i + 1:]]
+            Re = [(P + ei) for P in R]
+            Be = [(ei + ej) for ej in basis[i + 1:]]
             pts.append([ei] + Re + Be)
             deltas += ei.compatible_lift(l, R, Re)
             deltas += [eij.compatible_lift(l) for eij in Be]
@@ -467,7 +472,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
         lg = l ** g
 
         support = [range(l)] * g + [range(r)]
-        rows = list(accumulate(len(lst) for lst in pts))
+        rows = list(accumulate((len(lst) for lst in pts)))
 
         K = [[None] * lg for i in range(r)]
         # The cantor_product iterator guarantees that when we reach a certain element
@@ -496,11 +501,15 @@ class Variety_ThetaStructure(AlgebraicScheme):
                 idx0, idx1 = Bidx[i0], Bidx[i1]
                 K[j][idxe] = K[0][idx0].three_way_add(K[0][idx1], K[j][idx(e - e0 - e1)], K[0][idx(e0 + e1)],
                                                       K[j][idx(e - e0)], K[j][idx(e - e1)])
+                if K[j][idxe]!= K[0][idx0]+K[0][idx1]+ K[j][idx(e - e0 - e1)]:
+                       print(K[0][idx0]+K[0][idx1]== K[0][idx(e0 + e1)],K[0][idx0]+K[j][idx(e - e0 - e1)] == K[j][idx(e - e1)], K[0][idx1]+K[j][idx(e - e0 - e1)]==  K[j][idx(e - e0)] )
+                       print("problem in threeway add", j, Zl[idxe], Zl[idx0], Zl[idx1], e-e0-e1, e0+e1, e-e0, e-e1)
                 continue
             ek = B[k]
             idxk = Bidx[k]
             K[j][idxe] = K[j][idx(e - ek)].diff_add(K[0][idxk], K[j][idx(e - 2 * ek)])
-
+            if K[j][idxe] !=  K[j][idx(e - ek)]+K[0][idxk]:
+                       print("problem in diff add", j, Zl[idxe], e-ek, Zl[idxk], e-2*ek)
         img = []
         for j in range(r):
             imgr = [0] * ng
@@ -609,7 +618,7 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
         """
         return AbelianVariety_ThetaStructure(R, self.level(), self.dimension(), self.theta_null_point())
 
-    def equations(self):
+    def equations(self, stop=0):
         """
         Returns a list of defining equations for the abelian variety.
 
@@ -618,7 +627,6 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
             sage: #TODO examples
 
         """
-        print("Hello")
         if self._eqns is not None:
             return self._eqns
         F = self.base_ring()
@@ -626,7 +634,7 @@ class AbelianVariety_ThetaStructure(Variety_ThetaStructure):
         FF = FractionField(R)
         x = R.gens()
         A = self.change_ring(FF)
-        P = A.point(x, FF)
+        P = A.change_ring(FF).point(x)
         D = self._D
         DD = [2 * d for d in D]
         twotorsion = self._twotorsion
