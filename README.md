@@ -1,14 +1,17 @@
 <div class="row">
-  <div class="column"><img src="docs/source/logo/logo.svg" align="left" title="thetAV" alt="logo for the thetAV package"></div>
+  <div class="column"><img src="doc/source/logo/logo.svg" align="left" title="thetAV" alt="logo for the thetAV package"></div>
   <div class="column"><h1 align="center">thetAV</h1>
 <p align="center">
   A <a href="https://www.sagemath.org/">SageMath</a> package on abelian varieties with theta structure
 </p>
-<p align="center">      <a href="https://thetav.readthedocs.io/en/latest/?badge=latest">
-         <img alt="Documentation Status" src="https://readthedocs.org/projects/thetav/badge/?version=latest">
-      </a></p>
-</div>
-</div>
+
+
+![doc](https://github.com/Andreas-Pieper/thetAV/actions/workflows/doc.yml/badge.svg)
+
+![test](https://github.com/Andreas-Pieper/thetAV/actions/workflows/test.yml/badge.svg)
+
+![lint](https://github.com/Andreas-Pieper/thetAV/actions/workflows/lint.yml/badge.svg)
+
 
 <!-- start elevator-pitch -->
 The package <span style="color:var(--color-problematic)">**thetAV**</span> aims to implement a complete set of tools to represent and compute with Abelian varieties and their moduli space within SageMath.

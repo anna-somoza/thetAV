@@ -1,0 +1,35 @@
+# This file lists the dependencies needed to build and test all of the package.
+# Create a conda environment with these dependencies preinstalled with:
+# conda env create -f environment.yml
+name: thetAV-dev
+channels:
+  - conda-forge
+dependencies:
+  - alabaster
+  - black>=23,<24
+  - build
+  - cysignals
+  - docutils
+  - fplll
+  - fpylll
+  - furo
+  - isort
+  - ipywidgets
+  - jupyter-sphinx
+  - jupytext
+  - matplotlib-base
+  - myst-parser
+  - myst-nb
+  - pip
+  - pygments
+  - pylint>=3,<3.1
+  - python
+  - rever
+  - sagelib
+  - sagemath-db-conway-polynomials
+  - sagemath-db-elliptic-curves
+  - sphinx
+  - twine
+  - wheel
+  - zn_poly
+
