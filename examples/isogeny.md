@@ -20,7 +20,7 @@ kernelspec:
 ``
 from thetAV import *
 
-p = 2 ** 3 * 3 ** 10 - 1
+p = 2 ^ 3 * 3 ^ 10 - 1
 Fp2.<z2> = FiniteField(p ^ 2)
 Fp4.<z4> = Fp2.extension(2)
 R.<x> = Fp4[]
