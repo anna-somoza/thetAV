@@ -20,10 +20,10 @@ myst_enable_extensions = [
 ]
 
 # The suffix of source filenames.
-source_suffix = ".rst"
+source_suffix = ".md"
 
 # The master (aka main) toctree document.
-master_doc = "index"
+master_doc = "source/index"
 
 # General information about the project.
 project = "thetAV"
