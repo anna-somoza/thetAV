@@ -1,3 +1,23 @@
+--
+jupytext:
+  formats: ipynb,md:myst
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.15.2
+kernelspec:
+  display_name: SageMath 10.2
+  language: sage
+  name: sagemath
+---
+
+# Example for arithmetic on Kummer variety
+
+
+
+```{code-cell}
+``
 from thetAV import *
 
 p = 2 ^ 3 * 3 ^ 10 - 1
@@ -25,3 +45,5 @@ R = [X(pt) for pt in [B[0] + r[0] * B[2] + r[1] * B[3], B[1] + r[1] * B[2] + r[2
 basis = [(3^9)*pt for pt in R]
 
 fA, fR = X.isogeny(l, basis, R)
+```
+

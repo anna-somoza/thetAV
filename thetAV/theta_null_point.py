@@ -426,7 +426,7 @@ class Variety_ThetaStructure(AlgebraicScheme):
                 r[(el[0], idx(ci0 + t), idx(cj0 + t))] = tools.eval_car(chi, t) * S
         return r
 
-    def isogeny(self, l, basis, R=list(), check=True):
+    def isogeny(self, l, basis, R=None, check=True):
         """
         Given the basis of an isotropic subgroup B of the l-torsion of A, compute
         the thetanullpoints of the isogenous abelian variety A/B. Moreover, given a list of points R, it computes the
@@ -437,6 +437,10 @@ class Variety_ThetaStructure(AlgebraicScheme):
             sage: #TODO examples
 
         """
+        if self.level() == 2:
+            raise NotImplementedError
+        if R is None:
+            R = []
         F = self.base_ring()
         g = self.dimension()
         ng = self._ng

@@ -278,7 +278,7 @@ class VarietyThetaStructurePoint(SchemeMorphism_point):
             sage: P = A([255 , 89 , 30 , 1])
             sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
             ....: 155*t^3 + 84*t^2 + 15*t + 170, 1])
-            sage: P + Q
+            sage: P.schematic_add(Q)
             ((221*t^3 + 178*t^2 + 126*t + 27 : 32*t^3 + 17*t^2 + 175*t + 171 : 180*t^3 + 188*t^2 + 161*t + 119 : 261*t^3 + 107*t^2 + 37*t + 135),
             (1 : 56*t^3 + 312*t^2 + 147*t + 287 : 277*t^3 + 295*t^2 + 7*t + 287 : 290*t^3 + 203*t^2 + 274*t + 10))
 
@@ -849,7 +849,7 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
             PQ[i] = sum(r[(chi, i, j)] for chi in range(twog)) / (twog * PmQ[j])
         return point0.point(PQ, check=check)
 
-    def _add(self, other, i0=0):
+    def schematic_addition(self, other, i0=0):
         """
         Normal addition between self and other on the affine plane with respect to i0.
 
@@ -1018,7 +1018,7 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
 
         return point0.point(PQ)
 
-    def _add(self, other, idxi0=0):
+    def schematic_add(self, other, idxi0=0):
         """
         Normal addition between self and other on the affine plane with respect to i0.
         If (self - other)[i] == 0, then it tries with another affine plane.
@@ -1116,7 +1116,8 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
             sage: P = A([255 , 89 , 30 , 1])
             sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
             ....: 155*t^3 + 84*t^2 + 15*t + 170, 1])
-            sage: P.weil_pairing(1889, Q)
-            61*t^3 + 285*t^2 + 196*t + 257
+            sage: wp = P.weil_pairing(1889, Q)
+            sage: [w**1889 for w in wp]
+            [1, 1]
         """
-        return sum(VarietyThetaStructurePoint.weil_pairing(self, l, Q, pt) for pt in self + Q)
+        return [VarietyThetaStructurePoint.weil_pairing(self, l, Q, pt) for pt in self.schematic_add(Q)]

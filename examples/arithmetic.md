@@ -1,13 +1,37 @@
-from thetAV import *
+
+--
+jupytext:
+  formats: ipynb,md:myst
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.15.2
+kernelspec:
+  display_name: SageMath 10.2
+  language: sage
+  name: sagemath
+---
 
 #Example from Section 6 of 'Efficient Pairing Computation with theta functions'
 #by David Lubicz and Damien Robert
+
+
+
+
+```{code-cell}
+``
+
+
+
+from thetAV import *
+
 
 FF = GF(331)
 g = 2
 
 pt = [328 , 213 , 75 , 1]
-A = KummerVariety(FF, g, pt, check=True)
+A = KummerVariety(FF, g, pt)
 
 P_list = [255 , 89 , 30 , 1]
 P = A(P_list)
@@ -32,4 +56,5 @@ PmQ = A2(PmQ_list)
 QP = Q.diff_add(A2(P), PmQ)
 
 l = 1889
-P.weil_pairing(l, Q, QP)
+P.weil_pairing(l, Q)
+```
