@@ -145,7 +145,7 @@ def _from_curve(C, level=4):
     th4 = [m / (l * n), m * (l - m) * (n - 1) / (n * (m - 1) * (l - n)), m * (l - 1) * (n - 1) / (l * n * (m - 1)),
            m * (l - 1) * (n - m) / (l * (n - l) * (m - 1))]
     th2 = [F(1)] + [F(0)] * (ng - 1)
-    if not all([el.is_square() for el in th4]):
+    if not all(el.is_square() for el in th4):
         F, to_F = F.extension(2, map=True)
         th4 = [to_F(el) for el in th4]
     for i, ei in enumerate(D.gens()):
@@ -159,7 +159,7 @@ def _from_curve(C, level=4):
     if level == 2:
         A = analytic_theta_point.AnalyticThetaNullPoint(F, 2, 2, th2, curve=C, phi=phi, wp=[0, 1, l, m, n], rac=F(1))
     else:
-        if not all([el.is_square() for el in th2]):
+        if not all(el.is_square() for el in th2):
             F, to_F = F.extension(2, map=True)
             th2 = [to_F(el) for el in th2]
         th = [sqrt(el) for el in th2]

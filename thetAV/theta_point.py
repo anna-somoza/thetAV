@@ -16,7 +16,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, division, absolute_import
 
 from functools import partial
 from itertools import product, combinations_with_replacement
@@ -36,7 +35,7 @@ from . import tools
 integer_types = (int, Integer)
 
 @richcmp_method
-class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
+class VarietyThetaStructurePoint(SchemeMorphism_point):
     """
     Constructor for a point on a variety with theta structure.
 
@@ -45,6 +44,10 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
     - ``X`` -- a variety with theta structure
     - ``v`` -- data determining a point (another point or a tuple of coordinates)
     """
+
+    def _acted_upon_(self, k, on_left):
+        return self._mult(k)
+
 
     def __init__(self, X, v):
         """
@@ -273,9 +276,9 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: F.<t> = poly.splitting_field()
             sage: A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1])
-            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
-             155*t^3 + 84*t^2 + 15*t + 170, 1])
-            sage: P + Q
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+            ....: 155*t^3 + 84*t^2 + 15*t + 170, 1])
+            sage: P.schematic_add(Q)
             ((221*t^3 + 178*t^2 + 126*t + 27 : 32*t^3 + 17*t^2 + 175*t + 171 : 180*t^3 + 188*t^2 + 161*t + 119 : 261*t^3 + 107*t^2 + 37*t + 135),
             (1 : 56*t^3 + 312*t^2 + 147*t + 287 : 277*t^3 + 295*t^2 + 7*t + 287 : 290*t^3 + 203*t^2 + 274*t + 10))
 
@@ -403,16 +406,17 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: F.<t> = poly.splitting_field()
             sage: A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1])
-            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,\
-             155*t^3 + 84*t^2 + 15*t + 170, 1])
-            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 , \
-                258*t^3 + 39*t^2 + 313*t + 150 , 1])
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+            ....: 155*t^3 + 84*t^2 + 15*t + 170, 1])
+            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 ,
+            ....: 258*t^3 + 39*t^2 + 313*t + 150 , 1])
             sage: PQ = P.diff_add(Q, PmQ)
             sage: P.diff_multadd(42, PQ, Q)
             ((41*t^3 + 291*t^2 + 122*t + 305 : 119*t^3 + 95*t^2 + 120*t + 68 : 81*t^3 + 168*t^2 + 326*t + 24 : 202*t^3 + 251*t^2 + 246*t + 169),
             (311 : 326 : 136 : 305))
         
         .. todo::
+
             If we don't need kP, then we don't need to compute kP, only (k/2)P, so
             we lose 2 differential additions. Could be optimized here.
             
@@ -516,10 +520,10 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: F.<t> = poly.splitting_field()
             sage: A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1])
-            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
-             155*t^3 + 84*t^2 + 15*t + 170, 1])
-            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 , \
-                258*t^3 + 39*t^2 + 313*t + 150 , 1])
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+            ....: 155*t^3 + 84*t^2 + 15*t + 170, 1])
+            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 ,
+            ....: 258*t^3 + 39*t^2 + 313*t + 150 , 1])
             sage: PQ = P.diff_add(Q, PmQ)
             sage: P.tate_pairing(1889, Q, PQ)
             313*t^3 + 144*t^2 + 38*t + 71
@@ -555,10 +559,10 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             sage: F.<t> = poly.splitting_field()
             sage: A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1])
-            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,\
-             155*t^3 + 84*t^2 + 15*t + 170, 1])
-            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 , \
-                258*t^3 + 39*t^2 + 313*t + 150 , 1])
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+            ....: 155*t^3 + 84*t^2 + 15*t + 170, 1])
+            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 ,
+            ....: 258*t^3 + 39*t^2 + 313*t + 150 , 1])
             sage: PQ = P.diff_add(Q, PmQ)
             sage: P.diff_multadd(2, PQ, Q)[0] == P.three_way_add(P,Q,2*P, PQ, PQ)
             True
@@ -635,7 +639,7 @@ class VarietyThetaStructurePoint(AdditiveGroupElement, SchemeMorphism_point):
             raise ValueError(f'The scalar factor k={k} should be in the base ring R={self._R}')
         v = self._coords
         A = self.scheme()
-        return A.point(map(lambda i: k * i, v))
+        return A.point((k * i for i in v))
 
     def compatible_lift(self, l, other=None, add=None):
         """
@@ -733,8 +737,8 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
         sage: poly = X^4 + 3*X^2 + 290*X + 3
         sage: F.<t> = poly.splitting_field()
         sage: B = A.change_ring(F)
-        sage: Q = B([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
-         155*t^3 + 84*t^2 + 15*t + 170, 1]); Q
+        sage: Q = B([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+        ....: 155*t^3 + 84*t^2 + 15*t + 170, 1]); Q
         (158*t^3 + 67*t^2 + 9*t + 293 : 290*t^3 + 25*t^2 + 235*t + 280 : 155*t^3 + 84*t^2 + 15*t + 170 : 1)
 
     """
@@ -845,13 +849,14 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
             PQ[i] = sum(r[(chi, i, j)] for chi in range(twog)) / (twog * PmQ[j])
         return point0.point(PQ, check=check)
 
-    def _add(self, other, i0=0):
+    def schematic_addition(self, other, i0=0):
         """
         Normal addition between self and other on the affine plane with respect to i0.
+
         If (self - other)[i] == 0, then it tries with another affine plane.
 
-        .. seealso::
-        
+        .. SEEALSO::
+
             :meth:`~._add_`
 
         TESTS::
@@ -871,6 +876,7 @@ class AbelianVarietyPoint(VarietyThetaStructurePoint):
         if not any(PQ):
             return self._add(other, i0 + 1)
         return point0.point(PQ)
+
 
 @richcmp_method
 class KummerVarietyPoint(VarietyThetaStructurePoint):
@@ -892,8 +898,8 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
         sage: poly = X^4 + 3*X^2 + 290*X + 3
         sage: F.<t> = poly.splitting_field()
         sage: B = A.change_ring(F)
-        sage: Q = B([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
-         155*t^3 + 84*t^2 + 15*t + 170, 1]); Q
+        sage: Q = B([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+        ....: 155*t^3 + 84*t^2 + 15*t + 170, 1]); Q
         (158*t^3 + 67*t^2 + 9*t + 293 : 290*t^3 + 25*t^2 + 235*t + 280 : 155*t^3 + 84*t^2 + 15*t + 170 : 1)
 
     """
@@ -902,7 +908,8 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
         """
         Initialize.
 
-        TEST ::
+        TESTS::
+
             sage: from thetAV import *
             sage: p = 2 ^ 3 * 3 ^ 10 - 1
             sage: Fp2 = GF(p^2)
@@ -978,10 +985,10 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
             sage: F.<t> = poly.splitting_field()
             sage: A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1])
-            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
-                155*t^3 + 84*t^2 + 15*t + 170, 1])
-            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 , \
-                258*t^3 + 39*t^2 + 313*t + 150 , 1])
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+            ....: 155*t^3 + 84*t^2 + 15*t + 170, 1])
+            sage: PmQ = A([62*t^3 + 16*t^2 + 255*t + 129 , 172*t^3 + 157*t^2 + 43*t + 222 ,
+            ....: 258*t^3 + 39*t^2 + 313*t + 150 , 1])
             sage: PQ = P.diff_add(Q, PmQ); PQ
             (261*t^3 + 107*t^2 + 37*t + 135 : 205*t^3 + 88*t^2 + 195*t + 125 : 88*t^3 + 99*t^2 + 164*t + 98 : 159*t^3 + 279*t^2 + 254*t + 276)
         
@@ -1011,12 +1018,12 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
 
         return point0.point(PQ)
 
-    def _add(self, other, idxi0=0):
+    def schematic_add(self, other, idxi0=0):
         """
         Normal addition between self and other on the affine plane with respect to i0.
         If (self - other)[i] == 0, then it tries with another affine plane.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`~._add_`
 
@@ -1107,9 +1114,10 @@ class KummerVarietyPoint(VarietyThetaStructurePoint):
             sage: F.<t> = poly.splitting_field()
             sage: A = KummerVariety(F, 2, [328 , 213 , 75 , 1])
             sage: P = A([255 , 89 , 30 , 1])
-            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280, \
-             155*t^3 + 84*t^2 + 15*t + 170, 1])
-            sage: P.weil_pairing(1889, Q)
-            61*t^3 + 285*t^2 + 196*t + 257
+            sage: Q = A([158*t^3 + 67*t^2 + 9*t + 293, 290*t^3 + 25*t^2 + 235*t + 280,
+            ....: 155*t^3 + 84*t^2 + 15*t + 170, 1])
+            sage: wp = P.weil_pairing(1889, Q)
+            sage: [w**1889 for w in wp]
+            [1, 1]
         """
-        return sum(VarietyThetaStructurePoint.weil_pairing(self, l, Q, pt) for pt in self + Q)
+        return [VarietyThetaStructurePoint.weil_pairing(self, l, Q, pt) for pt in self.schematic_add(Q)]

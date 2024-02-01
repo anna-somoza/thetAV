@@ -77,7 +77,7 @@ def compatible_sqrt(g, i, j):
     
         \sqrt{\langle a_j - a_i\rangle} = \sqrt{\langle a_j - a_0\rangle} \frac{\theta[\eta_{U \circ V \circ \{i, \infty\}}]\theta[\eta_{U \circ V \circ \{0, j\}}]}{\theta[\eta_{U \circ V \circ \{0, \infty\}}]\theta[\eta_{U \circ V \circ \{i, j\}}]}
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from thetAV.morphisms_aux import compatible_sqrt
         sage: compatible_sqrt(5, 6, 3)
@@ -153,7 +153,7 @@ def constant_f(g, A, C):
     - ``A`` - a set.
     - ``C`` - a choice of C as in [Coss]_ (see :func:`choice_of_C_Cosset` and :func:`choice_of_all_C_Cosset`).
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from thetAV.morphisms_aux import constant_f
         sage: g = 5; A = set([1, 2, 3]); C = set([5, 6, 7])
@@ -196,8 +196,8 @@ def constant_f(g, A, C):
     # ff /= prod((compatible_sqrt(g, k, i) for i, k in product((B - (A ^ C)) & (B - (U ^ C)), (A ^ C) - (U ^ C))), EpElement())
 
     # We compute a simplified version for speed
-    prod_list = Counter([(i,k) for i, k in product(A & U, U - A)] + [(i,k) for i, k in product((B - A) & (B - U), A - U)])
-    div_list = Counter([(i,k) for i, k in product((A ^ C) & (U ^ C), (U ^ C) - (A ^ C))] + [(i,k) for i, k in product((B - (A ^ C)) & (B - (U ^ C)), (A ^ C) - (U ^ C))])
+    prod_list = Counter(list(product(A & U, U - A)) + list(product((B - A) & (B - U), A - U)))
+    div_list = Counter(list(product((A ^ C) & (U ^ C), (U ^ C) - (A ^ C))) + list(product((B - (A ^ C)) & (B - (U ^ C)), (A ^ C) - (U ^ C))))
     ff *= prod((compatible_sqrt(g, k, i)**m for (i,k), m in (prod_list - div_list).items()), EpElement())
     ff /= prod((compatible_sqrt(g, k, i)**m for (i,k), m in (div_list - prod_list).items()), EpElement())
 
@@ -212,7 +212,7 @@ def choice_of_C_Cosset(g, A):
     - ``g`` - an Integer, the dimension.
     - ``A`` - a set.
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from thetAV.morphisms_aux import choice_of_C_Cosset
         sage: choice_of_C_Cosset(5, {0,1,2})
@@ -252,7 +252,7 @@ def choice_of_all_C_Cosset(g):
 
     - ``g`` - an Integer, the dimension.
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from thetAV.morphisms_aux import choice_of_all_C_Cosset
         sage: g = 5; C = choice_of_all_C_Cosset(g)
@@ -283,7 +283,7 @@ def sign_s_A(g, A, C):
     - ``A`` - a set.
     - ``C`` - a choice of all C as in [Coss]_ (see :func:`choice_of_all_C_Cosset`).
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from thetAV.morphisms_aux import choice_of_all_C_Cosset, sign_s_A
         sage: g = 5; C = choice_of_all_C_Cosset(g)
@@ -335,7 +335,7 @@ def IgusaTheorem(A, TH):
     - ``A`` - A list with 4 eta vectors.
     - ``TH`` - A list of 4 analytic theta points.
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from thetAV import KummerVariety
         sage: from thetAV.morphisms_aux import IgusaTheorem
@@ -382,7 +382,7 @@ def constant_f2_level2(a, thc, A, C):
     - ``A`` - a set
     - ``C`` - a choice of C as in [Coss]_ (see :func:`choice_of_C_Cosset` and :func:`choice_of_all_C_Cosset`).
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from thetAV import KummerVariety
         sage: from thetAV.morphisms_aux import constant_f2_level2, choice_of_C_Cosset
@@ -415,7 +415,7 @@ def YS_fromMumford_Generic(g, a, S, points):
     """
     Compute Y_S(P) for P a preimage of a point D in Jac(C)\\Theta as defined in
     Equation (5.1) in [Coss]_..
-    D can be writen as D = sum_1^g P_i - g P_infty.
+    D can be written as D = sum_1^g P_i - g P_infty.
 
     INPUT:
 
@@ -425,7 +425,7 @@ def YS_fromMumford_Generic(g, a, S, points):
     - ``points`` - a list of coordinates (x,y) (as tuples) of the points P_i in D. Assume
       that all P_i are distinct.
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from thetAV.morphisms_aux import YS_fromMumford_Generic
         sage: g = 2; a = [0,1,4,6,7]; S = [0,2,3]
@@ -450,7 +450,7 @@ def YS_fromMumford_Generic(g, a, S, points):
 
 def YS_fromMumford_Delta(g, a, S, points, F): #DIFF: Not tested against Magma
     """
-    Let D be a point in Jac(C)\\Theta. D can be writen as
+    Let D be a point in Jac(C)\\Theta. D can be written as
     D = sum_1^g P_i - g P_infty
     Assume that there exists i <=> j such that P_i = P_j but the other P_k are distinct
     Let points be the list of coordinates (x,y) (as tuples) of P_i
@@ -460,7 +460,7 @@ def YS_fromMumford_Delta(g, a, S, points, F): #DIFF: Not tested against Magma
 
     See page 117 in [Coss]_.
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from thetAV.morphisms_aux import YS_fromMumford_Delta
         sage: F = GF(331); g = 2; a = [0, 1, 2, 3, 4]; S = [0,2,3]
@@ -592,7 +592,7 @@ def YS_fromMumford_Delta(g, a, S, points, F): #DIFF: Not tested against Magma
 
 def prodYp_fromMumford_with2torsion(g, a, S, points, V, C, F):
     """
-    Let D be a point in Jac(C)\\Theta. D can be writen as
+    Let D be a point in Jac(C)\\Theta. D can be written as
     D = sum_1^g P_i - g P_infty
     Let points be the list of coordinates (x,y) (as tuples) of P_i
     Let a be the x-coordinate of th Weierstrass points of the curve
@@ -605,7 +605,7 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C, F):
     prod Y_Si' / prod a_l
     where the second product is over l in V counted twice iff it appears in all Si
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from thetAV.morphisms_aux import choice_of_all_C_Cosset, prodYp_fromMumford_with2torsion
         sage: F = GF(331); g = 2; a = list(map(F, [0, 1, 2, 3, 4]))
@@ -682,9 +682,10 @@ def prodYp_fromMumford_with2torsion(g, a, S, points, V, C, F):
 
     return Y
 
+
 def Y_fromMumford_with2torsion(g, a, S, points, V):
     """
-    Let D be a point in Jac(C)\\Theta. D can be writen as
+    Let D be a point in Jac(C)\\Theta. D can be written as
     D = sum_1^g P_i - g P_infty
     Let points be the list of coordinates (x,y) (as tuples) of P_i
     Let a be the x-coordinate of the Weierstrass points of the curve
@@ -695,7 +696,7 @@ def Y_fromMumford_with2torsion(g, a, S, points, V):
 
     Compute the function Y_S^2 / prod a_l    where the product is over l in V
 
-    EXAMPLES ::
+    EXAMPLES::
 
         sage: from thetAV.morphisms_aux import Y_fromMumford_with2torsion
         sage: F = GF(331); g = 2; a = list(map(F, [0, 1, 2, 3, 4]))

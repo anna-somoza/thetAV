@@ -151,7 +151,7 @@ def reduce_twotorsion_couple(x, y):
 
         c = CallableConvertMap(T, D, c)
         D.register_coercion(c)
-    return (xred, y + tx, tx) if xred < yred else (yred, x + ty, ty)
+    return (xred, y + tx, tx) if xred < yred else (yred, x+ty,  ty)
 
 
 def reduce_symtwotorsion_couple(x, y):
